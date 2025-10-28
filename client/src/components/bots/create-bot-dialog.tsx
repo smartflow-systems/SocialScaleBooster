@@ -79,7 +79,7 @@ export default function CreateBotDialog({ isPremium, botCount, children }: Creat
       setFormData({ name: "", description: "", platform: "", preset: "" });
     },
     onError: (error: any) => {
-      toast({
+      toast.toast({
         title: "Creation Failed",
         description: error.message || "Failed to create bot. Please try again.",
         variant: "destructive",
@@ -113,7 +113,7 @@ export default function CreateBotDialog({ isPremium, botCount, children }: Creat
       
       createBotMutation.mutate(botData);
     } catch (error) {
-      toast({
+      toast.toast({
         title: "Validation Error",
         description: "Please fill in all required fields correctly.",
         variant: "destructive",

@@ -20,7 +20,7 @@ interface PremiumTemplateCardProps {
 }
 
 export default function PremiumTemplateCard({ template }: PremiumTemplateCardProps) {
-  const { data: userStatus } = useQuery({
+  const { data: userStatus } = useQuery<any>({
     queryKey: ["/api/user/status"],
   });
 

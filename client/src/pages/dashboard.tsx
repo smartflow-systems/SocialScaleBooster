@@ -48,23 +48,23 @@ export default function Dashboard() {
     }
   }, []);
 
-  const { data: userStatus } = useQuery({
+  const { data: userStatus } = useQuery<any>({
     queryKey: ["/api/user/status"],
   });
 
-  const { data: bots } = useQuery({
+  const { data: bots } = useQuery<any[]>({
     queryKey: ["/api/bots"],
   });
 
-  const { data: templates } = useQuery({
+  const { data: templates } = useQuery<any[]>({
     queryKey: ["/api/templates"],
   });
 
-  const { data: analyticsMetrics } = useQuery({
+  const { data: analyticsMetrics } = useQuery<any>({
     queryKey: ["/api/analytics/metrics"],
   });
 
-  const { data: engagementMetrics } = useQuery({
+  const { data: engagementMetrics } = useQuery<any>({
     queryKey: ["engagement-metrics"],
     queryFn: () => analyticsService.getEngagementByPlatform(),
   });

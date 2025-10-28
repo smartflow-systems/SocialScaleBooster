@@ -33,7 +33,7 @@ export default function EnhancedMarketplace({ userStatus }: EnhancedMarketplaceP
   const [showPremiumOnly, setShowPremiumOnly] = useState(false);
   const toast = useToast();
 
-  const { data: templates } = useQuery({
+  const { data: templates } = useQuery<Template[]>({
     queryKey: ["/api/templates"],
   });
 

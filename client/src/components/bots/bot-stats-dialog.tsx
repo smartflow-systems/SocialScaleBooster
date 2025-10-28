@@ -37,7 +37,7 @@ interface BotStatsDialogProps {
 export default function BotStatsDialog({ botId, children }: BotStatsDialogProps) {
   const [open, setOpen] = useState(false);
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading } = useQuery<any>({
     queryKey: [`/api/bots/${botId}/stats`],
     enabled: open,
   });

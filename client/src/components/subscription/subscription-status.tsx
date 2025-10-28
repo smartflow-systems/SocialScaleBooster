@@ -10,7 +10,7 @@ export default function SubscriptionStatus() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: subscriptionStatus } = useQuery({
+  const { data: subscriptionStatus } = useQuery<any>({
     queryKey: ["/api/subscription-status"],
   });
 

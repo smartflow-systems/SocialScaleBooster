@@ -68,8 +68,8 @@ export default function BotCard({ bot }: BotCardProps) {
           <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center">
             {getPlatformIcon(bot.platform)}
           </div>
-          <Badge className={`${getStatusColor(bot.status)} text-white text-xs font-semibold`}>
-            {bot.status?.charAt(0).toUpperCase() + bot.status?.slice(1) || 'Active'}
+          <Badge className={`${getStatusColor(bot.status || 'active')} text-white text-xs font-semibold`}>
+            {bot.status ? bot.status.charAt(0).toUpperCase() + bot.status.slice(1) : 'Active'}
           </Badge>
         </div>
         

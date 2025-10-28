@@ -107,6 +107,7 @@ export default function EditBotDialog({ bot, children }: EditBotDialogProps) {
                   <FormControl>
                     <Textarea
                       {...field}
+                      value={field.value || ''}
                       placeholder="Describe what your bot does..."
                       className="bg-dark-brown border-secondary-brown text-white placeholder:text-neutral-gray focus:border-accent-gold min-h-[100px]"
                     />

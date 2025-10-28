@@ -5,7 +5,7 @@ import { Crown, Infinity, BarChart3, Zap, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export default function UpgradeCard() {
-  const { data: userStatus } = useQuery({
+  const { data: userStatus } = useQuery<any>({
     queryKey: ["/api/user/status"],
   });
 
