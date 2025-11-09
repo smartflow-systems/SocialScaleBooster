@@ -1,10 +1,44 @@
 import express, { type Request, Response, NextFunction } from "express";
+import session from "express-session";
+import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
+import { registerEnhancedRoutes } from "./routes/enhanced-routes";
 import { setupVite, serveStatic, log } from "./vite";
+import passport from "./auth";
+import { helmetConfig, corsConfig, sanitizeInput } from "./middleware/security";
+import { monitoringService } from "./services/monitoring";
 
 const app = express();
+
+// Security middleware
+app.use(helmetConfig);
+app.use(corsConfig);
+
+// Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+// Input sanitization
+app.use(sanitizeInput);
+
+// Session configuration
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'smartflow-ai-secret-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    },
+  })
+);
+
+// Passport authentication
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -37,14 +71,29 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Register all routes
   const server = await registerRoutes(app);
+  registerEnhancedRoutes(app);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+  // Global error handler
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
 
+    // Log error to monitoring service
+    monitoringService.error(
+      `${req.method} ${req.path} - ${message}`,
+      err,
+      {
+        method: req.method,
+        path: req.path,
+        body: req.body,
+        query: req.query,
+      },
+      req.user?.id
+    );
+
     res.status(status).json({ message });
-    throw err;
   });
 
   // importantly only setup vite in development and after
@@ -67,5 +116,20 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    monitoringService.info('🚀 SmartFlow AI Powerhouse Server Started', {
+      port,
+      environment: process.env.NODE_ENV || 'development',
+      features: [
+        'Authentication with Passport.js',
+        'AI Content Suggestions',
+        'A/B Testing',
+        'Real-time Notifications',
+        'Analytics Export (CSV/JSON/PDF)',
+        'Performance Monitoring',
+        'In-Memory Caching',
+        'Sentiment Analysis',
+        'Security Hardening',
+      ],
+    });
   });
 })();
