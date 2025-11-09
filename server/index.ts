@@ -3,6 +3,7 @@ import session from "express-session";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { registerEnhancedRoutes } from "./routes/enhanced-routes";
+import featuresRoutes from "./routes/features-routes";
 import { setupVite, serveStatic, log } from "./vite";
 import passport from "./auth";
 import { helmetConfig, corsConfig, sanitizeInput } from "./middleware/security";
@@ -13,11 +14,15 @@ import {
   performanceProfiler,
   getPerformanceStats
 } from "./performance";
+import { initializeFeatures } from "./features";
 
 const app = express();
 
 // 🚀 EXTREME PERFORMANCE: Initialize all performance features
 initializePerformanceFeatures();
+
+// 🚀 FEATURES: Initialize all feature modules
+initializeFeatures();
 
 // 🚀 EXTREME PERFORMANCE: Response Compression (70-90% bandwidth reduction!)
 app.use(intelligentCompression());
@@ -96,6 +101,9 @@ app.use((req, res, next) => {
   // Register all routes
   const server = await registerRoutes(app);
   registerEnhancedRoutes(app);
+
+  // 🚀 FEATURES: Register all feature routes
+  app.use("/api/features", featuresRoutes);
 
   // 🚀 EXTREME PERFORMANCE: Performance stats endpoint
   app.get("/api/performance/stats", (req, res) => {
