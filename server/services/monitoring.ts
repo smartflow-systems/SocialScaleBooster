@@ -110,8 +110,11 @@ export class MonitoringService {
     const sanitizedLevel = ['info', 'warn', 'error', 'critical'].includes(level) ? level : 'info';
     const colorCode = colors[sanitizedLevel] || '';
 
+    // Sanitize message to prevent format string injection by removing % format specifiers
+    const sanitizedMessage = String(message).replace(/%/g, '%%');
+
     console.log(
-      `${colorCode}[${sanitizedLevel.toUpperCase()}]${reset} ${message}`,
+      `${colorCode}[${sanitizedLevel.toUpperCase()}]${reset} ${sanitizedMessage}`,
       context ? context : ''
     );
   }

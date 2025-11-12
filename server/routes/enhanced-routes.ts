@@ -14,7 +14,7 @@ import { hashPassword } from "../auth";
 import { storage } from "../storage";
 import passport from "../auth";
 import { requireAuth, requirePremium, optionalAuth } from "../middleware/auth";
-import { validate, loginValidation, registerValidation } from "../middleware/security";
+import { validate, loginValidation, registerValidation, apiLimiter, authLimiter } from "../middleware/security";
 
 export function registerEnhancedRoutes(app: Express) {
   // =====================
@@ -22,7 +22,7 @@ export function registerEnhancedRoutes(app: Express) {
   // =====================
 
   // Register new user
-  app.post("/api/auth/register", registerValidation, validate, async (req, res) => {
+  app.post("/api/auth/register", authLimiter, registerValidation, validate, async (req, res) => {
     try {
       const { username, email, password } = req.body;
 
@@ -67,7 +67,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Login
-  app.post("/api/auth/login", loginValidation, validate, (req, res, next) => {
+  app.post("/api/auth/login", authLimiter, loginValidation, validate, (req, res, next) => {
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) {
         monitoringService.error("Login error", err);
@@ -101,7 +101,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Logout
-  app.post("/api/auth/logout", (req, res) => {
+  app.post("/api/auth/logout", apiLimiter, (req, res) => {
     const userId = req.user?.id;
 
     req.logout((err) => {
@@ -118,7 +118,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Get current user
-  app.get("/api/auth/me", optionalAuth, (req, res) => {
+  app.get("/api/auth/me", apiLimiter, optionalAuth, (req, res) => {
     if (!req.user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -139,7 +139,7 @@ export function registerEnhancedRoutes(app: Express) {
   // ============================
 
   // Get AI content suggestions
-  app.get("/api/ai/suggestions", requireAuth, async (req, res) => {
+  app.get("/api/ai/suggestions", apiLimiter, requireAuth, async (req, res) => {
     const timer = monitoringService.startTimer("ai_suggestions");
 
     try {
@@ -171,7 +171,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Analyze content sentiment
-  app.post("/api/ai/analyze-sentiment", requireAuth, async (req, res) => {
+  app.post("/api/ai/analyze-sentiment", apiLimiter, requireAuth, async (req, res) => {
     try {
       const { content, engagement } = req.body;
 
@@ -189,7 +189,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Generate hashtags
-  app.post("/api/ai/generate-hashtags", requireAuth, async (req, res) => {
+  app.post("/api/ai/generate-hashtags", apiLimiter, requireAuth, async (req, res) => {
     try {
       const { platform, category } = req.body;
 
@@ -202,7 +202,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Generate automated content
-  app.post("/api/ai/generate-content", requireAuth, async (req, res) => {
+  app.post("/api/ai/generate-content", apiLimiter, requireAuth, async (req, res) => {
     try {
       const content = aiContentEngine.generateAutomatedContent(req.body);
 
@@ -217,7 +217,7 @@ export function registerEnhancedRoutes(app: Express) {
   // ==================
 
   // Create A/B test
-  app.post("/api/ab-tests", requireAuth, async (req, res) => {
+  app.post("/api/ab-tests", apiLimiter, requireAuth, async (req, res) => {
     try {
       const test = abTestingService.createTest(req.body);
 
@@ -230,7 +230,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Get A/B test results
-  app.get("/api/ab-tests/:testId/results", requireAuth, async (req, res) => {
+  app.get("/api/ab-tests/:testId/results", apiLimiter, requireAuth, async (req, res) => {
     try {
       const { testId } = req.params;
 
@@ -254,7 +254,7 @@ export function registerEnhancedRoutes(app: Express) {
   // ====================
 
   // Get user notifications
-  app.get("/api/notifications", requireAuth, async (req, res) => {
+  app.get("/api/notifications", apiLimiter, requireAuth, async (req, res) => {
     try {
       const userId = req.user!.id;
 
@@ -297,7 +297,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Get unread count
-  app.get("/api/notifications/unread-count", requireAuth, async (req, res) => {
+  app.get("/api/notifications/unread-count", apiLimiter, requireAuth, async (req, res) => {
     try {
       const count = await notificationService.getUnreadCount(req.user!.id);
 
@@ -312,7 +312,7 @@ export function registerEnhancedRoutes(app: Express) {
   // =========================
 
   // Export analytics as CSV
-  app.get("/api/analytics/export/csv", requireAuth, async (req, res) => {
+  app.get("/api/analytics/export/csv", apiLimiter, requireAuth, async (req, res) => {
     try {
       const data = analyticsExportService.generateSampleData();
       const csv = analyticsExportService.exportAsCSV(data);
@@ -327,7 +327,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Export analytics as JSON
-  app.get("/api/analytics/export/json", requireAuth, async (req, res) => {
+  app.get("/api/analytics/export/json", apiLimiter, requireAuth, async (req, res) => {
     try {
       const data = analyticsExportService.generateSampleData();
       const json = analyticsExportService.exportAsJSON(data);
@@ -341,7 +341,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Export analytics as HTML/PDF
-  app.get("/api/analytics/export/pdf", requireAuth, async (req, res) => {
+  app.get("/api/analytics/export/pdf", apiLimiter, requireAuth, async (req, res) => {
     try {
       const data = analyticsExportService.generateSampleData();
       const html = analyticsExportService.exportAsPDFHTML(data);
@@ -374,7 +374,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Get system metrics (admin only for now)
-  app.get("/api/metrics", requireAuth, async (req, res) => {
+  app.get("/api/metrics", apiLimiter, requireAuth, async (req, res) => {
     try {
       const performanceSummary = monitoringService.getPerformanceSummary();
       const errorStats = monitoringService.getErrorStats();
@@ -391,7 +391,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Get recent logs (admin only for now)
-  app.get("/api/logs", requireAuth, async (req, res) => {
+  app.get("/api/logs", apiLimiter, requireAuth, async (req, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 100;
       const level = req.query.level as any;
@@ -409,7 +409,7 @@ export function registerEnhancedRoutes(app: Express) {
   // ========================
 
   // Get performance benchmarks
-  app.get("/api/benchmarks", requireAuth, async (req, res) => {
+  app.get("/api/benchmarks", apiLimiter, requireAuth, async (req, res) => {
     try {
       const { platform, category } = req.query;
 

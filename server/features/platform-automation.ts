@@ -160,6 +160,11 @@ export class FacebookAutomation {
    * Auto-post to Facebook Groups
    */
   async postToGroups(groupIds: string[], content: any): Promise<any> {
+    // Validate that groupIds is actually an array to prevent type confusion
+    if (!Array.isArray(groupIds)) {
+      throw new Error('groupIds must be an array');
+    }
+
     return {
       posted: groupIds.length,
       groups: groupIds.map(id => ({ groupId: id, postId: 'post_' + Date.now(), status: 'posted' })),

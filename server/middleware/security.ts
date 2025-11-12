@@ -59,9 +59,15 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
   // Remove any potential XSS from string inputs
   const sanitize = (obj: any): any => {
     if (typeof obj === 'string') {
+      // Use a more robust approach: HTML encode special characters
+      // instead of trying to remove specific tags (which can be bypassed)
       return obj
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-        .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .replace(/\//g, '&#x2F;')
         .trim();
     }
     if (typeof obj === 'object' && obj !== null) {
