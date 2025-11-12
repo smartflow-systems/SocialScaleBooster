@@ -247,15 +247,13 @@ export class PerformanceProfiler {
 
     // Log slow operations
     if (entry.duration > 1000) {
-      // Sanitize entry.name to prevent format string injection
-      const sanitizedName = String(entry.name).replace(/%/g, '%%');
+      // Log using console.warn with separate arguments to avoid format string injection
+      const logPrefix = '[Profiler] SLOW OPERATION:';
+      const timing = 'took ' + entry.duration + 'ms';
       if (entry.metadata) {
-        console.warn(
-          `[Profiler] SLOW OPERATION: ${sanitizedName} took ${entry.duration}ms`,
-          JSON.stringify(entry.metadata)
-        );
+        console.warn(logPrefix, entry.name, timing, 'Metadata:', JSON.stringify(entry.metadata));
       } else {
-        console.warn(`[Profiler] SLOW OPERATION: ${sanitizedName} took ${entry.duration}ms`);
+        console.warn(logPrefix, entry.name, timing);
       }
     }
   }
