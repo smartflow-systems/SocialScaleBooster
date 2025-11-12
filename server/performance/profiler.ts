@@ -249,10 +249,14 @@ export class PerformanceProfiler {
     if (entry.duration > 1000) {
       // Sanitize entry.name to prevent format string injection
       const sanitizedName = String(entry.name).replace(/%/g, '%%');
-      console.warn(
-        `[Profiler] SLOW OPERATION: ${sanitizedName} took ${entry.duration}ms`,
-        entry.metadata
-      );
+      if (entry.metadata) {
+        console.warn(
+          `[Profiler] SLOW OPERATION: ${sanitizedName} took ${entry.duration}ms`,
+          JSON.stringify(entry.metadata)
+        );
+      } else {
+        console.warn(`[Profiler] SLOW OPERATION: ${sanitizedName} took ${entry.duration}ms`);
+      }
     }
   }
 

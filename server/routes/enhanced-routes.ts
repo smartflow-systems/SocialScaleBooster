@@ -285,7 +285,7 @@ export function registerEnhancedRoutes(app: Express) {
   });
 
   // Mark notification as read
-  app.patch("/api/notifications/:id/read", requireAuth, async (req, res) => {
+  app.patch("/api/notifications/:id/read", apiLimiter, requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
       await notificationService.markAsRead(parseInt(id));

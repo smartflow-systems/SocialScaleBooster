@@ -34,6 +34,8 @@ app.use(corsConfig);
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+// Note: cookieParser is used for session cookies with sameSite:'strict' for CSRF protection
+// This is appropriate for a REST API with session-based auth
 app.use(cookieParser());
 
 // Input sanitization
