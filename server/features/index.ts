@@ -23,19 +23,19 @@ export {
   WooCommerceIntegration,
   ProductManager,
   CartAbandonmentAutomation,
-  Product,
   shopifyIntegration,
   wooCommerceIntegration,
   productManager,
   cartAbandonmentAutomation,
 } from './ecommerce-integration';
+export type { Product } from './ecommerce-integration';
 
 // Auto-engagement
 export {
   CommentAutoReply,
   DMAutomation,
-  EngagementPods,
-  AutoEngagement,
+  EngagementPod,
+  AutoLikeFollow,
   commentAutoReply,
   dmAutomation,
   engagementPods,
@@ -45,16 +45,16 @@ export {
 // Competitor analysis
 export {
   CompetitorAnalysis,
-  Competitor,
   competitorAnalysis,
 } from './competitor-analysis';
+export type { Competitor } from './competitor-analysis';
 
 // Influencer outreach
 export {
   InfluencerOutreach,
-  Influencer,
   influencerOutreach,
 } from './influencer-outreach';
+export type { Influencer } from './influencer-outreach';
 
 // Content creation tools
 export {
@@ -66,12 +66,10 @@ export {
 export {
   TeamCollaboration,
   ContentCalendar,
-  TeamMember,
-  Permission,
-  ContentApproval,
   teamCollaboration,
   contentCalendar,
 } from './team-collaboration';
+export type { TeamMember, Permission, ContentApproval } from './team-collaboration';
 
 // Advanced analytics
 export {
@@ -82,9 +80,9 @@ export {
 // Trend detection
 export {
   TrendDetection,
-  Trend,
   trendDetection,
 } from './trend-detection';
+export type { Trend } from './trend-detection';
 
 /**
  * Initialize all feature modules

@@ -336,10 +336,19 @@ export class CartAbandonmentAutomation {
   }
 }
 
-// Export all e-commerce integrations
+// Export singleton instances
+export const shopifyIntegration = new ShopifyIntegration();
+export const wooCommerceIntegration = new WooCommerceIntegration();
+export const productManager = new ProductCatalogManager();
+export const cartAbandonmentAutomation = new CartAbandonmentAutomation();
+
+// Export class alias for compatibility
+export { ProductCatalogManager as ProductManager };
+
+// Export all e-commerce integrations (for backwards compatibility)
 export const ecommerce = {
-  shopify: new ShopifyIntegration(),
-  woocommerce: new WooCommerceIntegration(),
-  catalog: new ProductCatalogManager(),
-  cartRecovery: new CartAbandonmentAutomation(),
+  shopify: shopifyIntegration,
+  woocommerce: wooCommerceIntegration,
+  catalog: productManager,
+  cartRecovery: cartAbandonmentAutomation,
 };

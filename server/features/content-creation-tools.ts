@@ -194,4 +194,5 @@ export class ContentCreationTools {
   }
 }
 
-export const contentTools = new ContentCreationTools();
+// Export singleton instance
+export const contentCreationTools = new ContentCreationTools();

@@ -221,34 +221,36 @@ export class QueryOptimizer {
  */
 export class OptimizedQueries {
   private optimizer: QueryOptimizer;
+  public getUserById: (id: number) => Promise<any>;
+  public getBotById: (id: number) => Promise<any>;
 
   constructor() {
     this.optimizer = new QueryOptimizer();
+
+    /**
+     * Get user with caching
+     */
+    this.getUserById = this.optimizer.createBatchQuery<number, any>(
+      async (userIds) => {
+        // Batch fetch users
+        console.log(`[OptimizedQueries] Batch fetching ${userIds.length} users`);
+        // In production: return await db.users.findMany({ where: { id: { in: userIds } } });
+        return userIds.map(id => ({ id, username: `user${id}` }));
+      },
+      { cache: true, cacheTTL: 600 }
+    );
+
+    /**
+     * Get bot with caching
+     */
+    this.getBotById = this.optimizer.createBatchQuery<number, any>(
+      async (botIds) => {
+        console.log(`[OptimizedQueries] Batch fetching ${botIds.length} bots`);
+        return botIds.map(id => ({ id, name: `bot${id}` }));
+      },
+      { cache: true, cacheTTL: 300 }
+    );
   }
-
-  /**
-   * Get user with caching
-   */
-  getUserById = this.optimizer.createBatchQuery<number, any>(
-    async (userIds) => {
-      // Batch fetch users
-      console.log(`[OptimizedQueries] Batch fetching ${userIds.length} users`);
-      // In production: return await db.users.findMany({ where: { id: { in: userIds } } });
-      return userIds.map(id => ({ id, username: `user${id}` }));
-    },
-    { cache: true, cacheTTL: 600 }
-  );
-
-  /**
-   * Get bot with caching
-   */
-  getBotById = this.optimizer.createBatchQuery<number, any>(
-    async (botIds) => {
-      console.log(`[OptimizedQueries] Batch fetching ${botIds.length} bots`);
-      return botIds.map(id => ({ id, name: `bot${id}` }));
-    },
-    { cache: true, cacheTTL: 300 }
-  );
 
   /**
    * Get analytics with aggressive caching

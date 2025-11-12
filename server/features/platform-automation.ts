@@ -365,11 +365,18 @@ export class YouTubeAutomation {
   }
 }
 
-// Export all platform automations
+// Export singleton instances
+export const tiktokAutomation = new TikTokAutomation();
+export const instagramAutomation = new InstagramAutomation();
+export const facebookAutomation = new FacebookAutomation();
+export const twitterAutomation = new TwitterAutomation();
+export const youtubeAutomation = new YouTubeAutomation();
+
+// Export all platform automations (for backwards compatibility)
 export const platformAutomation = {
-  tiktok: new TikTokAutomation(),
-  instagram: new InstagramAutomation(),
-  facebook: new FacebookAutomation(),
-  twitter: new TwitterAutomation(),
-  youtube: new YouTubeAutomation(),
+  tiktok: tiktokAutomation,
+  instagram: instagramAutomation,
+  facebook: facebookAutomation,
+  twitter: twitterAutomation,
+  youtube: youtubeAutomation,
 };

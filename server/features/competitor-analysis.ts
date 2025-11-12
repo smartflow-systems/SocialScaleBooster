@@ -3,7 +3,7 @@
  * Track competitors, analyze strategies, get insights
  */
 
-export interface Competitor {
+export type Competitor = {
   id: string;
   name: string;
   handle: string;

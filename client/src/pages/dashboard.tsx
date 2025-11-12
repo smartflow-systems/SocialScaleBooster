@@ -21,6 +21,7 @@ import UpgradeCard from "@/components/subscription/upgrade-card";
 import SubscriptionStatus from "@/components/subscription/subscription-status";
 import PaymentSuccess from "@/components/subscription/payment-success";
 import { analyticsService } from "@/services/analytics";
+import GitHubSidebar from "@/components/Dashboard/GitHubSidebar";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("bots");
@@ -90,6 +91,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-dark-bg">
+      {/* GitHub-style Sidebar */}
+      <GitHubSidebar />
+
       {/* Dashboard Header */}
       <header className="bg-card-bg border-b border-secondary-brown">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -309,10 +309,16 @@ export class AutoLikeFollow {
   }
 }
 
+// Export singleton instances
+export const commentAutoReply = new CommentAutoReply();
+export const dmAutomation = new DMAutomation();
+export const engagementPods = new EngagementPod();
+export const autoEngagement = new AutoLikeFollow();
+
 // Export all engagement features
 export const engagement = {
-  comments: new CommentAutoReply(),
-  dms: new DMAutomation(),
-  pods: new EngagementPod(),
-  autoLike: new AutoLikeFollow(),
+  comments: commentAutoReply,
+  dms: dmAutomation,
+  pods: engagementPods,
+  autoLike: autoEngagement,
 };
