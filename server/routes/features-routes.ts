@@ -5,6 +5,7 @@
 
 import { Router, type Request, type Response } from 'express';
 import { requireAuth } from '../middleware/auth';
+import { apiLimiter } from '../middleware/security';
 import {
   // Platform automation
   tiktokAutomation,
@@ -44,6 +45,9 @@ import {
 } from '../features';
 
 const router = Router();
+
+// Apply rate limiting to all routes in this router
+router.use(apiLimiter);
 
 // ============================================================================
 // PLATFORM AUTOMATION ROUTES

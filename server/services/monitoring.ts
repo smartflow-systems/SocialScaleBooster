@@ -106,8 +106,12 @@ export class MonitoringService {
     };
     const reset = '\x1b[0m';
 
+    // Sanitize level to prevent format string injection
+    const sanitizedLevel = ['info', 'warn', 'error', 'critical'].includes(level) ? level : 'info';
+    const colorCode = colors[sanitizedLevel] || '';
+
     console.log(
-      `${colors[level]}[${level.toUpperCase()}]${reset} ${message}`,
+      `${colorCode}[${sanitizedLevel.toUpperCase()}]${reset} ${message}`,
       context ? context : ''
     );
   }
