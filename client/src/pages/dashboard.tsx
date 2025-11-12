@@ -92,7 +92,11 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-dark-bg">
       {/* GitHub-style Sidebar */}
-      <GitHubSidebar />
+      <GitHubSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        userStatus={userStatus}
+      />
 
       {/* Dashboard Header */}
       <header className="bg-card-bg border-b border-secondary-brown">
