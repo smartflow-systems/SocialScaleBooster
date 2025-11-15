@@ -439,14 +439,6 @@ export class MemStorage implements IStorage {
     return updatedBot;
   }
 
-  async updateBotStatus(id: number, status: string): Promise<Bot> {
-    const bot = this.bots.get(id);
-    if (!bot) throw new Error("Bot not found");
-    const updatedBot = { ...bot, status };
-    this.bots.set(id, updatedBot);
-    return updatedBot;
-  }
-
   async deleteBot(id: number): Promise<void> {
     this.bots.delete(id);
   }

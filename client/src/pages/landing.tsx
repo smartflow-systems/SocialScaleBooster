@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navigation from "@/components/ui/navigation";
+import GitHubSidebar from "@/components/Dashboard/GitHubSidebar";
 import { BarChart3, Store, Wand2, Play, Rocket } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -13,6 +14,7 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-primary-black text-white">
+      <GitHubSidebar />
       <Navigation />
       
       {/* Hero Section */}
