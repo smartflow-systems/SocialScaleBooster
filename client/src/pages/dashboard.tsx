@@ -22,6 +22,9 @@ import SubscriptionStatus from "@/components/subscription/subscription-status";
 import PaymentSuccess from "@/components/subscription/payment-success";
 import { analyticsService } from "@/services/analytics";
 import GitHubSidebar from "@/components/Dashboard/GitHubSidebar";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
+import QuickActionsPanel from "@/components/quick-actions/QuickActionsPanel";
+import CommandPalette from "@/components/command-palette/CommandPalette";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("bots");
@@ -98,6 +101,12 @@ export default function Dashboard() {
         userStatus={userStatus}
       />
 
+      {/* Command Palette (Cmd+K) */}
+      <CommandPalette />
+
+      {/* Quick Actions Floating Button */}
+      <QuickActionsPanel />
+
       {/* Dashboard Header */}
       <header className="bg-card-bg border-b border-secondary-brown">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -110,13 +119,16 @@ export default function Dashboard() {
               </Badge>
             </div>
             <div className="flex items-center space-x-4">
-              <Button 
+              {/* Notification Bell */}
+              <NotificationCenter />
+
+              <Button
                 onClick={() => window.location.href = "/"}
                 className="bg-card-bg text-accent-gold border border-accent-gold font-semibold hover:bg-accent-gold hover:text-primary-black"
               >
                 ← Home
               </Button>
-              <Button 
+              <Button
                 onClick={() => window.location.href = "/subscribe"}
                 className="bg-rich-brown text-gold-trim border border-accent-gold font-semibold gold-glow-hover hover:bg-accent-gold hover:text-primary-black"
               >
