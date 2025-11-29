@@ -48,7 +48,7 @@ export default function BotStatsDialog({ botId, children }: BotStatsDialogProps)
       {
         label: 'Engagement',
         data: stats?.weeklyData?.map((d: any) => d.engagement) || [],
-        borderColor: '#D4AF37',
+        borderColor: '#FFD700',
         backgroundColor: 'rgba(212, 175, 55, 0.1)',
         borderWidth: 3,
         tension: 0.4,
@@ -62,7 +62,7 @@ export default function BotStatsDialog({ botId, children }: BotStatsDialogProps)
       {
         label: 'Revenue ($)',
         data: stats?.weeklyData?.map((d: any) => parseFloat(d.revenue)) || [],
-        backgroundColor: '#D4AF37',
+        backgroundColor: '#FFD700',
         borderColor: '#8B6914',
         borderWidth: 1,
       }

@@ -13,23 +13,23 @@
   --card-foreground: hsl(0, 0%, 100%);
   --border: hsl(25, 8%, 14%);
   --input: hsl(25, 8%, 14%);
-  --primary: hsl(43, 70%, 52%);
+  --primary: hsl(51, 100%, 50%);
   --primary-foreground: hsl(0, 0%, 0%);
-  --secondary: hsl(25, 40%, 12%);
+  --secondary: hsl(30, 15%, 18%);
   --secondary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(43, 70%, 52%);
+  --accent: hsl(51, 100%, 50%);
   --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(43, 70%, 52%);
+  --ring: hsl(51, 100%, 50%);
   --radius: 0.5rem;
 
   /* Custom SmartFlow AI colors - Brown with Gold Trim */
   --primary-black: hsl(0, 0%, 0%);
-  --secondary-brown: hsl(25, 40%, 12%);
+  --secondary-brown: hsl(30, 15%, 18%);
   --rich-brown: hsl(25, 30%, 25%);
   --dark-brown: hsl(25, 20%, 8%);
-  --accent-gold: hsl(43, 70%, 52%);
+  --accent-gold: hsl(51, 100%, 50%);
   --gold-trim: hsl(51, 100%, 65%);
   --neutral-gray: hsl(0, 0%, 50%);
   --dark-bg: hsl(25, 20%, 4%);
@@ -47,15 +47,15 @@
   --card-foreground: hsl(0, 0%, 100%);
   --border: hsl(25, 8%, 14%);
   --input: hsl(25, 8%, 14%);
-  --primary: hsl(43, 70%, 52%);
+  --primary: hsl(51, 100%, 50%);
   --primary-foreground: hsl(0, 0%, 0%);
-  --secondary: hsl(25, 40%, 12%);
+  --secondary: hsl(30, 15%, 18%);
   --secondary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(43, 70%, 52%);
+  --accent: hsl(51, 100%, 50%);
   --accent-foreground: hsl(0, 0%, 0%);
   --destructive: hsl(0, 62.8%, 30.6%);
   --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(43, 70%, 52%);
+  --ring: hsl(51, 100%, 50%);
 }
 
 @layer base {
