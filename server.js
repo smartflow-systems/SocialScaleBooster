@@ -1,4 +1,5 @@
 import express from "express";
+import rateLimit from "express-rate-limit";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { join } from "path";
 
@@ -155,8 +156,18 @@ app.get("/api/leads", (_req, res) => {
   }
 });
 
+// Rate limiter: Stripe Checkout (max 5 requests per minute per IP)
+const stripeCheckoutLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 5, // limit each IP to 5 requests per windowMs
+  message: {
+    success: false,
+    message: "Too many checkout requests from this IP, please try again later."
+  }
+});
+
 // API: Stripe Checkout (placeholder - requires Stripe configuration)
-app.post("/api/stripe/checkout", async (req, res) => {
+app.post("/api/stripe/checkout", stripeCheckoutLimiter, async (req, res) => {
   try {
     const { planId, successUrl, cancelUrl } = req.body;
 
