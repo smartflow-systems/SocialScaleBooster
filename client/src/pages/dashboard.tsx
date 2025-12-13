@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Crown, Bot, BarChart3, Store, File, Search, Calendar, Users, Zap, Settings } from "lucide-react";
+import { Crown, Bot, BarChart3, Store, File, Search, Calendar, Users, Zap, Settings, Sparkles, LogOut } from "lucide-react";
 import BotCard from "@/components/bots/bot-card";
 import CreateBotDialog from "@/components/bots/create-bot-dialog";
 import BotStatsDialog from "@/components/bots/bot-stats-dialog";
@@ -21,6 +21,10 @@ import UpgradeCard from "@/components/subscription/upgrade-card";
 import SubscriptionStatus from "@/components/subscription/subscription-status";
 import PaymentSuccess from "@/components/subscription/payment-success";
 import { analyticsService } from "@/services/analytics";
+import GitHubSidebar from "@/components/Dashboard/GitHubSidebar";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
+import QuickActionsPanel from "@/components/quick-actions/QuickActionsPanel";
+import CommandPalette from "@/components/command-palette/CommandPalette";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("bots");
@@ -29,21 +33,24 @@ export default function Dashboard() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successType, setSuccessType] = useState<"subscription" | "payment">("subscription");
 
-  // Check for success parameters
+  // Check for success parameters and tab from URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const upgradeSuccess = urlParams.get('upgrade');
     const paymentSuccess = urlParams.get('payment');
-    
+    const tabParam = urlParams.get('tab');
+
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+
     if (upgradeSuccess === 'success') {
       setSuccessType('subscription');
       setShowSuccess(true);
-      // Clean up URL
       window.history.replaceState({}, '', '/dashboard');
     } else if (paymentSuccess === 'success') {
       setSuccessType('payment');
       setShowSuccess(true);
-      // Clean up URL
       window.history.replaceState({}, '', '/dashboard');
     }
   }, []);
@@ -72,7 +79,7 @@ export default function Dashboard() {
   // Filter templates based on category and search
   const filteredTemplates = templates?.filter((template: any) => {
     const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
-    const matchesSearch = searchQuery === "" || 
+    const matchesSearch = searchQuery === "" ||
       template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
@@ -81,7 +88,7 @@ export default function Dashboard() {
   // Show success modal if needed
   if (showSuccess) {
     return (
-      <PaymentSuccess 
+      <PaymentSuccess
         type={successType}
         onContinue={() => setShowSuccess(false)}
       />
@@ -89,98 +96,155 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-bg">
-      {/* Dashboard Header */}
-      <header className="bg-card-bg border-b border-secondary-brown">
+    <div className="min-h-screen bg-[#0D0D0D] relative">
+      {/* GitHub Sidebar */}
+      <GitHubSidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        userStatus={userStatus}
+      />
+
+      {/* Command Palette */}
+      <CommandPalette />
+
+      {/* Quick Actions Panel */}
+      <QuickActionsPanel />
+
+      {/* Dashboard Header - PREMIUM */}
+      <header className="
+        bg-[rgba(59,47,47,0.6)] backdrop-blur-xl
+        border-b border-[rgba(255,215,0,0.2)]
+        sticky top-0 z-30
+        shadow-lg
+      ">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-20">
+            {/* Left side */}
             <div className="flex items-center space-x-4">
-              <Bot className="text-accent-gold w-8 h-8 cursor-pointer hover:scale-110 transition-transform" onClick={() => window.location.href = "/"} />
-              <span className="text-xl font-bold">Dashboard</span>
-              <Badge className="bg-rich-brown text-gold-trim border border-accent-gold font-semibold gold-glow">
-                {userStatus?.isPremium ? "Pro Plan" : `Free Plan (${userStatus?.botCount || 0}/3 bots)`}
+              <div className="flex items-center gap-3 group cursor-pointer" onClick={() => window.location.href = "/"}>
+                <div className="p-2.5 bg-gradient-to-br from-[#FFD700] to-[#FFA500] rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Bot className="text-[#0D0D0D] w-6 h-6" />
+                </div>
+                <div className="hidden sm:block">
+                  <div className="text-xl font-bold text-[#F5F5DC]">Dashboard</div>
+                  <div className="text-xs text-[#FFD700]">SmartFlow AI</div>
+                </div>
+              </div>
+
+              <Badge className={`
+                px-3 py-1.5 font-semibold text-sm
+                ${userStatus?.isPremium
+                  ? 'bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-[#0D0D0D] border-0 shadow-lg'
+                  : 'bg-[rgba(255,215,0,0.1)] text-[#FFD700] border border-[rgba(255,215,0,0.3)]'
+                }
+              `}>
+                {userStatus?.isPremium ? (
+                  <span className="flex items-center gap-1.5">
+                    <Crown className="w-4 h-4" />
+                    Pro Plan
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Free ({userStatus?.botCount || 0}/3 bots)
+                  </span>
+                )}
               </Badge>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button 
-                onClick={() => window.location.href = "/"}
-                className="bg-card-bg text-accent-gold border border-accent-gold font-semibold hover:bg-accent-gold hover:text-primary-black"
+
+            {/* Right side */}
+            <div className="flex items-center gap-3">
+              {/* Notification Center */}
+              <NotificationCenter />
+
+              {/* Upgrade Button */}
+              {!userStatus?.isPremium && (
+                <Button
+                  onClick={() => window.location.href = "/subscribe"}
+                  className="
+                    hidden sm:flex
+                    bg-gradient-to-r from-[#FFD700] to-[#FFA500]
+                    text-[#0D0D0D]
+                    px-5 py-2.5
+                    font-bold
+                    rounded-xl
+                    shadow-lg hover:shadow-[0_10px_40px_rgba(255,215,0,0.4)]
+                    hover:scale-105
+                    transition-all duration-300
+                  "
+                >
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade Pro
+                </Button>
+              )}
+
+              {/* Settings */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hidden sm:flex hover:bg-[rgba(255,215,0,0.08)] text-[#FFD700] rounded-lg"
+                onClick={() => alert('Settings coming soon!')}
               >
-                ← Home
+                <Settings className="w-5 h-5" />
               </Button>
-              <Button 
-                onClick={() => window.location.href = "/subscribe"}
-                className="bg-rich-brown text-gold-trim border border-accent-gold font-semibold gold-glow-hover hover:bg-accent-gold hover:text-primary-black"
-              >
-                <Crown className="w-4 h-4 mr-2" />
-                Upgrade Pro
-              </Button>
-              <div className="w-8 h-8 bg-accent-gold rounded-full"></div>
+
+              {/* User Avatar */}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FFD700] to-[#FFA500] flex items-center justify-center text-[#0D0D0D] font-bold cursor-pointer hover:scale-110 transition-transform duration-300 shadow-lg">
+                {userStatus?.username?.[0]?.toUpperCase() || 'U'}
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Tab Navigation */}
-      <div className="bg-card-bg border-b border-secondary-brown">
+      {/* Tab Navigation - STUNNING */}
+      <div className="bg-[rgba(59,47,47,0.4)] backdrop-blur-lg border-b border-[rgba(255,215,0,0.15)] sticky top-20 z-20">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-transparent h-auto p-2 grid grid-cols-3 sm:flex sm:gap-4 lg:gap-8 w-full">
-              <TabsTrigger 
-                value="bots" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <Bot className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                <span className="sm:hidden">Bots</span>
-                <span className="hidden sm:inline">My Bots</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="analytics" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <BarChart3 className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger 
-                value="marketplace" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <Store className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                <span className="sm:hidden">Store</span>
-                <span className="hidden sm:inline">Marketplace</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="scheduling" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <Calendar className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                <span className="sm:hidden">Time</span>
-                <span className="hidden sm:inline">Scheduling</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="personality" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <Users className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                <span className="sm:hidden">Style</span>
-                <span className="hidden sm:inline">Personality</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="integrations" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <Zap className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                <span className="sm:hidden">Apps</span>
-                <span className="hidden sm:inline">Integrations</span>
-              </TabsTrigger>
+            <TabsList className="bg-transparent h-auto p-2 flex gap-1 sm:gap-2 w-full overflow-x-auto">
+              {[
+                { value: 'bots', icon: Bot, label: 'My Bots', shortLabel: 'Bots' },
+                { value: 'analytics', icon: BarChart3, label: 'Analytics', shortLabel: 'Stats' },
+                { value: 'marketplace', icon: Store, label: 'Marketplace', shortLabel: 'Store' },
+                { value: 'scheduling', icon: Calendar, label: 'Scheduling', shortLabel: 'Time' },
+                { value: 'personality', icon: Users, label: 'Personality', shortLabel: 'Style' },
+                { value: 'integrations', icon: Zap, label: 'Integrations', shortLabel: 'Apps' },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className={`
+                    data-[state=active]:bg-[rgba(255,215,0,0.15)]
+                    data-[state=active]:text-[#FFD700]
+                    data-[state=active]:border data-[state=active]:border-[rgba(255,215,0,0.3)]
+                    text-[#F5F5DC]/70
+                    hover:text-[#FFD700]
+                    hover:bg-[rgba(255,215,0,0.05)]
+                    py-3 px-3 sm:px-5
+                    font-semibold
+                    rounded-xl
+                    transition-all duration-300
+                    text-xs sm:text-sm
+                    flex items-center gap-2
+                    whitespace-nowrap
+                  `}
+                >
+                  <tab.icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.shortLabel}</span>
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             {/* Tab Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <TabsContent value="bots" className="mt-0">
                 <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-3xl font-bold">My Bots</h2>
-                  <CreateBotDialog 
+                  <div>
+                    <h2 className="text-4xl font-bold text-[#F5F5DC] mb-2">My Bots</h2>
+                    <p className="text-[#F5F5DC]/60">Manage your AI-powered social media automation</p>
+                  </div>
+                  <CreateBotDialog
                     isPremium={userStatus?.isPremium || false}
                     botCount={userStatus?.botCount || 0}
                   />
@@ -190,19 +254,38 @@ export default function Dashboard() {
                   {bots?.map((bot: any) => (
                     <BotCard key={bot.id} bot={bot} />
                   ))}
-                  
-                  {/* Upgrade prompt card */}
+
+                  {/* Upgrade prompt card - STUNNING */}
                   {!userStatus?.isPremium && (
-                    <div className="bg-gradient-to-br from-accent-gold to-yellow-600 rounded-xl p-6 text-primary-black">
-                      <div className="text-center">
-                        <Crown className="w-16 h-16 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold mb-2">Create More Bots</h3>
-                        <p className="mb-4 text-sm opacity-90">Upgrade to Pro for unlimited bot creation</p>
-                        <Button 
+                    <div className="
+                      relative
+                      bg-gradient-to-br from-[#FFD700] to-[#FFA500]
+                      rounded-3xl p-8 text-[#0D0D0D]
+                      shadow-2xl
+                      hover:scale-105
+                      transition-all duration-300
+                      overflow-hidden
+                      group
+                    ">
+                      {/* Animated background */}
+                      <div className="absolute inset-0 opacity-20">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#0D0D0D] rounded-full filter blur-3xl animate-pulse"></div>
+                        <div className="absolute bottom-0 left-0 w-40 h-40 bg-[#0D0D0D] rounded-full filter blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+                      </div>
+
+                      <div className="relative text-center">
+                        <div className="w-20 h-20 bg-[#0D0D0D] rounded-2xl mx-auto mb-4 flex items-center justify-center group-hover:rotate-12 transition-transform duration-500">
+                          <Crown className="w-12 h-12 text-[#FFD700]" />
+                        </div>
+                        <h3 className="text-2xl font-bold mb-3">Create More Bots</h3>
+                        <p className="mb-6 text-sm font-medium opacity-90">
+                          Upgrade to Pro for unlimited bot creation and advanced features
+                        </p>
+                        <Button
                           onClick={() => window.location.href = "/subscribe"}
-                          className="bg-primary-black text-accent-gold hover:bg-secondary-brown"
+                          className="w-full bg-[#0D0D0D] text-[#FFD700] hover:bg-[#0D0D0D]/90 font-bold py-6 rounded-xl shadow-xl"
                         >
-                          Unlock Now
+                          Unlock Pro Features
                         </Button>
                       </div>
                     </div>
@@ -217,7 +300,10 @@ export default function Dashboard() {
               </TabsContent>
 
               <TabsContent value="analytics" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">Real-Time Analytics & ROI</h2>
+                <div className="mb-8">
+                  <h2 className="text-4xl font-bold text-[#F5F5DC] mb-2">Real-Time Analytics & ROI</h2>
+                  <p className="text-[#F5F5DC]/60">Track performance, engagement, and revenue across all platforms</p>
+                </div>
                 <div className="space-y-8">
                   <RealtimeDashboard />
                   <AdvancedMetrics metrics={analyticsMetrics} />
@@ -225,124 +311,109 @@ export default function Dashboard() {
               </TabsContent>
 
               <TabsContent value="marketplace" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">Premium Bot Marketplace</h2>
+                <div className="mb-8">
+                  <h2 className="text-4xl font-bold text-[#F5F5DC] mb-2">
+                    Premium Bot <span className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent">Marketplace</span>
+                  </h2>
+                  <p className="text-[#F5F5DC]/60">125,000+ pre-built templates for every niche and platform</p>
+                </div>
                 <EnhancedMarketplace userStatus={userStatus} />
               </TabsContent>
 
               <TabsContent value="templates" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">E-Commerce Bot Presets</h2>
-                
+                <div className="mb-8">
+                  <h2 className="text-4xl font-bold text-[#F5F5DC] mb-2">E-Commerce Bot Presets</h2>
+                  <p className="text-[#F5F5DC]/60">Ready-to-use templates optimized for e-commerce success</p>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <Store className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Product Showcase Bot</h3>
-                    <p className="text-neutral-gray mb-4">Highlight product features with engaging visuals and automatic hashtag optimization</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
+                  {[
+                    { icon: Store, title: 'Product Showcase Bot', desc: 'Highlight product features with engaging visuals and automatic hashtag optimization', color: 'from-purple-500 to-purple-600' },
+                    { icon: Crown, title: 'Flash Sale Announcer', desc: 'Create urgency with flash sales, countdown timers, and limited-time offers', color: 'from-[#FFD700] to-[#FFA500]' },
+                    { icon: BarChart3, title: 'Customer Testimonial Bot', desc: 'Share authentic customer reviews and success stories to build social proof', color: 'from-emerald-500 to-emerald-600' },
+                    { icon: Bot, title: 'Behind the Scenes Bot', desc: 'Show product creation process and company culture to build authentic connections', color: 'from-cyan-500 to-blue-500' },
+                    { icon: File, title: 'Trend Tracker Bot', desc: 'AI-powered trend analysis to create viral content that drives maximum engagement', color: 'from-rose-500 to-pink-500' },
+                    { icon: Zap, title: 'Multi-Platform Scheduler', desc: 'Coordinate campaigns across TikTok, Instagram, Facebook, and Twitter simultaneously', color: 'from-amber-500 to-orange-500' },
+                  ].map((preset, index) => (
+                    <div
+                      key={index}
+                      className="
+                        group
+                        bg-[rgba(59,47,47,0.4)] backdrop-blur-xl
+                        border border-[rgba(255,215,0,0.2)]
+                        hover:border-[rgba(255,215,0,0.5)]
+                        rounded-3xl p-6
+                        hover:scale-105 hover:-translate-y-1
+                        transition-all duration-300
+                        shadow-lg hover:shadow-2xl
+                      "
                     >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <Crown className="text-primary-black w-6 h-6" />
+                      <div className={`
+                        w-14 h-14 rounded-2xl flex items-center justify-center mb-4
+                        bg-gradient-to-br ${preset.color}
+                        shadow-xl
+                        group-hover:scale-110 group-hover:rotate-3
+                        transition-all duration-300
+                      `}>
+                        <preset.icon className="text-white w-7 h-7" />
+                      </div>
+                      <h3 className="text-xl font-bold mb-3 text-[#F5F5DC] group-hover:text-[#FFD700] transition-colors duration-300">
+                        {preset.title}
+                      </h3>
+                      <p className="text-[#F5F5DC]/70 mb-6 text-sm leading-relaxed">
+                        {preset.desc}
+                      </p>
+                      <CreateBotDialog
+                        isPremium={userStatus?.isPremium || false}
+                        botCount={userStatus?.botCount || 0}
+                      >
+                        <Button className="
+                          w-full
+                          bg-[rgba(255,215,0,0.1)]
+                          text-[#FFD700]
+                          border border-[rgba(255,215,0,0.3)]
+                          hover:bg-[rgba(255,215,0,0.2)]
+                          hover:border-[rgba(255,215,0,0.5)]
+                          font-semibold
+                          py-6
+                          rounded-xl
+                          transition-all duration-300
+                        ">
+                          Create Bot
+                        </Button>
+                      </CreateBotDialog>
                     </div>
-                    <h3 className="text-xl font-bold mb-2">Flash Sale Announcer</h3>
-                    <p className="text-neutral-gray mb-4">Create urgency with flash sales, countdown timers, and limited-time offers</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <BarChart3 className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Customer Testimonial Bot</h3>
-                    <p className="text-neutral-gray mb-4">Share authentic customer reviews and success stories to build social proof</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <Bot className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Behind the Scenes Bot</h3>
-                    <p className="text-neutral-gray mb-4">Show product creation process and company culture to build authentic connections</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <File className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Trend Tracker Bot</h3>
-                    <p className="text-neutral-gray mb-4">AI-powered trend analysis to create viral content that drives maximum engagement</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <Crown className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Multi-Platform Scheduler</h3>
-                    <p className="text-neutral-gray mb-4">Coordinate campaigns across TikTok, Instagram, Facebook, and Twitter simultaneously</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
+                  ))}
                 </div>
               </TabsContent>
 
               <TabsContent value="scheduling" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">Smart Scheduling & Automation</h2>
+                <div className="mb-8">
+                  <h2 className="text-4xl font-bold text-[#F5F5DC] mb-2">
+                    Smart <span className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent">Scheduling</span> & Automation
+                  </h2>
+                  <p className="text-[#F5F5DC]/60">Schedule posts at optimal times for maximum engagement</p>
+                </div>
                 <SchedulerInterface />
               </TabsContent>
 
               <TabsContent value="personality" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">Bot Personality Designer</h2>
+                <div className="mb-8">
+                  <h2 className="text-4xl font-bold text-[#F5F5DC] mb-2">
+                    Bot <span className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent">Personality</span> Designer
+                  </h2>
+                  <p className="text-[#F5F5DC]/60">Customize your bot's voice, tone, and behavior</p>
+                </div>
                 <PersonalityDesigner />
               </TabsContent>
 
               <TabsContent value="integrations" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">Platform Integrations</h2>
+                <div className="mb-8">
+                  <h2 className="text-4xl font-bold text-[#F5F5DC] mb-2">
+                    Platform <span className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] bg-clip-text text-transparent">Integrations</span>
+                  </h2>
+                  <p className="text-[#F5F5DC]/60">Connect your social media accounts and e-commerce platforms</p>
+                </div>
                 <IntegrationWizard />
               </TabsContent>
             </div>
