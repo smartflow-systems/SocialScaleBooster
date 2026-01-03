@@ -11,25 +11,7 @@ localPort = 33707
 externalPort = 3000
 
 [workflows]
-runButton = "Run Node Server"
-
-[[workflows.workflow]]
-name = "Run Flask App"
-author = 36680818
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python app.py"
-
-[[workflows.workflow]]
-name = "Run Node Server"
-author = 36680818
-mode = "sequential"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "node server.js"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -46,10 +28,24 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node server.js"
+args = "npm run dev"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+outputType = "webview"
+
+[[workflows.workflow]]
+name = "Production"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm start"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
 outputType = "webview"
 
 [nix]
