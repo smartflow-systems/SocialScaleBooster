@@ -7,6 +7,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import './sfs-sidebar.css';
 
 interface SidebarItem {
@@ -139,7 +140,7 @@ export const SFSSidebar: React.FC<SFSSidebarProps> = ({
 
   const renderIcon = (icon: string | React.ReactNode) => {
     if (typeof icon === 'string') {
-      return <span dangerouslySetInnerHTML={{ __html: icon }} />;
+      return <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(icon) }} />;
     }
     return icon;
   };

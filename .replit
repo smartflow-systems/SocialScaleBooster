@@ -51,3 +51,4 @@ outputType = "webview"
 
 [nix]
 packages = ["gh"]
+channel = "stable-25_05"
