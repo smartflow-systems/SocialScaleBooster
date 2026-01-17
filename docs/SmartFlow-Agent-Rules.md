@@ -10,7 +10,9 @@ Operational rules and safety constraints governing how SmartFlow agents execute 
 This document is authoritative **only** for the purpose stated above.
 
 ## Do NOT put here
-- Agent hierarchy (belongs in Agent-Master)\n- UI or design rules\n- Environment-specific setup
+- Agent hierarchy (belongs in Agent-Master)
+- UI or design rules
+- Environment-specific setup
 
 ---
 

@@ -10,7 +10,9 @@ Defines the SmartFlow agent hierarchy, roles, and responsibility boundaries.
 This document is authoritative **only** for the purpose stated above.
 
 ## Do NOT put here
-- UI design rules\n- Tailwind or CSS specifics\n- MCP technical setup steps
+- UI design rules
+- Tailwind or CSS specifics
+- MCP technical setup steps
 
 ---
 

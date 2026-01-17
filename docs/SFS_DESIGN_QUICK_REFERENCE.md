@@ -10,7 +10,10 @@ Fast reference cheat-sheet for SmartFlow Systems visual design (colors, typograp
 This document is authoritative **only** for the purpose stated above.
 
 ## Do NOT put here
-- Design philosophy\n- Agent rules\n- MCP or Figma integration\n- Long explanations
+- Design philosophy
+- Agent rules
+- MCP or Figma integration
+- Long explanations
 
 ---
 

@@ -10,7 +10,9 @@ How Figma design tokens and components integrate with MCP and downstream code.
 This document is authoritative **only** for the purpose stated above.
 
 ## Do NOT put here
-- Design philosophy\n- UI rules not tied to integration\n- Agent roles or behaviour
+- Design philosophy
+- UI rules not tied to integration
+- Agent roles or behaviour
 
 ---
 

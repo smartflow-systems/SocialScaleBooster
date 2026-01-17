@@ -10,7 +10,9 @@ Source-of-truth design system rules governing UI/UX decisions across all SmartFl
 This document is authoritative **only** for the purpose stated above.
 
 ## Do NOT put here
-- Agent hierarchy or execution rules\n- MCP wiring details\n- Environment or deployment instructions
+- Agent hierarchy or execution rules
+- MCP wiring details
+- Environment or deployment instructions
 
 ---
 
