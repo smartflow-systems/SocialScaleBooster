@@ -9,10 +9,8 @@ import { CreditCard, ShoppingBag } from "lucide-react";
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
 // recreating the `Stripe` object on every render.
-if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
-  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
-}
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
 
 const CheckoutForm = () => {
   const stripe = useStripe();
@@ -92,6 +90,25 @@ export default function Checkout() {
     return (
       <div className="min-h-screen bg-primary-black flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-accent-gold border-t-transparent rounded-full" aria-label="Loading"/>
+      </div>
+    );
+  }
+
+  if (!stripePromise) {
+    return (
+      <div className="min-h-screen bg-primary-black flex items-center justify-center">
+        <Card className="max-w-md bg-card-bg border-secondary-brown">
+          <CardContent className="p-6 text-center">
+            <h2 className="text-xl font-bold text-white mb-4">Payment Not Available</h2>
+            <p className="text-neutral-gray mb-4">Payment processing is not configured. Please contact support.</p>
+            <Button 
+              onClick={() => window.location.href = '/dashboard'}
+              className="bg-accent-gold text-primary-black hover:opacity-90"
+            >
+              Return to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
