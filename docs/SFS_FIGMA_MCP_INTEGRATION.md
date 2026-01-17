@@ -1,3 +1,19 @@
+<!--
+CONSOLIDATED: 2026-01-17
+This header defines scope boundaries. Do not remove.
+-->
+
+## Purpose
+How Figma design tokens and components integrate with MCP and downstream code.
+
+## Scope
+This document is authoritative **only** for the purpose stated above.
+
+## Do NOT put here
+- Design philosophy\n- UI rules not tied to integration\n- Agent roles or behaviour
+
+---
+
 # SFS Figma ↔ Code MCP Integration Guide
 
 **Purpose:** Enable real-time sync between Figma designs and codebase via Model Context Protocol

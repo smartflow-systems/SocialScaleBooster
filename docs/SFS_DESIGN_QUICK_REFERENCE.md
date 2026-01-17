@@ -1,3 +1,19 @@
+<!--
+CONSOLIDATED: 2026-01-17
+This header defines scope boundaries. Do not remove.
+-->
+
+## Purpose
+Fast reference cheat-sheet for SmartFlow Systems visual design (colors, typography, spacing, UI patterns).
+
+## Scope
+This document is authoritative **only** for the purpose stated above.
+
+## Do NOT put here
+- Design philosophy\n- Agent rules\n- MCP or Figma integration\n- Long explanations
+
+---
+
 # SFS Design System Quick Reference
 
 **Print this. Tape it to your desk. Live by it.**

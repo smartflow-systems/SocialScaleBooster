@@ -1,3 +1,19 @@
+<!--
+CONSOLIDATED: 2026-01-17
+This header defines scope boundaries. Do not remove.
+-->
+
+## Purpose
+Source-of-truth design system rules governing UI/UX decisions across all SmartFlow products.
+
+## Scope
+This document is authoritative **only** for the purpose stated above.
+
+## Do NOT put here
+- Agent hierarchy or execution rules\n- MCP wiring details\n- Environment or deployment instructions
+
+---
+
 # SFS Design System Rules & Architecture
 
 **Version:** 1.0 | **Last Updated:** Jan 2025 | **Scope:** All 26 SFS repositories
