@@ -1,5 +1,4 @@
 modules = ["nodejs-20"]
-
 [agent]
 expertMode = true
 
@@ -29,7 +28,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=5000 NODE_ENV=development npm run dev"
+args = "npm run dev"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
@@ -42,7 +41,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=5000 NODE_ENV=production npm start"
+args = "npm start"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
