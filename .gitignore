@@ -226,3 +226,8 @@ lerna-debug.log*
 *.swp
 *.swo
 *~
+
+# local backups
+*.bak.*
+server/*.bak.*
+postcss.config.js.bak.*
