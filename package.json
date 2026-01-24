@@ -9,7 +9,7 @@
     "start": "tsx server/index.ts",
     "dev": "tsx watch server/index.ts",
     "build": "tsc && vite build",
-    "test": "vitest",
+    "test": "vitest run",
     "test:watch": "vitest watch",
     "migrate": "drizzle-kit generate && drizzle-kit push",
     "db:studio": "drizzle-kit studio",
