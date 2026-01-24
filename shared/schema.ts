@@ -14,15 +14,30 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const bots = pgTable("bots", {
+export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
+  businessName: text("business_name"),
+  email: text("email"),
+  phone: text("phone"),
+  industry: text("industry"),
+  monthlyFee: decimal("monthly_fee", { precision: 10, scale: 2 }).default("0"),
+  status: text("status").default("active"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const bots = pgTable("bots", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  clientId: integer("client_id").references(() => clients.id),
+  name: text("name").notNull(),
   description: text("description"),
-  platform: text("platform").notNull(), // 'tiktok', 'instagram', 'facebook', 'twitter', 'youtube'
-  status: text("status").default("active"), // 'active', 'paused', 'stopped'
-  config: jsonb("config"), // Bot configuration settings
-  metrics: jsonb("metrics"), // Performance metrics
+  platform: text("platform").notNull(),
+  status: text("status").default("active"),
+  config: jsonb("config"),
+  metrics: jsonb("metrics"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -58,6 +73,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
 });
 
+export const insertClientSchema = createInsertSchema(clients).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertBotSchema = createInsertSchema(bots).omit({
   id: true,
   createdAt: true,
@@ -75,6 +95,8 @@ export const insertAnalyticsSchema = createInsertSchema(analytics).omit({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type InsertClient = z.infer<typeof insertClientSchema>;
+export type Client = typeof clients.$inferSelect;
 export type InsertBot = z.infer<typeof insertBotSchema>;
 export type Bot = typeof bots.$inferSelect;
 export type InsertBotTemplate = z.infer<typeof insertBotTemplateSchema>;

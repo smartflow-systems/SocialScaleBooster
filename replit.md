@@ -8,6 +8,13 @@ SmartFlow AI is a premium no-code AI platform designed to automate e-commerce so
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Updates (January 2026)
+
+✓ **Multi-Client Management System**: New feature allowing users to manage multiple clients from one account. Each client gets their own workspace with bots, revenue tracking, and analytics. Perfect for agencies and service providers.
+✓ **Client Management Page**: Dedicated page at /clients to view all clients, add new ones, track monthly fees, bot counts, and total revenue per client.
+✓ **Client-Linked Bots**: Bots can now be assigned to specific clients for organized management and revenue tracking.
+✓ **Revenue Per Client**: Track how much each client is generating through their bots.
+
 ## Recent Updates (January 2025)
 
 ✓ **Brand Rebrand to SmartFlow AI**: Updated all branding from SFS ScaleBots to SmartFlow AI with refined messaging

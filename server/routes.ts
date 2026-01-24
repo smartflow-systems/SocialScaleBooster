@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { AnalyticsWebSocketServer } from "./websocket";
 import { storage } from "./storage";
-import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema } from "@shared/schema";
+import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 
@@ -255,6 +255,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Client routes
+  app.get("/api/clients", async (req, res) => {
+    try {
+      const userId = 1; // Mock user ID
+      const clients = await storage.getClientsByUserId(userId);
+      
+      // Get revenue stats for each client
+      const clientsWithStats = await Promise.all(clients.map(async (client) => {
+        const stats = await storage.getClientRevenue(client.id);
+        return {
+          ...client,
+          totalRevenue: stats.totalRevenue,
+          botCount: stats.botCount
+        };
+      }));
+      
+      res.json(clientsWithStats);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/clients/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const client = await storage.getClient(id);
+      
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      const stats = await storage.getClientRevenue(id);
+      const bots = await storage.getBotsByClientId(id);
+      
+      res.json({
+        ...client,
+        totalRevenue: stats.totalRevenue,
+        botCount: stats.botCount,
+        bots
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/clients", async (req, res) => {
+    try {
+      const userId = 1; // Mock user ID
+      const clientData = insertClientSchema.parse({ ...req.body, userId });
+      const client = await storage.createClient(clientData);
+      res.json(client);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/clients/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const client = await storage.updateClient(id, req.body);
+      res.json(client);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/clients/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteClient(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Get bots for a specific client
+  app.get("/api/clients/:id/bots", async (req, res) => {
+    try {
+      const clientId = parseInt(req.params.id);
+      const bots = await storage.getBotsByClientId(clientId);
+      res.json(bots);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 

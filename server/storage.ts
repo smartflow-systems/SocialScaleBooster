@@ -1,6 +1,6 @@
-import { users, bots, botTemplates, analytics, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics } from "@shared/schema";
+import { users, bots, botTemplates, analytics, clients, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics, type Client, type InsertClient } from "@shared/schema";
 import { db } from "./db";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -13,8 +13,17 @@ export interface IStorage {
   incrementUserBotCount(id: number): Promise<User>;
   decrementUserBotCount(id: number): Promise<User>;
 
+  // Client methods
+  getClientsByUserId(userId: number): Promise<Client[]>;
+  getClient(id: number): Promise<Client | undefined>;
+  createClient(client: InsertClient): Promise<Client>;
+  updateClient(id: number, updates: Partial<Client>): Promise<Client>;
+  deleteClient(id: number): Promise<void>;
+  getClientRevenue(clientId: number): Promise<{ totalRevenue: number; botCount: number }>;
+
   // Bot methods
   getBotsByUserId(userId: number): Promise<Bot[]>;
+  getBotsByClientId(clientId: number): Promise<Bot[]>;
   getBot(id: number): Promise<Bot | undefined>;
   createBot(bot: InsertBot): Promise<Bot>;
   updateBot(id: number, updates: Partial<Bot>): Promise<Bot>;
@@ -93,9 +102,55 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  // Client methods
+  async getClientsByUserId(userId: number): Promise<Client[]> {
+    return await db.select().from(clients).where(eq(clients.userId, userId));
+  }
+
+  async getClient(id: number): Promise<Client | undefined> {
+    const [client] = await db.select().from(clients).where(eq(clients.id, id));
+    return client || undefined;
+  }
+
+  async createClient(insertClient: InsertClient): Promise<Client> {
+    const [client] = await db.insert(clients).values(insertClient).returning();
+    return client;
+  }
+
+  async updateClient(id: number, updates: Partial<Client>): Promise<Client> {
+    const [client] = await db
+      .update(clients)
+      .set(updates)
+      .where(eq(clients.id, id))
+      .returning();
+    return client;
+  }
+
+  async deleteClient(id: number): Promise<void> {
+    await db.delete(bots).where(eq(bots.clientId, id));
+    await db.delete(clients).where(eq(clients.id, id));
+  }
+
+  async getClientRevenue(clientId: number): Promise<{ totalRevenue: number; botCount: number }> {
+    const clientBots = await db.select().from(bots).where(eq(bots.clientId, clientId));
+    const botIds = clientBots.map(b => b.id);
+    
+    let totalRevenue = 0;
+    for (const botId of botIds) {
+      const botAnalytics = await db.select().from(analytics).where(eq(analytics.botId, botId));
+      totalRevenue += botAnalytics.reduce((sum, a) => sum + parseFloat(a.revenue || "0"), 0);
+    }
+    
+    return { totalRevenue, botCount: clientBots.length };
+  }
+
   // Bot methods
   async getBotsByUserId(userId: number): Promise<Bot[]> {
     return await db.select().from(bots).where(eq(bots.userId, userId));
+  }
+
+  async getBotsByClientId(clientId: number): Promise<Bot[]> {
+    return await db.select().from(bots).where(eq(bots.clientId, clientId));
   }
 
   async getBot(id: number): Promise<Bot | undefined> {
@@ -186,20 +241,24 @@ export class DatabaseStorage implements IStorage {
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
+  private clients: Map<number, Client>;
   private bots: Map<number, Bot>;
   private botTemplates: Map<number, BotTemplate>;
   private analytics: Map<number, Analytics>;
   private currentUserId: number;
+  private currentClientId: number;
   private currentBotId: number;
   private currentTemplateId: number;
   private currentAnalyticsId: number;
 
   constructor() {
     this.users = new Map();
+    this.clients = new Map();
     this.bots = new Map();
     this.botTemplates = new Map();
     this.analytics = new Map();
     this.currentUserId = 1;
+    this.currentClientId = 1;
     this.currentBotId = 1;
     this.currentTemplateId = 1;
     this.currentAnalyticsId = 1;
@@ -357,6 +416,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values()).find(user => user.username === username);
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.email === email);
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
     const user: User = { 
@@ -405,9 +468,64 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
 
+  // Client methods
+  async getClientsByUserId(userId: number): Promise<Client[]> {
+    return Array.from(this.clients.values()).filter(client => client.userId === userId);
+  }
+
+  async getClient(id: number): Promise<Client | undefined> {
+    return this.clients.get(id);
+  }
+
+  async createClient(insertClient: InsertClient): Promise<Client> {
+    const id = this.currentClientId++;
+    const client: Client = {
+      ...insertClient,
+      id,
+      businessName: insertClient.businessName || null,
+      email: insertClient.email || null,
+      phone: insertClient.phone || null,
+      industry: insertClient.industry || null,
+      monthlyFee: insertClient.monthlyFee || "0",
+      status: insertClient.status || "active",
+      notes: insertClient.notes || null,
+      createdAt: new Date()
+    };
+    this.clients.set(id, client);
+    return client;
+  }
+
+  async updateClient(id: number, updates: Partial<Client>): Promise<Client> {
+    const client = this.clients.get(id);
+    if (!client) throw new Error("Client not found");
+    const updatedClient = { ...client, ...updates };
+    this.clients.set(id, updatedClient);
+    return updatedClient;
+  }
+
+  async deleteClient(id: number): Promise<void> {
+    const clientBots = Array.from(this.bots.values()).filter(bot => bot.clientId === id);
+    clientBots.forEach(bot => this.bots.delete(bot.id));
+    this.clients.delete(id);
+  }
+
+  async getClientRevenue(clientId: number): Promise<{ totalRevenue: number; botCount: number }> {
+    const clientBots = Array.from(this.bots.values()).filter(bot => bot.clientId === clientId);
+    let totalRevenue = 0;
+    for (const bot of clientBots) {
+      const botAnalytics = Array.from(this.analytics.values()).filter(a => a.botId === bot.id);
+      totalRevenue += botAnalytics.reduce((sum, a) => sum + parseFloat(a.revenue || "0"), 0);
+    }
+    return { totalRevenue, botCount: clientBots.length };
+  }
+
   // Bot methods
   async getBotsByUserId(userId: number): Promise<Bot[]> {
     return Array.from(this.bots.values()).filter(bot => bot.userId === userId);
+  }
+
+  async getBotsByClientId(clientId: number): Promise<Bot[]> {
+    return Array.from(this.bots.values()).filter(bot => bot.clientId === clientId);
   }
 
   async getBot(id: number): Promise<Bot | undefined> {
@@ -419,6 +537,7 @@ export class MemStorage implements IStorage {
     const bot: Bot = { 
       ...insertBot, 
       id, 
+      clientId: insertBot.clientId || null,
       description: insertBot.description || null,
       config: insertBot.config || null,
       status: "active",
@@ -433,14 +552,6 @@ export class MemStorage implements IStorage {
     const bot = this.bots.get(id);
     if (!bot) throw new Error("Bot not found");
     const updatedBot = { ...bot, ...updates };
-    this.bots.set(id, updatedBot);
-    return updatedBot;
-  }
-
-  async updateBotStatus(id: number, status: string): Promise<Bot> {
-    const bot = this.bots.get(id);
-    if (!bot) throw new Error("Bot not found");
-    const updatedBot = { ...bot, status };
     this.bots.set(id, updatedBot);
     return updatedBot;
   }

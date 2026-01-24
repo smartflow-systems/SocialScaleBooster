@@ -1,20 +1,27 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bot, Plus, Sparkles } from "lucide-react";
+import { Bot, Plus, Sparkles, Users } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertBotSchema } from "@shared/schema";
+
+interface Client {
+  id: number;
+  name: string;
+  businessName: string | null;
+}
 
 interface CreateBotDialogProps {
   isPremium: boolean;
   botCount: number;
   children?: React.ReactNode;
+  defaultClientId?: number;
 }
 
 const platforms = [
@@ -52,16 +59,21 @@ const ecommercePresets = [
   }
 ];
 
-export default function CreateBotDialog({ isPremium, botCount, children }: CreateBotDialogProps) {
+export default function CreateBotDialog({ isPremium, botCount, children, defaultClientId }: CreateBotDialogProps) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     platform: "",
-    preset: ""
+    preset: "",
+    clientId: defaultClientId?.toString() || ""
   });
   const toast = useToast();
   const queryClient = useQueryClient();
+
+  const { data: clients = [] } = useQuery<Client[]>({
+    queryKey: ["/api/clients"],
+  });
 
   const createBotMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -71,12 +83,13 @@ export default function CreateBotDialog({ isPremium, botCount, children }: Creat
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bots"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
       toast.toastSuccess(
         "🤖 Bot Created Successfully!",
         "Your new SmartFlow AI bot is ready to start generating sales!"
       );
       setOpen(false);
-      setFormData({ name: "", description: "", platform: "", preset: "" });
+      setFormData({ name: "", description: "", platform: "", preset: "", clientId: defaultClientId?.toString() || "" });
     },
     onError: (error: any) => {
       toast({
@@ -103,13 +116,14 @@ export default function CreateBotDialog({ isPremium, botCount, children }: Creat
     const config = selectedPreset ? selectedPreset.config : {};
 
     try {
-      const botData = insertBotSchema.parse({
+      const botData = {
         name: formData.name,
         description: formData.description,
         platform: formData.platform,
         config,
-        userId: 1 // Mock user ID
-      });
+        userId: 1, // Mock user ID
+        clientId: formData.clientId ? parseInt(formData.clientId) : null
+      };
       
       createBotMutation.mutate(botData);
     } catch (error) {
@@ -174,6 +188,28 @@ export default function CreateBotDialog({ isPremium, botCount, children }: Creat
               </Select>
             </div>
           </div>
+
+          {clients.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="client" className="flex items-center">
+                <Users className="w-4 h-4 mr-2 text-accent-gold" />
+                Assign to Client (Optional)
+              </Label>
+              <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
+                <SelectTrigger className="bg-secondary-brown border-secondary-brown focus:border-accent-gold">
+                  <SelectValue placeholder="Select client (optional)" />
+                </SelectTrigger>
+                <SelectContent className="bg-card-bg border-secondary-brown">
+                  <SelectItem value="">No client (personal use)</SelectItem>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id.toString()}>
+                      {client.name} {client.businessName ? `(${client.businessName})` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
