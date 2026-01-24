@@ -487,9 +487,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
 
         if (subscription.status === 'active') {
+          const invoice = subscription.latest_invoice;
+          const clientSecret = typeof invoice !== 'string' && invoice?.payment_intent && typeof invoice.payment_intent !== 'string'
+            ? invoice.payment_intent.client_secret
+            : undefined;
           return res.json({
             subscriptionId: subscription.id,
-            clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+            clientSecret,
             status: 'already_subscribed'
           });
         }
@@ -538,9 +542,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user with subscription ID
       await storage.updateUserStripeInfo(userId, stripeCustomerId, subscription.id);
 
+      const invoice = subscription.latest_invoice;
+      const clientSecret = typeof invoice !== 'string' && invoice?.payment_intent && typeof invoice.payment_intent !== 'string'
+        ? invoice.payment_intent.client_secret
+        : undefined;
+
       res.json({
         subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        clientSecret,
       });
     } catch (error: any) {
       console.error('Subscription creation error:', error);

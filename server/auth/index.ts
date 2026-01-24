@@ -36,7 +36,7 @@ export function registerAuthRoutes(app: Express) {
       const user = await storage.createUser({
         username,
         email,
-        passwordHash,
+        password: passwordHash,
         isPremium: false,
         botCount: 0,
       });
@@ -45,8 +45,8 @@ export function registerAuthRoutes(app: Express) {
       const token = generateToken({
         userId: user.id,
         username: user.username,
-        email: user.email,
-        isPremium: user.isPremium,
+        email: user.email || "",
+        isPremium: user.isPremium ?? false,
       });
 
       res.status(201).json({
@@ -83,7 +83,7 @@ export function registerAuthRoutes(app: Express) {
       }
 
       // Verify password
-      const validPassword = await bcrypt.compare(password, user.passwordHash);
+      const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
         return res.status(401).json({ message: 'Invalid email or password' });
       }
@@ -92,8 +92,8 @@ export function registerAuthRoutes(app: Express) {
       const token = generateToken({
         userId: user.id,
         username: user.username,
-        email: user.email,
-        isPremium: user.isPremium,
+        email: user.email || "",
+        isPremium: user.isPremium ?? false,
       });
 
       res.json({
