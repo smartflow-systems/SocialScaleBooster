@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Users, DollarSign, TrendingUp, Bot, Plus, Trash2, Edit, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { apiRequest } from "@/lib/api";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Client {
   id: number;
