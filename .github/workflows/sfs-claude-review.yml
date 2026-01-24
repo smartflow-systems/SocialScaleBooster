@@ -126,11 +126,11 @@ Provide a concise review focusing on the most important issues.`;
 
             const review = message.content[0].text;
 
-            console.log('════════════════════════════════════════════════════════════════');
+            console.log('================================================================');
             console.log('   CLAUDE CODE REVIEW RESULTS');
-            console.log('════════════════════════════════════════════════════════════════');
+            console.log('================================================================');
             console.log(review);
-            console.log('════════════════════════════════════════════════════════════════');
+            console.log('================================================================');
 
             // Save review to file for artifact
             fs.writeFileSync('claude-review.txt', review);
