@@ -8,6 +8,7 @@ import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
+import ClientsPage from "@/pages/clients";
 import Clients from "@/pages/clients";
 
 function Router() {
@@ -15,6 +16,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Landing} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/clients" component={ClientsPage} />
       <Route path="/clients" component={Clients} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/subscribe" component={Subscribe} />

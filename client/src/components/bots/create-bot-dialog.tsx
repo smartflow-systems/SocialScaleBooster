@@ -6,22 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bot, Plus, Sparkles, Users } from "lucide-react";
+import { Bot, Plus, Sparkles } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertBotSchema } from "@shared/schema";
-
-interface Client {
-  id: number;
-  name: string;
-  businessName: string | null;
-}
 
 interface CreateBotDialogProps {
   isPremium: boolean;
   botCount: number;
   children?: React.ReactNode;
-  defaultClientId?: number;
 }
 
 const platforms = [
@@ -59,20 +52,22 @@ const ecommercePresets = [
   }
 ];
 
-export default function CreateBotDialog({ isPremium, botCount, children, defaultClientId }: CreateBotDialogProps) {
+export default function CreateBotDialog({ isPremium, botCount, children }: CreateBotDialogProps) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     platform: "",
     preset: "",
-    clientId: defaultClientId?.toString() || ""
+    clientId: ""
   });
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const { data: clients = [] } = useQuery<Client[]>({
+  // Fetch clients for the dropdown
+  const { data: clients = [] } = useQuery({
     queryKey: ["/api/clients"],
+    enabled: open, // Only fetch when dialog is open
   });
 
   const createBotMutation = useMutation({
@@ -89,7 +84,7 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
         "Your new SmartFlow AI bot is ready to start generating sales!"
       );
       setOpen(false);
-      setFormData({ name: "", description: "", platform: "", preset: "", clientId: defaultClientId?.toString() || "" });
+      setFormData({ name: "", description: "", platform: "", preset: "", clientId: "" });
     },
     onError: (error: any) => {
       toast({
@@ -116,15 +111,15 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
     const config = selectedPreset ? selectedPreset.config : {};
 
     try {
-      const botData = {
+      const botData = insertBotSchema.parse({
         name: formData.name,
         description: formData.description,
         platform: formData.platform,
+        clientId: formData.clientId ? parseInt(formData.clientId) : undefined,
         config,
-        userId: 1, // Mock user ID
-        clientId: formData.clientId ? parseInt(formData.clientId) : null
-      };
-      
+        userId: 1 // Mock user ID
+      });
+
       createBotMutation.mutate(botData);
     } catch (error) {
       toast({
@@ -171,7 +166,7 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="platform">Platform</Label>
               <Select value={formData.platform} onValueChange={(value) => setFormData({ ...formData, platform: value })}>
@@ -189,27 +184,23 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
             </div>
           </div>
 
-          {clients.length > 0 && (
-            <div className="space-y-2">
-              <Label htmlFor="client" className="flex items-center">
-                <Users className="w-4 h-4 mr-2 text-accent-gold" />
-                Assign to Client (Optional)
-              </Label>
-              <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
-                <SelectTrigger className="bg-secondary-brown border-secondary-brown focus:border-accent-gold">
-                  <SelectValue placeholder="Select client (optional)" />
-                </SelectTrigger>
-                <SelectContent className="bg-card-bg border-secondary-brown">
-                  <SelectItem value="">No client (personal use)</SelectItem>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id.toString()}>
-                      {client.name} {client.businessName ? `(${client.businessName})` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="client">Assign to Client (Optional)</Label>
+            <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
+              <SelectTrigger className="bg-secondary-brown border-secondary-brown focus:border-accent-gold">
+                <SelectValue placeholder="Select client (optional)" />
+              </SelectTrigger>
+              <SelectContent className="bg-card-bg border-secondary-brown">
+                <SelectItem value="">No Client</SelectItem>
+                {clients.map((client: any) => (
+                  <SelectItem key={client.id} value={client.id.toString()}>
+                    {client.businessName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-neutral-gray">Link this bot to a specific client for better tracking</p>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
