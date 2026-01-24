@@ -103,15 +103,6 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <Button
-                onClick={() => window.location.href = "/"}
-              <Button 
-                onClick={() => window.location.href = "/clients"}
-                className="bg-card-bg text-accent-gold border border-accent-gold font-semibold hover:bg-accent-gold hover:text-primary-black"
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Clients
-              </Button>
-              <Button
                 onClick={() => window.location.href = "/clients"}
                 className="bg-card-bg text-accent-gold border border-accent-gold font-semibold hover:bg-accent-gold hover:text-primary-black"
               >
