@@ -63,7 +63,7 @@ export function registerAuthRoutes(app: Express) {
       });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: 'Validation error', errors: error.errors });
+        return res.status(400).json({ message: 'Validation error', errors: error.issues });
       }
       res.status(500).json({ message: error.message });
     }
@@ -110,7 +110,7 @@ export function registerAuthRoutes(app: Express) {
       });
     } catch (error: any) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: 'Validation error', errors: error.errors });
+        return res.status(400).json({ message: 'Validation error', errors: error.issues });
       }
       res.status(500).json({ message: error.message });
     }
