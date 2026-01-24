@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { AnalyticsWebSocketServer } from "./websocket";
 import { storage } from "./storage";
-import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema } from "@shared/schema";
+import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 
@@ -135,6 +135,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
 </html>`;
     res.send(html);
   });
+
+  // Client routes
+  app.get("/api/clients", async (req, res) => {
+    try {
+      const userId = 1; // Mock user ID
+      const clients = await storage.getClientsByUserId(userId);
+
+      // Get stats for each client
+      const clientsWithStats = await Promise.all(
+        clients.map(async (client) => {
+          const stats = await storage.getClientStats(client.id);
+          return {
+            ...client,
+            botCount: stats.botCount,
+            totalRevenue: stats.totalRevenue
+          };
+        })
+      );
+
+      res.json(clientsWithStats);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/clients/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const client = await storage.getClient(id);
+
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+
+      const stats = await storage.getClientStats(id);
+      const bots = await storage.getBotsByClientId(id);
+
+      res.json({
+        ...client,
+        botCount: stats.botCount,
+        totalRevenue: stats.totalRevenue,
+        bots
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/clients", async (req, res) => {
+    try {
+      const userId = 1; // Mock user ID
+      const clientData = insertClientSchema.parse({ ...req.body, userId });
+      const client = await storage.createClient(clientData);
+      res.json(client);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/clients/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const client = await storage.updateClient(id, req.body);
+      res.json(client);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/clients/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteClient(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
   // Bot routes - Protected
   app.get("/api/bots", authenticateToken, async (req: AuthRequest, res) => {
     try {

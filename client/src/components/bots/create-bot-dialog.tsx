@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -58,10 +58,17 @@ export default function CreateBotDialog({ isPremium, botCount, children }: Creat
     name: "",
     description: "",
     platform: "",
-    preset: ""
+    preset: "",
+    clientId: ""
   });
   const toast = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch clients for the dropdown
+  const { data: clients = [] } = useQuery({
+    queryKey: ["/api/clients"],
+    enabled: open, // Only fetch when dialog is open
+  });
 
   const createBotMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -71,12 +78,13 @@ export default function CreateBotDialog({ isPremium, botCount, children }: Creat
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bots"] });
       queryClient.invalidateQueries({ queryKey: ["/api/user/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
       toast.toastSuccess(
         "🤖 Bot Created Successfully!",
         "Your new SmartFlow AI bot is ready to start generating sales!"
       );
       setOpen(false);
-      setFormData({ name: "", description: "", platform: "", preset: "" });
+      setFormData({ name: "", description: "", platform: "", preset: "", clientId: "" });
     },
     onError: (error: any) => {
       toast({
@@ -107,10 +115,11 @@ export default function CreateBotDialog({ isPremium, botCount, children }: Creat
         name: formData.name,
         description: formData.description,
         platform: formData.platform,
+        clientId: formData.clientId ? parseInt(formData.clientId) : undefined,
         config,
         userId: 1 // Mock user ID
       });
-      
+
       createBotMutation.mutate(botData);
     } catch (error) {
       toast({
@@ -157,7 +166,7 @@ export default function CreateBotDialog({ isPremium, botCount, children }: Creat
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="platform">Platform</Label>
               <Select value={formData.platform} onValueChange={(value) => setFormData({ ...formData, platform: value })}>
@@ -173,6 +182,24 @@ export default function CreateBotDialog({ isPremium, botCount, children }: Creat
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="client">Assign to Client (Optional)</Label>
+            <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
+              <SelectTrigger className="bg-secondary-brown border-secondary-brown focus:border-accent-gold">
+                <SelectValue placeholder="Select client (optional)" />
+              </SelectTrigger>
+              <SelectContent className="bg-card-bg border-secondary-brown">
+                <SelectItem value="">No Client</SelectItem>
+                {clients.map((client: any) => (
+                  <SelectItem key={client.id} value={client.id.toString()}>
+                    {client.businessName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-neutral-gray">Link this bot to a specific client for better tracking</p>
           </div>
 
           <div className="space-y-2">

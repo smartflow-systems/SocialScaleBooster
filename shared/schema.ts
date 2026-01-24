@@ -14,9 +14,21 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const clients = pgTable("clients", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id), // The service provider (you)
+  businessName: text("business_name").notNull(),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  monthlyFee: decimal("monthly_fee", { precision: 10, scale: 2 }).notNull(),
+  status: text("status").default("active"), // 'active', 'paused', 'cancelled'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const bots = pgTable("bots", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
+  clientId: integer("client_id").references(() => clients.id), // Link bot to a client
   name: text("name").notNull(),
   description: text("description"),
   platform: text("platform").notNull(), // 'tiktok', 'instagram', 'facebook', 'twitter', 'youtube'
@@ -58,6 +70,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
 });
 
+export const insertClientSchema = createInsertSchema(clients).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertBotSchema = createInsertSchema(bots).omit({
   id: true,
   createdAt: true,
@@ -75,6 +92,8 @@ export const insertAnalyticsSchema = createInsertSchema(analytics).omit({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type InsertClient = z.infer<typeof insertClientSchema>;
+export type Client = typeof clients.$inferSelect;
 export type InsertBot = z.infer<typeof insertBotSchema>;
 export type Bot = typeof bots.$inferSelect;
 export type InsertBotTemplate = z.infer<typeof insertBotTemplateSchema>;
