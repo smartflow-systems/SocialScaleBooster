@@ -39,12 +39,19 @@ jobs:
           NODE_ENV: production
 
       - name: Deploy to Replit (if configured)
-        if: github.ref == 'refs/heads/main' && secrets.REPLIT_TOKEN
+        if: github.ref == 'refs/heads/main'
         run: |
-          echo "Deploying to Replit..."
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.REPLIT_TOKEN }}" \
-            "${{ secrets.SFS_SYNC_URL }}" || echo "Replit deployment skipped"
+          if [ -n "$REPLIT_TOKEN" ]; then
+            echo "Deploying to Replit..."
+            curl -X POST \
+              -H "Authorization: Bearer $REPLIT_TOKEN" \
+              "$SFS_SYNC_URL" || echo "Replit deployment skipped"
+          else
+            echo "Replit deployment not configured, skipping"
+          fi
+        env:
+          REPLIT_TOKEN: ${{ secrets.REPLIT_TOKEN }}
+          SFS_SYNC_URL: ${{ secrets.SFS_SYNC_URL }}
         continue-on-error: true
 
       - name: Notify deployment success
