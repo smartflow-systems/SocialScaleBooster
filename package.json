@@ -1,5 +1,6 @@
 {
   "name": "socialscalebooster",
+  "type": "module",
   "version": "0.1.0",
   "description": "Smartflow Store MVP API with Multi-Agent Orchestration",
   "type": "module",
