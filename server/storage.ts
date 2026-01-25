@@ -596,9 +596,6 @@ export class MemStorage implements IStorage {
     const bot: Bot = {
       ...insertBot,
       id,
-    const bot: Bot = { 
-      ...insertBot, 
-      id, 
       clientId: insertBot.clientId || null,
       description: insertBot.description || null,
       config: insertBot.config || null,
