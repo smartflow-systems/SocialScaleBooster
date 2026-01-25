@@ -7,12 +7,21 @@ import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insert
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
+import rateLimit from "express-rate-limit";
 
 // Initialize Stripe
 let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 }
+
+// Rate limiter for bot modification routes to prevent abuse and DoS via costly operations
+const botActionsLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // limit each IP to 20 requests per windowMs on these routes
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register authentication routes
@@ -525,7 +534,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/bots", authenticateToken, async (req: AuthRequest, res) => {
+  app.post("/api/bots", authenticateToken, botActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const userId = req.userId!;
       const user = await storage.getUser(userId);
@@ -569,7 +578,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/bots/:id", authenticateToken, async (req: AuthRequest, res) => {
+  app.put("/api/bots/:id", authenticateToken, botActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const userId = req.userId!;
       const id = parseInt(req.params.id);
@@ -590,7 +599,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/bots/:id", authenticateToken, async (req: AuthRequest, res) => {
+  app.patch("/api/bots/:id", authenticateToken, botActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const botId = parseInt(req.params.id);
       const { status } = req.body;
@@ -606,7 +615,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/bots/:id", authenticateToken, async (req: AuthRequest, res) => {
+  app.delete("/api/bots/:id", authenticateToken, botActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const bot = await storage.getBot(id);
