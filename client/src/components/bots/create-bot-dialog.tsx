@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -6,22 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bot, Plus, Sparkles, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Bot, Plus, Sparkles, AlertCircle, Link } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertBotSchema } from "@shared/schema";
-
-interface Client {
-  id: number;
-  name: string;
-  businessName: string | null;
-}
+import { useSocialAccountsByPlatform, type SocialAccount } from "@/hooks/useSocialAccounts";
 
 interface CreateBotDialogProps {
   isPremium: boolean;
   botCount: number;
   children?: React.ReactNode;
-  defaultClientId?: number;
 }
 
 const platforms = [
@@ -59,21 +54,34 @@ const ecommercePresets = [
   }
 ];
 
-export default function CreateBotDialog({ isPremium, botCount, children, defaultClientId }: CreateBotDialogProps) {
+export default function CreateBotDialog({ isPremium, botCount, children }: CreateBotDialogProps) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     platform: "",
     preset: "",
-    clientId: defaultClientId?.toString() || ""
+    clientId: "",
+    socialAccountId: ""
   });
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  const { data: clients = [] } = useQuery<Client[]>({
+  // Fetch clients for the dropdown
+  const { data: clients = [] } = useQuery({
     queryKey: ["/api/clients"],
+    enabled: open,
   });
+
+  // Fetch social accounts for the selected platform
+  const { data: platformAccounts = [], isLoading: accountsLoading } = useSocialAccountsByPlatform(
+    formData.platform || undefined
+  );
+
+  // Reset social account when platform changes
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, socialAccountId: "" }));
+  }, [formData.platform]);
 
   const createBotMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -85,14 +93,14 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
       queryClient.invalidateQueries({ queryKey: ["/api/user/status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
       toast.toastSuccess(
-        "🤖 Bot Created Successfully!",
+        "Bot Created Successfully!",
         "Your new SmartFlow AI bot is ready to start generating sales!"
       );
       setOpen(false);
-      setFormData({ name: "", description: "", platform: "", preset: "", clientId: defaultClientId?.toString() || "" });
+      setFormData({ name: "", description: "", platform: "", preset: "", clientId: "", socialAccountId: "" });
     },
     onError: (error: any) => {
-      toast({
+      toast.toast({
         title: "Creation Failed",
         description: error.message || "Failed to create bot. Please try again.",
         variant: "destructive",
@@ -102,11 +110,11 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Check bot limits for free users
     if (!isPremium && botCount >= 3) {
       toast.toastPremium(
-        "👑 Upgrade to SmartFlow Pro",
+        "Upgrade to SmartFlow Pro",
         "Free plan is limited to 3 bots. Upgrade to Pro for unlimited AI automation!"
       );
       return;
@@ -116,18 +124,19 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
     const config = selectedPreset ? selectedPreset.config : {};
 
     try {
-      const botData = {
+      const botData = insertBotSchema.parse({
         name: formData.name,
         description: formData.description,
         platform: formData.platform,
+        clientId: formData.clientId ? parseInt(formData.clientId) : undefined,
+        socialAccountId: formData.socialAccountId ? parseInt(formData.socialAccountId) : undefined,
         config,
-        userId: 1, // Mock user ID
-        clientId: formData.clientId ? parseInt(formData.clientId) : null
-      };
-      
+        userId: 1 // Will be replaced by server with authenticated user
+      });
+
       createBotMutation.mutate(botData);
     } catch (error) {
-      toast({
+      toast.toast({
         title: "Validation Error",
         description: "Please fill in all required fields correctly.",
         variant: "destructive",
@@ -136,12 +145,13 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
   };
 
   const canCreateBot = isPremium || botCount < 3;
+  const hasAccountsForPlatform = platformAccounts.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children || (
-          <Button 
+          <Button
             className="bg-accent-gold text-primary-black font-semibold gold-glow-hover"
             disabled={!canCreateBot}
           >
@@ -150,14 +160,14 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="bg-card-bg border-secondary-brown max-w-2xl">
+      <DialogContent className="bg-card-bg border-secondary-brown max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center">
             <Sparkles className="text-accent-gold w-6 h-6 mr-2" />
             Create E-Commerce Bot
           </DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -171,7 +181,7 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="platform">Platform</Label>
               <Select value={formData.platform} onValueChange={(value) => setFormData({ ...formData, platform: value })}>
@@ -189,27 +199,78 @@ export default function CreateBotDialog({ isPremium, botCount, children, default
             </div>
           </div>
 
-          {clients.length > 0 && (
+          {/* Social Account Selector - Shows after platform is selected */}
+          {formData.platform && (
             <div className="space-y-2">
-              <Label htmlFor="client" className="flex items-center">
-                <Users className="w-4 h-4 mr-2 text-accent-gold" />
-                Assign to Client (Optional)
+              <Label htmlFor="socialAccount" className="flex items-center">
+                <Link className="w-4 h-4 mr-2 text-accent-gold" />
+                Link to Social Account
               </Label>
-              <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
-                <SelectTrigger className="bg-secondary-brown border-secondary-brown focus:border-accent-gold">
-                  <SelectValue placeholder="Select client (optional)" />
-                </SelectTrigger>
-                <SelectContent className="bg-card-bg border-secondary-brown">
-                  <SelectItem value="">No client (personal use)</SelectItem>
-                  {clients.map((client) => (
-                    <SelectItem key={client.id} value={client.id.toString()}>
-                      {client.name} {client.businessName ? `(${client.businessName})` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
+              {accountsLoading ? (
+                <div className="h-10 bg-secondary-brown rounded animate-pulse" />
+              ) : hasAccountsForPlatform ? (
+                <Select
+                  value={formData.socialAccountId}
+                  onValueChange={(value) => setFormData({ ...formData, socialAccountId: value })}
+                >
+                  <SelectTrigger className="bg-secondary-brown border-secondary-brown focus:border-accent-gold">
+                    <SelectValue placeholder="Select account (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card-bg border-secondary-brown">
+                    <SelectItem value="">No account linked</SelectItem>
+                    {platformAccounts.map((account: SocialAccount) => (
+                      <SelectItem key={account.id} value={account.id.toString()}>
+                        <div className="flex items-center">
+                          <span>{account.accountName}</span>
+                          {account.accountHandle && (
+                            <span className="text-neutral-gray ml-2 text-sm">
+                              {account.accountHandle}
+                            </span>
+                          )}
+                          {account.status === "active" && (
+                            <Badge className="ml-2 bg-green-500 text-xs">Active</Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="bg-secondary-brown rounded-lg p-4 border border-dashed border-accent-gold">
+                  <div className="flex items-center text-yellow-400">
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                    <span className="text-sm">No {formData.platform} accounts connected</span>
+                  </div>
+                  <p className="text-xs text-neutral-gray mt-2">
+                    Go to the Integrations page to connect your {formData.platform} account first.
+                    You can still create the bot without linking an account.
+                  </p>
+                </div>
+              )}
+              <p className="text-xs text-neutral-gray">
+                Linking an account allows the bot to use its credentials for posting
+              </p>
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label htmlFor="client">Assign to Client (Optional)</Label>
+            <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
+              <SelectTrigger className="bg-secondary-brown border-secondary-brown focus:border-accent-gold">
+                <SelectValue placeholder="Select client (optional)" />
+              </SelectTrigger>
+              <SelectContent className="bg-card-bg border-secondary-brown">
+                <SelectItem value="">No Client</SelectItem>
+                {clients.map((client: any) => (
+                  <SelectItem key={client.id} value={client.id.toString()}>
+                    {client.businessName || client.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-neutral-gray">Link this bot to a specific client for better tracking</p>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>

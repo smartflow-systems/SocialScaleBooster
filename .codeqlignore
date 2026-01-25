@@ -1,0 +1,42 @@
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Dependencies
+vendor/
+.pnp.*
+
+# Config files that may have syntax variations
+*.config.js
+*.config.ts
+*.config.mjs
+vite.config.*
+vitest.config.*
+tailwind.config.*
+postcss.config.*
+
+# Replit specific
+.replit
+replit.nix
+
+# Environment files
+.env
+.env.*
+
+# Coverage and test outputs
+coverage/
+.nyc_output/
+
+# Cache directories
+.cache/
+.turbo/
+.parcel-cache/
+
+# Lock files (can have parsing issues)
+package-lock.json
+package-lock.json.bak.*

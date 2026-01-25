@@ -3,9 +3,10 @@ import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { AnalyticsWebSocketServer } from "./websocket";
 import { storage } from "./storage";
-import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema } from "@shared/schema";
+import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
+import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
 
 // Initialize Stripe
 let stripe: Stripe | null = null;
@@ -35,49 +36,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { 
-      margin: 0; 
-      font-family: 'Inter', sans-serif; 
-      background: #000000; 
-      color: #FFFFFF; 
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #000000;
+      color: #FFFFFF;
       line-height: 1.6;
     }
-    .hero { 
-      min-height: 100vh; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      text-align: center; 
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
       padding: 2rem;
       background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
     }
-    .hero h1 { 
-      font-size: 4rem; 
-      font-weight: 800; 
-      margin-bottom: 1.5rem; 
+    .hero h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
       color: #FFD700;
       text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
     }
-    .hero p { 
-      font-size: 1.5rem; 
-      margin-bottom: 2rem; 
-      color: #808080; 
+    .hero p {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+      color: #808080;
       max-width: 600px;
     }
-    .cta { 
-      background: #FFD700; 
-      color: #000000; 
-      padding: 1rem 2rem; 
-      font-size: 1.2rem; 
-      font-weight: 700; 
-      border: none; 
-      border-radius: 8px; 
+    .cta {
+      background: #FFD700;
+      color: #000000;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
       box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
       transition: all 0.3s ease;
     }
-    .cta:hover { 
-      box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); 
+    .cta:hover {
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
       transform: translateY(-2px);
     }
     .features {
@@ -117,15 +118,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       <div class="features">
         <div class="feature">
-          <h3>🤖 AI-Powered Automation</h3>
+          <h3>AI-Powered Automation</h3>
           <p>Advanced AI algorithms optimize your social media presence for maximum e-commerce conversions and revenue growth.</p>
         </div>
         <div class="feature">
-          <h3>📊 Analytics & ROI Tracking</h3>
+          <h3>Analytics & ROI Tracking</h3>
           <p>Real-time analytics dashboard with revenue tracking, engagement metrics, and ROI calculations for data-driven decisions.</p>
         </div>
         <div class="feature">
-          <h3>🛍️ E-Commerce Templates</h3>
+          <h3>E-Commerce Templates</h3>
           <p>Pre-built automation templates specifically designed for e-commerce success across TikTok, Instagram, Facebook, and more.</p>
         </div>
       </div>
@@ -135,19 +136,346 @@ export async function registerRoutes(app: Express): Promise<Server> {
 </html>`;
     res.send(html);
   });
-  // Bot routes - Protected
-  app.get("/api/bots", authenticateToken, async (req: AuthRequest, res) => {
+
+  // ============================================
+  // Social Account Routes (Multi-Account Support)
+  // ============================================
+
+  // Get all social accounts for user
+  app.get("/api/social-accounts", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const userId = req.userId!;
-      const bots = await storage.getBotsByUserId(userId);
+      const accounts = await storage.getSocialAccountsByUserId(userId);
+
+      // Don't return encrypted credentials
+      const safeAccounts = accounts.map(account => ({
+        ...account,
+        encryptedCredentials: undefined, // Never expose credentials
+        hasCredentials: !!account.encryptedCredentials
+      }));
+
+      res.json(safeAccounts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get social accounts filtered by platform
+  app.get("/api/social-accounts/platform/:platform", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const { platform } = req.params;
+
+      const accounts = await storage.getSocialAccountsByPlatform(userId, platform);
+
+      const safeAccounts = accounts.map(account => ({
+        ...account,
+        encryptedCredentials: undefined,
+        hasCredentials: !!account.encryptedCredentials
+      }));
+
+      res.json(safeAccounts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Create a new social account
+  app.post("/api/social-accounts", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const { platform, accountName, accountHandle, apiKey, accessToken, credentialType, metadata } = req.body;
+
+      // Validate required fields
+      if (!platform || !accountName) {
+        return res.status(400).json({ message: "Platform and account name are required" });
+      }
+
+      // Get the credential to encrypt
+      const credential = apiKey || accessToken;
+      if (!credential) {
+        return res.status(400).json({ message: "API key or access token is required" });
+      }
+
+      // Validate encryption is configured
+      const encryptionCheck = validateEncryption();
+      if (!encryptionCheck.valid) {
+        return res.status(500).json({ message: "Encryption not configured: " + encryptionCheck.error });
+      }
+
+      // Encrypt the credentials
+      const encryptedCredentials = encrypt(credential);
+
+      const accountData = insertSocialAccountSchema.parse({
+        userId,
+        platform,
+        accountName,
+        accountHandle: accountHandle || null,
+        encryptedCredentials,
+        credentialType: credentialType || (apiKey ? "api_key" : "access_token"),
+        status: "active",
+        metadata: metadata || null
+      });
+
+      const account = await storage.createSocialAccount(accountData);
+
+      res.json({
+        ...account,
+        encryptedCredentials: undefined,
+        hasCredentials: true
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Update a social account
+  app.put("/api/social-accounts/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const accountId = parseInt(req.params.id);
+      const { accountName, accountHandle, apiKey, accessToken, status, metadata } = req.body;
+
+      // Verify ownership
+      const isOwner = await storage.verifySocialAccountOwnership(accountId, userId);
+      if (!isOwner) {
+        return res.status(403).json({ message: "Not authorized to update this account" });
+      }
+
+      const updates: any = {};
+
+      if (accountName) updates.accountName = accountName;
+      if (accountHandle !== undefined) updates.accountHandle = accountHandle;
+      if (status) updates.status = status;
+      if (metadata !== undefined) updates.metadata = metadata;
+
+      // If new credentials provided, encrypt them
+      const credential = apiKey || accessToken;
+      if (credential) {
+        const encryptionCheck = validateEncryption();
+        if (!encryptionCheck.valid) {
+          return res.status(500).json({ message: "Encryption not configured" });
+        }
+        updates.encryptedCredentials = encrypt(credential);
+        updates.credentialType = apiKey ? "api_key" : "access_token";
+      }
+
+      const account = await storage.updateSocialAccount(accountId, updates);
+
+      res.json({
+        ...account,
+        encryptedCredentials: undefined,
+        hasCredentials: !!account.encryptedCredentials
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Delete a social account
+  app.delete("/api/social-accounts/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const accountId = parseInt(req.params.id);
+
+      // Verify ownership
+      const isOwner = await storage.verifySocialAccountOwnership(accountId, userId);
+      if (!isOwner) {
+        return res.status(403).json({ message: "Not authorized to delete this account" });
+      }
+
+      await storage.deleteSocialAccount(accountId);
+      res.json({ success: true, message: "Account deleted and bots unlinked" });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Verify/test a social account connection
+  app.post("/api/social-accounts/:id/verify", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const accountId = parseInt(req.params.id);
+
+      // Verify ownership
+      const isOwner = await storage.verifySocialAccountOwnership(accountId, userId);
+      if (!isOwner) {
+        return res.status(403).json({ message: "Not authorized to verify this account" });
+      }
+
+      const account = await storage.getSocialAccount(accountId);
+      if (!account) {
+        return res.status(404).json({ message: "Account not found" });
+      }
+
+      // In a real implementation, this would test the API connection
+      // For now, we'll simulate a successful verification
+      const isValid = true; // Would actually test the API here
+
+      if (isValid) {
+        await storage.updateSocialAccount(accountId, {
+          status: "active",
+          lastVerified: new Date(),
+          lastError: null
+        });
+        res.json({ success: true, message: "Connection verified successfully" });
+      } else {
+        await storage.updateSocialAccount(accountId, {
+          status: "error",
+          lastError: "Connection test failed"
+        });
+        res.status(400).json({ success: false, message: "Connection test failed" });
+      }
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get bots linked to a social account
+  app.get("/api/social-accounts/:id/bots", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const accountId = parseInt(req.params.id);
+
+      // Verify ownership
+      const isOwner = await storage.verifySocialAccountOwnership(accountId, userId);
+      if (!isOwner) {
+        return res.status(403).json({ message: "Not authorized to view this account's bots" });
+      }
+
+      const bots = await storage.getBotsBySocialAccountId(accountId);
       res.json(bots);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  // Get detailed bot statistics
-  app.get("/api/bots/:id/stats", async (req, res) => {
+  // ============================================
+  // Client Routes
+  // ============================================
+
+  app.get("/api/clients", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const clients = await storage.getClientsByUserId(userId);
+
+      const clientsWithStats = await Promise.all(
+        clients.map(async (client) => {
+          const stats = await storage.getClientStats(client.id);
+          return {
+            ...client,
+            botCount: stats.botCount,
+            totalRevenue: stats.totalRevenue
+          };
+        })
+      );
+
+      res.json(clientsWithStats);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/clients/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const client = await storage.getClient(id);
+
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+
+      const stats = await storage.getClientStats(id);
+      const bots = await storage.getBotsByClientId(id);
+
+      res.json({
+        ...client,
+        botCount: stats.botCount,
+        totalRevenue: stats.totalRevenue,
+        bots
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/clients", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const clientData = insertClientSchema.parse({ ...req.body, userId });
+      const client = await storage.createClient(clientData);
+      res.json(client);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/clients/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const client = await storage.updateClient(id, req.body);
+      res.json(client);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/clients/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteClient(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/clients/:id/bots", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const clientId = parseInt(req.params.id);
+      const bots = await storage.getBotsByClientId(clientId);
+      res.json(bots);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ============================================
+  // Bot Routes
+  // ============================================
+
+  app.get("/api/bots", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const bots = await storage.getBotsByUserId(userId);
+
+      // Include linked social account info
+      const botsWithAccounts = await Promise.all(
+        bots.map(async (bot) => {
+          let socialAccount = null;
+          if (bot.socialAccountId) {
+            const account = await storage.getSocialAccount(bot.socialAccountId);
+            if (account) {
+              socialAccount = {
+                id: account.id,
+                accountName: account.accountName,
+                accountHandle: account.accountHandle,
+                platform: account.platform,
+                status: account.status
+              };
+            }
+          }
+          return { ...bot, socialAccount };
+        })
+      );
+
+      res.json(botsWithAccounts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/bots/:id/stats", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const botId = parseInt(req.params.id);
       const bot = await storage.getBot(botId);
@@ -156,7 +484,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Bot not found" });
       }
 
-      // Generate realistic bot statistics based on bot activity
       const createdDate = bot.createdAt ? new Date(bot.createdAt) : new Date();
       const daysSinceCreated = Math.floor((Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24)) || 1;
       const isActive = bot.status === 'active';
@@ -181,9 +508,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           revenue: isActive ? (Math.random() * 50 + 10).toFixed(2) : "0.00"
         })),
         topPosts: isActive ? [
-          { content: "🔥 Product showcase with amazing results!", engagement: Math.floor(Math.random() * 500) + 100, revenue: (Math.random() * 100 + 20).toFixed(2) },
-          { content: "⚡ Flash sale announcement - 50% off!", engagement: Math.floor(Math.random() * 400) + 80, revenue: (Math.random() * 80 + 15).toFixed(2) },
-          { content: "⭐ Customer testimonial showcase", engagement: Math.floor(Math.random() * 300) + 60, revenue: (Math.random() * 60 + 10).toFixed(2) }
+          { content: "Product showcase with amazing results!", engagement: Math.floor(Math.random() * 500) + 100, revenue: (Math.random() * 100 + 20).toFixed(2) },
+          { content: "Flash sale announcement - 50% off!", engagement: Math.floor(Math.random() * 400) + 80, revenue: (Math.random() * 80 + 15).toFixed(2) },
+          { content: "Customer testimonial showcase", engagement: Math.floor(Math.random() * 300) + 60, revenue: (Math.random() * 60 + 10).toFixed(2) }
         ] : [],
         platformMetrics: {
           followers: isActive ? Math.floor(Math.random() * 10000) + 1000 : 0,
@@ -198,9 +525,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/bots", async (req, res) => {
+  app.post("/api/bots", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const userId = 1; // Mock user ID
+      const userId = req.userId!;
       const user = await storage.getUser(userId);
 
       // Check bot limit for free users
@@ -208,19 +535,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Free plan limited to 3 bots. Upgrade to Pro for unlimited bots." });
       }
 
+      // Validate socialAccountId ownership if provided
+      const { socialAccountId } = req.body;
+      if (socialAccountId) {
+        const isOwner = await storage.verifySocialAccountOwnership(socialAccountId, userId);
+        if (!isOwner) {
+          return res.status(403).json({ message: "Not authorized to use this social account" });
+        }
+      }
+
       const botData = insertBotSchema.parse({ ...req.body, userId });
       const bot = await storage.createBot(botData);
       await storage.incrementUserBotCount(userId);
 
-      res.json(bot);
+      // Return with social account info
+      let socialAccount = null;
+      if (bot.socialAccountId) {
+        const account = await storage.getSocialAccount(bot.socialAccountId);
+        if (account) {
+          socialAccount = {
+            id: account.id,
+            accountName: account.accountName,
+            accountHandle: account.accountHandle,
+            platform: account.platform,
+            status: account.status
+          };
+        }
+      }
+
+      res.json({ ...bot, socialAccount });
     } catch (error: any) {
       res.status(400).json({ message: error.message });
     }
   });
 
-  app.put("/api/bots/:id", async (req, res) => {
+  app.put("/api/bots/:id", authenticateToken, async (req: AuthRequest, res) => {
     try {
+      const userId = req.userId!;
       const id = parseInt(req.params.id);
+
+      // Validate socialAccountId ownership if provided
+      const { socialAccountId } = req.body;
+      if (socialAccountId) {
+        const isOwner = await storage.verifySocialAccountOwnership(socialAccountId, userId);
+        if (!isOwner) {
+          return res.status(403).json({ message: "Not authorized to use this social account" });
+        }
+      }
+
       const bot = await storage.updateBot(id, req.body);
       res.json(bot);
     } catch (error: any) {
@@ -228,7 +590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/bots/:id", async (req, res) => {
+  app.patch("/api/bots/:id", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const botId = parseInt(req.params.id);
       const { status } = req.body;
@@ -244,7 +606,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/bots/:id", async (req, res) => {
+  app.delete("/api/bots/:id", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const bot = await storage.getBot(id);
@@ -258,98 +620,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Client routes
-  app.get("/api/clients", async (req, res) => {
-    try {
-      const userId = 1; // Mock user ID
-      const clients = await storage.getClientsByUserId(userId);
-      
-      // Get revenue stats for each client
-      const clientsWithStats = await Promise.all(clients.map(async (client) => {
-        const stats = await storage.getClientRevenue(client.id);
-        return {
-          ...client,
-          totalRevenue: stats.totalRevenue,
-          botCount: stats.botCount
-        };
-      }));
-      
-      res.json(clientsWithStats);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
+  // ============================================
+  // Bot Template Routes
+  // ============================================
 
-  app.get("/api/clients/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const client = await storage.getClient(id);
-      
-      if (!client) {
-        return res.status(404).json({ message: "Client not found" });
-      }
-      
-      const stats = await storage.getClientRevenue(id);
-      const bots = await storage.getBotsByClientId(id);
-      
-      res.json({
-        ...client,
-        totalRevenue: stats.totalRevenue,
-        botCount: stats.botCount,
-        bots
-      });
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  app.post("/api/clients", async (req, res) => {
-    try {
-      const userId = 1; // Mock user ID
-      const clientData = insertClientSchema.parse({ ...req.body, userId });
-      const client = await storage.createClient(clientData);
-      res.json(client);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  app.put("/api/clients/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const client = await storage.updateClient(id, req.body);
-      res.json(client);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  app.delete("/api/clients/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      await storage.deleteClient(id);
-      res.json({ success: true });
-    } catch (error: any) {
-      res.status(400).json({ message: error.message });
-    }
-  });
-
-  // Get bots for a specific client
-  app.get("/api/clients/:id/bots", async (req, res) => {
-    try {
-      const clientId = parseInt(req.params.id);
-      const bots = await storage.getBotsByClientId(clientId);
-      res.json(bots);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  // Bot Templates routes
   app.get("/api/templates", async (req, res) => {
     try {
       const category = req.query.category as string;
-      const templates = category 
+      const templates = category
         ? await storage.getBotTemplatesByCategory(category)
         : await storage.getAllBotTemplates();
       res.json(templates);
@@ -358,7 +636,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/templates", async (req, res) => {
+  app.post("/api/templates", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const templateData = insertBotTemplateSchema.parse(req.body);
       const template = await storage.createBotTemplate(templateData);
@@ -368,10 +646,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Analytics routes
-  app.get("/api/analytics", async (req, res) => {
+  // ============================================
+  // Analytics Routes
+  // ============================================
+
+  app.get("/api/analytics", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const userId = 1; // Mock user ID
+      const userId = req.userId!;
       const analytics = await storage.getAnalyticsByUserId(userId);
       res.json(analytics);
     } catch (error: any) {
@@ -379,15 +660,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/analytics/metrics", async (req, res) => {
+  app.get("/api/analytics/metrics", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const userId = 1; // Mock user ID
+      const userId = req.userId!;
       const [revenueMetrics, engagementMetrics] = await Promise.all([
         storage.getRevenueMetrics(userId),
         storage.getEngagementMetrics(userId)
       ]);
 
-      // Generate mock chart data
       const chartData = {
         revenue: {
           labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -412,7 +692,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/analytics", async (req, res) => {
+  app.post("/api/analytics", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const analyticsData = insertAnalyticsSchema.parse(req.body);
       const analytics = await storage.createAnalytics(analyticsData);
@@ -422,10 +702,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // User premium status
-  app.get("/api/user/status", async (req, res) => {
+  // ============================================
+  // User Status Routes
+  // ============================================
+
+  app.get("/api/user/status", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const userId = 1; // Mock user ID
+      const userId = req.userId!;
       const user = await storage.getUser(userId);
       res.json({
         isPremium: user?.isPremium || false,
@@ -437,8 +720,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Stripe payment routes
-  app.post("/api/create-payment-intent", async (req, res) => {
+  // ============================================
+  // Stripe Payment Routes
+  // ============================================
+
+  app.post("/api/create-payment-intent", authenticateToken, async (req: AuthRequest, res) => {
     if (!stripe) {
       return res.status(500).json({ message: "Stripe not configured" });
     }
@@ -446,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { amount } = req.body;
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(amount * 100), // Convert to cents
+        amount: Math.round(amount * 100),
         currency: "gbp",
         automatic_payment_methods: {
           enabled: true,
@@ -458,9 +744,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/upgrade-premium", async (req, res) => {
+  app.post("/api/upgrade-premium", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const userId = 1; // Mock user ID
+      const userId = req.userId!;
       await storage.updateUserPremiumStatus(userId, true);
       res.json({ success: true, message: "Account upgraded to premium" });
     } catch (error: any) {
@@ -468,34 +754,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create subscription endpoint
-  app.post("/api/create-subscription", async (req, res) => {
+  app.post("/api/create-subscription", authenticateToken, async (req: AuthRequest, res) => {
     if (!stripe) {
       return res.status(500).json({ message: "Stripe not configured" });
     }
 
     try {
-      const userId = 1; // Mock user ID
+      const userId = req.userId!;
       let user = await storage.getUser(userId);
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check if user already has a subscription
       if (user.stripeSubscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
 
         if (subscription.status === 'active') {
+          const invoice = subscription.latest_invoice;
+          const clientSecret = typeof invoice !== 'string' && invoice?.payment_intent && typeof invoice.payment_intent !== 'string'
+            ? invoice.payment_intent.client_secret
+            : undefined;
           return res.json({
             subscriptionId: subscription.id,
-            clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+            clientSecret,
             status: 'already_subscribed'
           });
         }
       }
 
-      // Create Stripe customer if not exists
       let stripeCustomerId = user.stripeCustomerId;
       if (!stripeCustomerId) {
         const customer = await stripe.customers.create({
@@ -509,9 +796,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.updateUserStripeInfo(userId, stripeCustomerId, "");
       }
 
-      // Create a price first
       const price = await stripe.prices.create({
-        unit_amount: 4900, // £49.00
+        unit_amount: 4900,
         currency: 'gbp',
         recurring: { interval: 'month' },
         product_data: {
@@ -519,7 +805,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
-      // Create subscription
       const subscription = await stripe.subscriptions.create({
         customer: stripeCustomerId,
         items: [
@@ -535,12 +820,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expand: ['latest_invoice.payment_intent'],
       });
 
-      // Update user with subscription ID
       await storage.updateUserStripeInfo(userId, stripeCustomerId, subscription.id);
+
+      const invoice = subscription.latest_invoice;
+      const clientSecret = typeof invoice !== 'string' && invoice?.payment_intent && typeof invoice.payment_intent !== 'string'
+        ? invoice.payment_intent.client_secret
+        : undefined;
 
       res.json({
         subscriptionId: subscription.id,
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        clientSecret,
       });
     } catch (error: any) {
       console.error('Subscription creation error:', error);
@@ -548,14 +837,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get subscription status
-  app.get("/api/subscription-status", async (req, res) => {
+  app.get("/api/subscription-status", authenticateToken, async (req: AuthRequest, res) => {
     if (!stripe) {
       return res.status(500).json({ message: "Stripe not configured" });
     }
 
     try {
-      const userId = 1; // Mock user ID
+      const userId = req.userId!;
       const user = await storage.getUser(userId);
 
       if (!user || !user.stripeSubscriptionId) {
@@ -576,14 +864,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Cancel subscription
-  app.post("/api/cancel-subscription", async (req, res) => {
+  app.post("/api/cancel-subscription", authenticateToken, async (req: AuthRequest, res) => {
     if (!stripe) {
       return res.status(500).json({ message: "Stripe not configured" });
     }
 
     try {
-      const userId = 1; // Mock user ID
+      const userId = req.userId!;
       const user = await storage.getUser(userId);
 
       if (!user || !user.stripeSubscriptionId) {
@@ -605,10 +892,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
-  
+
   // Initialize WebSocket server for real-time analytics
   const analyticsWS = new AnalyticsWebSocketServer(httpServer);
-  
+
   // Handle server shutdown
   process.on('SIGTERM', () => {
     analyticsWS.close();

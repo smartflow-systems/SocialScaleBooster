@@ -102,14 +102,14 @@ export default function Dashboard() {
               </Badge>
             </div>
             <div className="flex items-center space-x-4">
-              <Button 
+              <Button
                 onClick={() => window.location.href = "/clients"}
                 className="bg-card-bg text-accent-gold border border-accent-gold font-semibold hover:bg-accent-gold hover:text-primary-black"
               >
                 <Users className="w-4 h-4 mr-2" />
                 Clients
               </Button>
-              <Button 
+              <Button
                 onClick={() => window.location.href = "/subscribe"}
                 className="bg-rich-brown text-gold-trim border border-accent-gold font-semibold gold-glow-hover hover:bg-accent-gold hover:text-primary-black"
               >

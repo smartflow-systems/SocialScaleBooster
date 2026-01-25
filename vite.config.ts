@@ -1,28 +1,33 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { fileURLToPath } from "url";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { cartographer } from "@replit/vite-plugin-cartographer";
-import { fileURLToPath } from "url";
 
+// derive the current directory in an ESM-safe way
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const dirname = path.dirname(__filename);
 
 const useCartographer =
   process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined;
 
 export default defineConfig({
-  plugins: [react(), runtimeErrorOverlay(), ...(useCartographer ? [cartographer()] : [])],
+  plugins: [
+    react(),
+    runtimeErrorOverlay(),
+    ...(useCartographer ? [cartographer()] : []),
+  ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client", "src"),
-      "@shared": path.resolve(__dirname, "shared"),
-      "@assets": path.resolve(__dirname, "attached_assets"),
+      "@": path.resolve(dirname, "client", "src"),
+      "@shared": path.resolve(dirname, "shared"),
+      "@assets": path.resolve(dirname, "attached_assets"),
     },
   },
-  root: path.resolve(__dirname, "client"),
+  root: path.resolve(dirname, "client"),
   build: {
-    outDir: path.resolve(__dirname, "dist/public"),
+    outDir: path.resolve(dirname, "dist/public"),
     emptyOutDir: true,
   },
   server: {
