@@ -8,6 +8,7 @@ import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insert
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
+import rateLimit from "express-rate-limit";
 
 // Rate limiter for bot management operations (create, update, delete)
 // Limits to 20 requests per minute per IP to prevent abuse
@@ -34,6 +35,14 @@ let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 }
+
+// Rate limiter for bot modification routes to prevent abuse and DoS via costly operations
+const botActionsLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // limit each IP to 20 requests per windowMs on these routes
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register authentication routes
