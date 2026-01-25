@@ -1,7 +1,5 @@
-import { users, bots, botTemplates, analytics, clients, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics, type Client, type InsertClient } from "@shared/schema";
-import { eq, sql } from "drizzle-orm";
-import { db } from "./db";
-import { eq, sql, and } from "drizzle-orm";
+import { users, bots, botTemplates, analytics, clients, socialAccounts, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics, type Client, type InsertClient, type SocialAccount, type InsertSocialAccount } from "@shared/schema";
+import { eq, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -23,9 +21,19 @@ export interface IStorage {
   getClientStats(clientId: number): Promise<{ botCount: number; totalRevenue: number }>;
   getClientRevenue(clientId: number): Promise<{ totalRevenue: number; botCount: number }>;
 
+  // Social Account methods
+  getSocialAccountsByUserId(userId: number): Promise<SocialAccount[]>;
+  getSocialAccountsByPlatform(userId: number, platform: string): Promise<SocialAccount[]>;
+  getSocialAccount(id: number): Promise<SocialAccount | undefined>;
+  createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount>;
+  updateSocialAccount(id: number, updates: Partial<SocialAccount>): Promise<SocialAccount>;
+  deleteSocialAccount(id: number): Promise<void>;
+  verifySocialAccountOwnership(accountId: number, userId: number): Promise<boolean>;
+
   // Bot methods
   getBotsByUserId(userId: number): Promise<Bot[]>;
   getBotsByClientId(clientId: number): Promise<Bot[]>;
+  getBotsBySocialAccountId(socialAccountId: number): Promise<Bot[]>;
   getBot(id: number): Promise<Bot | undefined>;
   createBot(bot: InsertBot): Promise<Bot>;
   updateBot(id: number, updates: Partial<Bot>): Promise<Bot>;
@@ -50,7 +58,6 @@ export class DatabaseStorage implements IStorage {
   private db: any;
 
   constructor() {
-    // Dynamically import db to avoid loading it when using MemStorage
     const { db } = require("./db");
     this.db = db;
   }
@@ -119,23 +126,16 @@ export class DatabaseStorage implements IStorage {
 
   async getClient(id: number): Promise<Client | undefined> {
     const [client] = await this.db.select().from(clients).where(eq(clients.id, id));
-    return await db.select().from(clients).where(eq(clients.userId, userId));
-  }
-
-  async getClient(id: number): Promise<Client | undefined> {
-    const [client] = await db.select().from(clients).where(eq(clients.id, id));
     return client || undefined;
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
     const [client] = await this.db.insert(clients).values(insertClient).returning();
-    const [client] = await db.insert(clients).values(insertClient).returning();
     return client;
   }
 
   async updateClient(id: number, updates: Partial<Client>): Promise<Client> {
     const [client] = await this.db
-    const [client] = await db
       .update(clients)
       .set(updates)
       .where(eq(clients.id, id))
@@ -144,6 +144,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteClient(id: number): Promise<void> {
+    // Unlink bots first
+    await this.db.update(bots).set({ clientId: null }).where(eq(bots.clientId, id));
     await this.db.delete(clients).where(eq(clients.id, id));
   }
 
@@ -151,7 +153,6 @@ export class DatabaseStorage implements IStorage {
     const clientBots = await this.getBotsByClientId(clientId);
     const botCount = clientBots.length;
 
-    // Calculate total revenue from all bots for this client
     let totalRevenue = 0;
     for (const bot of clientBots) {
       const botAnalytics = await this.getAnalyticsByBotId(bot.id);
@@ -159,33 +160,75 @@ export class DatabaseStorage implements IStorage {
     }
 
     return { botCount, totalRevenue };
-    await db.delete(bots).where(eq(bots.clientId, id));
-    await db.delete(clients).where(eq(clients.id, id));
   }
 
   async getClientRevenue(clientId: number): Promise<{ totalRevenue: number; botCount: number }> {
-    const clientBots = await db.select().from(bots).where(eq(bots.clientId, clientId));
-    const botIds = clientBots.map(b => b.id);
-    
+    const clientBots = await this.db.select().from(bots).where(eq(bots.clientId, clientId));
+    const botIds = clientBots.map((b: Bot) => b.id);
+
     let totalRevenue = 0;
     for (const botId of botIds) {
-      const botAnalytics = await db.select().from(analytics).where(eq(analytics.botId, botId));
-      totalRevenue += botAnalytics.reduce((sum, a) => sum + parseFloat(a.revenue || "0"), 0);
+      const botAnalytics = await this.db.select().from(analytics).where(eq(analytics.botId, botId));
+      totalRevenue += botAnalytics.reduce((sum: number, a: Analytics) => sum + parseFloat(a.revenue || "0"), 0);
     }
-    
+
     return { totalRevenue, botCount: clientBots.length };
   }
 
-  // Bot methods
-  async getBotsByClientId(clientId: number): Promise<Bot[]> {
-    return await this.db.select().from(bots).where(eq(bots.clientId, clientId));
+  // Social Account methods
+  async getSocialAccountsByUserId(userId: number): Promise<SocialAccount[]> {
+    return await this.db.select().from(socialAccounts).where(eq(socialAccounts.userId, userId));
   }
+
+  async getSocialAccountsByPlatform(userId: number, platform: string): Promise<SocialAccount[]> {
+    return await this.db.select().from(socialAccounts).where(
+      and(eq(socialAccounts.userId, userId), eq(socialAccounts.platform, platform))
+    );
+  }
+
+  async getSocialAccount(id: number): Promise<SocialAccount | undefined> {
+    const [account] = await this.db.select().from(socialAccounts).where(eq(socialAccounts.id, id));
+    return account || undefined;
+  }
+
+  async createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount> {
+    const [created] = await this.db.insert(socialAccounts).values(account).returning();
+    return created;
+  }
+
+  async updateSocialAccount(id: number, updates: Partial<SocialAccount>): Promise<SocialAccount> {
+    const [updated] = await this.db
+      .update(socialAccounts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(socialAccounts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteSocialAccount(id: number): Promise<void> {
+    // Unlink any bots using this account
+    await this.db.update(bots).set({ socialAccountId: null }).where(eq(bots.socialAccountId, id));
+    await this.db.delete(socialAccounts).where(eq(socialAccounts.id, id));
+  }
+
+  async verifySocialAccountOwnership(accountId: number, userId: number): Promise<boolean> {
+    const [account] = await this.db.select().from(socialAccounts).where(
+      and(eq(socialAccounts.id, accountId), eq(socialAccounts.userId, userId))
+    );
+    return !!account;
+  }
+
+  // Bot methods
   async getBotsByUserId(userId: number): Promise<Bot[]> {
     return await this.db.select().from(bots).where(eq(bots.userId, userId));
   }
 
   async getBotsByClientId(clientId: number): Promise<Bot[]> {
-    return await db.select().from(bots).where(eq(bots.clientId, clientId));
+    return await this.db.select().from(bots).where(eq(bots.clientId, clientId));
+  }
+
+  async getBotsBySocialAccountId(socialAccountId: number): Promise<Bot[]> {
+    return await this.db.select().from(bots).where(eq(bots.socialAccountId, socialAccountId));
   }
 
   async getBot(id: number): Promise<Bot | undefined> {
@@ -277,11 +320,13 @@ export class DatabaseStorage implements IStorage {
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private clients: Map<number, Client>;
+  private socialAccounts: Map<number, SocialAccount>;
   private bots: Map<number, Bot>;
   private botTemplates: Map<number, BotTemplate>;
   private analytics: Map<number, Analytics>;
   private currentUserId: number;
   private currentClientId: number;
+  private currentSocialAccountId: number;
   private currentBotId: number;
   private currentTemplateId: number;
   private currentAnalyticsId: number;
@@ -289,16 +334,17 @@ export class MemStorage implements IStorage {
   constructor() {
     this.users = new Map();
     this.clients = new Map();
+    this.socialAccounts = new Map();
     this.bots = new Map();
     this.botTemplates = new Map();
     this.analytics = new Map();
     this.currentUserId = 1;
     this.currentClientId = 1;
+    this.currentSocialAccountId = 1;
     this.currentBotId = 1;
     this.currentTemplateId = 1;
     this.currentAnalyticsId = 1;
 
-    // Initialize with sample data
     this.initializeSampleTemplates();
     this.initializeSampleUser();
   }
@@ -397,7 +443,6 @@ export class MemStorage implements IStorage {
   }
 
   private initializeSampleUser() {
-    // Create a mock user for development
     const mockUser: User = {
       id: 1,
       username: "demo_user",
@@ -410,8 +455,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     this.users.set(1, mockUser);
-    
-    // Add some sample analytics data
+
     const sampleAnalytics = [
       {
         id: this.currentAnalyticsId++,
@@ -428,7 +472,7 @@ export class MemStorage implements IStorage {
         id: this.currentAnalyticsId++,
         userId: 1,
         botId: null,
-        date: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
+        date: new Date(Date.now() - 24 * 60 * 60 * 1000),
         revenue: "2100.00",
         engagement: "4.2",
         posts: 42,
@@ -436,9 +480,9 @@ export class MemStorage implements IStorage {
         conversions: 58
       }
     ];
-    
-    sampleAnalytics.forEach(analytics => {
-      this.analytics.set(analytics.id, analytics);
+
+    sampleAnalytics.forEach(analytic => {
+      this.analytics.set(analytic.id, analytic);
     });
   }
 
@@ -457,9 +501,9 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { 
-      ...insertUser, 
-      id, 
+    const user: User = {
+      ...insertUser,
+      id,
       email: insertUser.email || null,
       isPremium: false,
       botCount: 0,
@@ -503,10 +547,6 @@ export class MemStorage implements IStorage {
     return updatedUser;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.email === email);
-  }
-
   // Client methods
   async getClientsByUserId(userId: number): Promise<Client[]> {
     return Array.from(this.clients.values()).filter(client => client.userId === userId);
@@ -521,10 +561,9 @@ export class MemStorage implements IStorage {
     const client: Client = {
       ...insertClient,
       id,
+      businessName: insertClient.businessName || null,
       contactEmail: insertClient.contactEmail || null,
       contactPhone: insertClient.contactPhone || null,
-      status: insertClient.status || "active",
-      businessName: insertClient.businessName || null,
       email: insertClient.email || null,
       phone: insertClient.phone || null,
       industry: insertClient.industry || null,
@@ -546,6 +585,11 @@ export class MemStorage implements IStorage {
   }
 
   async deleteClient(id: number): Promise<void> {
+    // Unlink bots
+    const clientBots = Array.from(this.bots.values()).filter(bot => bot.clientId === id);
+    clientBots.forEach(bot => {
+      this.bots.set(bot.id, { ...bot, clientId: null });
+    });
     this.clients.delete(id);
   }
 
@@ -560,9 +604,6 @@ export class MemStorage implements IStorage {
     }
 
     return { botCount, totalRevenue };
-    const clientBots = Array.from(this.bots.values()).filter(bot => bot.clientId === id);
-    clientBots.forEach(bot => this.bots.delete(bot.id));
-    this.clients.delete(id);
   }
 
   async getClientRevenue(clientId: number): Promise<{ totalRevenue: number; botCount: number }> {
@@ -575,16 +616,72 @@ export class MemStorage implements IStorage {
     return { totalRevenue, botCount: clientBots.length };
   }
 
-  // Bot methods
-  async getBotsByClientId(clientId: number): Promise<Bot[]> {
-    return Array.from(this.bots.values()).filter(bot => bot.clientId === clientId);
+  // Social Account methods
+  async getSocialAccountsByUserId(userId: number): Promise<SocialAccount[]> {
+    return Array.from(this.socialAccounts.values()).filter(account => account.userId === userId);
   }
+
+  async getSocialAccountsByPlatform(userId: number, platform: string): Promise<SocialAccount[]> {
+    return Array.from(this.socialAccounts.values()).filter(
+      account => account.userId === userId && account.platform === platform
+    );
+  }
+
+  async getSocialAccount(id: number): Promise<SocialAccount | undefined> {
+    return this.socialAccounts.get(id);
+  }
+
+  async createSocialAccount(insertAccount: InsertSocialAccount): Promise<SocialAccount> {
+    const id = this.currentSocialAccountId++;
+    const account: SocialAccount = {
+      ...insertAccount,
+      id,
+      accountHandle: insertAccount.accountHandle || null,
+      credentialType: insertAccount.credentialType || "api_key",
+      status: insertAccount.status || "active",
+      lastVerified: insertAccount.lastVerified || null,
+      lastError: insertAccount.lastError || null,
+      metadata: insertAccount.metadata || null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.socialAccounts.set(id, account);
+    return account;
+  }
+
+  async updateSocialAccount(id: number, updates: Partial<SocialAccount>): Promise<SocialAccount> {
+    const account = this.socialAccounts.get(id);
+    if (!account) throw new Error("Social account not found");
+    const updatedAccount = { ...account, ...updates, updatedAt: new Date() };
+    this.socialAccounts.set(id, updatedAccount);
+    return updatedAccount;
+  }
+
+  async deleteSocialAccount(id: number): Promise<void> {
+    // Unlink any bots using this account
+    const linkedBots = Array.from(this.bots.values()).filter(bot => bot.socialAccountId === id);
+    linkedBots.forEach(bot => {
+      this.bots.set(bot.id, { ...bot, socialAccountId: null });
+    });
+    this.socialAccounts.delete(id);
+  }
+
+  async verifySocialAccountOwnership(accountId: number, userId: number): Promise<boolean> {
+    const account = this.socialAccounts.get(accountId);
+    return account?.userId === userId;
+  }
+
+  // Bot methods
   async getBotsByUserId(userId: number): Promise<Bot[]> {
     return Array.from(this.bots.values()).filter(bot => bot.userId === userId);
   }
 
   async getBotsByClientId(clientId: number): Promise<Bot[]> {
     return Array.from(this.bots.values()).filter(bot => bot.clientId === clientId);
+  }
+
+  async getBotsBySocialAccountId(socialAccountId: number): Promise<Bot[]> {
+    return Array.from(this.bots.values()).filter(bot => bot.socialAccountId === socialAccountId);
   }
 
   async getBot(id: number): Promise<Bot | undefined> {
@@ -596,10 +693,8 @@ export class MemStorage implements IStorage {
     const bot: Bot = {
       ...insertBot,
       id,
-    const bot: Bot = { 
-      ...insertBot, 
-      id, 
       clientId: insertBot.clientId || null,
+      socialAccountId: insertBot.socialAccountId || null,
       description: insertBot.description || null,
       config: insertBot.config || null,
       status: "active",
@@ -645,9 +740,9 @@ export class MemStorage implements IStorage {
 
   async createBotTemplate(insertTemplate: InsertBotTemplate): Promise<BotTemplate> {
     const id = this.currentTemplateId++;
-    const template: BotTemplate = { 
-      ...insertTemplate, 
-      id, 
+    const template: BotTemplate = {
+      ...insertTemplate,
+      id,
       description: insertTemplate.description || null,
       isPremium: insertTemplate.isPremium || false,
       price: insertTemplate.price || null,
@@ -663,18 +758,18 @@ export class MemStorage implements IStorage {
 
   // Analytics methods
   async getAnalyticsByUserId(userId: number): Promise<Analytics[]> {
-    return Array.from(this.analytics.values()).filter(analytics => analytics.userId === userId);
+    return Array.from(this.analytics.values()).filter(analytic => analytic.userId === userId);
   }
 
   async getAnalyticsByBotId(botId: number): Promise<Analytics[]> {
-    return Array.from(this.analytics.values()).filter(analytics => analytics.botId === botId);
+    return Array.from(this.analytics.values()).filter(analytic => analytic.botId === botId);
   }
 
   async createAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
     const id = this.currentAnalyticsId++;
-    const analytics: Analytics = { 
-      ...insertAnalytics, 
-      id, 
+    const analytic: Analytics = {
+      ...insertAnalytics,
+      id,
       botId: insertAnalytics.botId || null,
       revenue: insertAnalytics.revenue || "0",
       engagement: insertAnalytics.engagement || "0",
@@ -683,20 +778,20 @@ export class MemStorage implements IStorage {
       conversions: insertAnalytics.conversions || 0,
       date: new Date()
     };
-    this.analytics.set(id, analytics);
-    return analytics;
+    this.analytics.set(id, analytic);
+    return analytic;
   }
 
   async getRevenueMetrics(userId: number): Promise<{ totalRevenue: number; monthlyGrowth: number }> {
     const userAnalytics = await this.getAnalyticsByUserId(userId);
     const totalRevenue = userAnalytics.reduce((sum, a) => sum + parseFloat(a.revenue || "0"), 0);
-    return { totalRevenue, monthlyGrowth: 18 }; // Mock growth percentage
+    return { totalRevenue, monthlyGrowth: 18 };
   }
 
   async getEngagementMetrics(userId: number): Promise<{ avgEngagement: number; totalPosts: number }> {
     const userAnalytics = await this.getAnalyticsByUserId(userId);
     const totalPosts = userAnalytics.reduce((sum, a) => sum + (a.posts || 0), 0);
-    const avgEngagement = userAnalytics.length > 0 
+    const avgEngagement = userAnalytics.length > 0
       ? userAnalytics.reduce((sum, a) => sum + parseFloat(a.engagement || "0"), 0) / userAnalytics.length
       : 0;
     return { avgEngagement, totalPosts };

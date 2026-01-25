@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,6 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Bot } from "@shared/schema";
 import { insertBotSchema } from "@shared/schema";
 import { z } from "zod";
+import { Link, AlertCircle } from "lucide-react";
+import { useSocialAccountsByPlatform, type SocialAccount } from "@/hooks/useSocialAccounts";
 
 const editBotSchema = insertBotSchema.omit({ userId: true }).extend({
   name: z.string().min(1, "Bot name is required"),
@@ -28,6 +32,9 @@ interface EditBotDialogProps {
 
 export default function EditBotDialog({ bot, children }: EditBotDialogProps) {
   const [open, setOpen] = useState(false);
+  const [socialAccountId, setSocialAccountId] = useState<string>(
+    bot.socialAccountId?.toString() || ""
+  );
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -40,12 +47,32 @@ export default function EditBotDialog({ bot, children }: EditBotDialogProps) {
     },
   });
 
+  // Watch platform changes to load relevant accounts
+  const selectedPlatform = form.watch("platform");
+
+  // Fetch social accounts for the selected platform
+  const { data: platformAccounts = [], isLoading: accountsLoading } = useSocialAccountsByPlatform(
+    selectedPlatform || undefined
+  );
+
+  // Reset social account when platform changes (unless it matches original)
+  useEffect(() => {
+    if (selectedPlatform !== bot.platform) {
+      setSocialAccountId("");
+    } else {
+      setSocialAccountId(bot.socialAccountId?.toString() || "");
+    }
+  }, [selectedPlatform, bot.platform, bot.socialAccountId]);
+
+  const hasAccountsForPlatform = platformAccounts.length > 0;
+
   const editBotMutation = useMutation({
-    mutationFn: async (data: EditBotForm) => {
+    mutationFn: async (data: EditBotForm & { socialAccountId?: number }) => {
       return apiRequest("PUT", `/api/bots/${bot.id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/bots"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/social-accounts"] });
       toast({
         title: "Bot Updated",
         description: "Your bot has been successfully updated.",
@@ -63,7 +90,10 @@ export default function EditBotDialog({ bot, children }: EditBotDialogProps) {
   });
 
   const onSubmit = (data: EditBotForm) => {
-    editBotMutation.mutate(data);
+    editBotMutation.mutate({
+      ...data,
+      socialAccountId: socialAccountId ? parseInt(socialAccountId) : undefined,
+    });
   };
 
   return (
@@ -150,6 +180,63 @@ export default function EditBotDialog({ bot, children }: EditBotDialogProps) {
                 </FormItem>
               )}
             />
+
+            {/* Social Account Selector */}
+            {selectedPlatform && (
+              <div className="space-y-2">
+                <Label className="text-white flex items-center">
+                  <Link className="w-4 h-4 mr-2 text-accent-gold" />
+                  Linked Social Account
+                </Label>
+
+                {accountsLoading ? (
+                  <div className="h-10 bg-secondary-brown rounded animate-pulse" />
+                ) : hasAccountsForPlatform ? (
+                  <Select value={socialAccountId} onValueChange={setSocialAccountId}>
+                    <SelectTrigger className="bg-dark-brown border-secondary-brown text-white focus:border-accent-gold">
+                      <SelectValue placeholder="Select account (optional)" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-dark-brown border-secondary-brown">
+                      <SelectItem value="" className="text-white hover:bg-secondary-brown">
+                        No account linked
+                      </SelectItem>
+                      {platformAccounts.map((account: SocialAccount) => (
+                        <SelectItem
+                          key={account.id}
+                          value={account.id.toString()}
+                          className="text-white hover:bg-secondary-brown"
+                        >
+                          <div className="flex items-center">
+                            <span>{account.accountName}</span>
+                            {account.accountHandle && (
+                              <span className="text-neutral-gray ml-2 text-sm">
+                                {account.accountHandle}
+                              </span>
+                            )}
+                            {account.status === "active" && (
+                              <Badge className="ml-2 bg-green-500 text-xs">Active</Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="bg-secondary-brown rounded-lg p-3 border border-dashed border-accent-gold">
+                    <div className="flex items-center text-yellow-400">
+                      <AlertCircle className="w-4 h-4 mr-2" />
+                      <span className="text-sm">No {selectedPlatform} accounts connected</span>
+                    </div>
+                    <p className="text-xs text-neutral-gray mt-1">
+                      Go to Integrations to connect your {selectedPlatform} account.
+                    </p>
+                  </div>
+                )}
+                <p className="text-xs text-neutral-gray">
+                  Link an account to use its credentials for posting
+                </p>
+              </div>
+            )}
 
             <div className="flex space-x-3 pt-4">
               <Button
