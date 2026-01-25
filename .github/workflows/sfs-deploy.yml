@@ -1,4 +1,6 @@
 name: SFS Deploy - SocialScaleBooster
+permissions:
+  contents: read
 
 on:
   push:
