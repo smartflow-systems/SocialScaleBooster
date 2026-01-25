@@ -16,19 +16,15 @@ export const users = pgTable("users", {
 
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id), // The service provider (you)
+  userId: integer("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
   businessName: text("business_name").notNull(),
   contactEmail: text("contact_email"),
   contactPhone: text("contact_phone"),
-  monthlyFee: decimal("monthly_fee", { precision: 10, scale: 2 }).notNull(),
-  status: text("status").default("active"), // 'active', 'paused', 'cancelled'
-  userId: integer("user_id").notNull().references(() => users.id),
-  name: text("name").notNull(),
-  businessName: text("business_name"),
   email: text("email"),
   phone: text("phone"),
   industry: text("industry"),
-  monthlyFee: decimal("monthly_fee", { precision: 10, scale: 2 }).default("0"),
+  monthlyFee: decimal("monthly_fee", { precision: 10, scale: 2 }).notNull(),
   status: text("status").default("active"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -38,7 +34,6 @@ export const bots = pgTable("bots", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   clientId: integer("client_id").references(() => clients.id), // Link bot to a client
-  clientId: integer("client_id").references(() => clients.id),
   name: text("name").notNull(),
   description: text("description"),
   platform: text("platform").notNull(),
