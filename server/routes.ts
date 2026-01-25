@@ -1,12 +1,33 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
+import rateLimit from "express-rate-limit";
 import { AnalyticsWebSocketServer } from "./websocket";
 import { storage } from "./storage";
 import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
+
+// Rate limiter for bot management operations (create, update, delete)
+// Limits to 20 requests per minute per IP to prevent abuse
+const botActionsLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute window
+  max: 20, // 20 requests per window
+  message: { error: "Too many bot operations. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiter for social account operations (more sensitive - involves credentials)
+// Limits to 10 requests per minute per IP
+const accountActionsLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute window
+  max: 10, // 10 requests per window
+  message: { error: "Too many account operations. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Initialize Stripe
 let stripe: Stripe | null = null;
@@ -181,7 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create a new social account
-  app.post("/api/social-accounts", authenticateToken, async (req: AuthRequest, res) => {
+  app.post("/api/social-accounts", authenticateToken, accountActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const userId = req.userId!;
       const { platform, accountName, accountHandle, apiKey, accessToken, credentialType, metadata } = req.body;
@@ -230,7 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update a social account
-  app.put("/api/social-accounts/:id", authenticateToken, async (req: AuthRequest, res) => {
+  app.put("/api/social-accounts/:id", authenticateToken, accountActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const userId = req.userId!;
       const accountId = parseInt(req.params.id);
@@ -273,7 +294,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete a social account
-  app.delete("/api/social-accounts/:id", authenticateToken, async (req: AuthRequest, res) => {
+  app.delete("/api/social-accounts/:id", authenticateToken, accountActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const userId = req.userId!;
       const accountId = parseInt(req.params.id);
@@ -292,7 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Verify/test a social account connection
-  app.post("/api/social-accounts/:id/verify", authenticateToken, async (req: AuthRequest, res) => {
+  app.post("/api/social-accounts/:id/verify", authenticateToken, accountActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const userId = req.userId!;
       const accountId = parseInt(req.params.id);
@@ -525,7 +546,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/bots", authenticateToken, async (req: AuthRequest, res) => {
+  app.post("/api/bots", authenticateToken, botActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const userId = req.userId!;
       const user = await storage.getUser(userId);
@@ -569,7 +590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/bots/:id", authenticateToken, async (req: AuthRequest, res) => {
+  app.put("/api/bots/:id", authenticateToken, botActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const userId = req.userId!;
       const id = parseInt(req.params.id);
@@ -590,7 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/bots/:id", authenticateToken, async (req: AuthRequest, res) => {
+  app.patch("/api/bots/:id", authenticateToken, botActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const botId = parseInt(req.params.id);
       const { status } = req.body;
@@ -606,7 +627,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/bots/:id", authenticateToken, async (req: AuthRequest, res) => {
+  app.delete("/api/bots/:id", authenticateToken, botActionsLimiter, async (req: AuthRequest, res) => {
     try {
       const id = parseInt(req.params.id);
       const bot = await storage.getBot(id);
