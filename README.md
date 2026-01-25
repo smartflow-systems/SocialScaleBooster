@@ -14,6 +14,13 @@ Part of the SmartFlow Systems ecosystem - Enterprise-grade business automation a
 - **Template Marketplace** - Pre-built automation templates for common use cases
 - **Real-time Analytics** - Live performance tracking with WebSocket updates
 
+### Multi-Account Management
+- **Unlimited Accounts Per Platform** - Connect multiple accounts for each social network
+- **Encrypted Credential Storage** - AES-256-GCM encryption for API keys and tokens
+- **Account Linking** - Link bots to specific social accounts for automated posting
+- **Connection Verification** - Test and verify account connections
+- **Platform-Specific Views** - Organized account management by platform
+
 ### Analytics & Insights
 - **Revenue Tracking** - ROI calculations and revenue attribution
 - **Engagement Metrics** - Platform-specific engagement analysis
@@ -101,6 +108,10 @@ DATABASE_URL=postgresql://user:password@host/database
 
 # Authentication
 JWT_SECRET=your-super-secret-jwt-key-change-this
+
+# Encryption (for social account credentials)
+# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+ENCRYPTION_KEY=your-64-char-hex-key-here
 
 # Stripe
 STRIPE_SECRET_KEY=sk_test_...
@@ -301,6 +312,74 @@ Authorization: Bearer {token}
 ```http
 GET /api/analytics/metrics
 Authorization: Bearer {token}
+```
+
+### Social Accounts (Protected Routes)
+
+All social account routes require `Authorization: Bearer {token}` header.
+
+#### List All Connected Accounts
+```http
+GET /api/social-accounts
+```
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "platform": "instagram",
+    "accountName": "Main Store",
+    "accountHandle": "@mainstore",
+    "status": "active",
+    "hasCredentials": true,
+    "lastVerified": "2024-01-15T10:30:00Z"
+  }
+]
+```
+
+#### List Accounts by Platform
+```http
+GET /api/social-accounts/platform/instagram
+```
+
+#### Connect New Account
+```http
+POST /api/social-accounts
+Content-Type: application/json
+
+{
+  "platform": "instagram",
+  "accountName": "Main Store",
+  "accountHandle": "@mainstore",
+  "apiKey": "your-api-key-here"
+}
+```
+
+#### Update Account
+```http
+PUT /api/social-accounts/:id
+Content-Type: application/json
+
+{
+  "accountName": "Updated Name",
+  "accountHandle": "@newhandle"
+}
+```
+
+#### Verify Account Connection
+```http
+POST /api/social-accounts/:id/verify
+```
+
+#### Delete Account
+```http
+DELETE /api/social-accounts/:id
+```
+
+#### Get Bots Linked to Account
+```http
+GET /api/social-accounts/:id/bots
 ```
 
 ### Payments

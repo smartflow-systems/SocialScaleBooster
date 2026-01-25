@@ -30,10 +30,28 @@ export const clients = pgTable("clients", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Social accounts table for multi-account support
+export const socialAccounts = pgTable("social_accounts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  platform: text("platform").notNull(), // 'instagram', 'tiktok', 'facebook', 'twitter', 'youtube'
+  accountName: text("account_name").notNull(), // Display name (e.g., "Main Store", "Personal Brand")
+  accountHandle: text("account_handle"), // @handle or username on the platform
+  encryptedCredentials: text("encrypted_credentials").notNull(), // AES-256-GCM encrypted
+  credentialType: text("credential_type").default("api_key"), // 'api_key', 'oauth', 'access_token'
+  status: text("status").default("active"), // 'active', 'disconnected', 'error'
+  lastVerified: timestamp("last_verified"),
+  lastError: text("last_error"),
+  metadata: jsonb("metadata"), // Additional platform-specific data
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const bots = pgTable("bots", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   clientId: integer("client_id").references(() => clients.id), // Link bot to a client
+  socialAccountId: integer("social_account_id").references(() => socialAccounts.id), // Link to connected social account
   name: text("name").notNull(),
   description: text("description"),
   platform: text("platform").notNull(),
@@ -53,7 +71,7 @@ export const botTemplates = pgTable("bot_templates", {
   price: decimal("price", { precision: 10, scale: 2 }),
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
   reviewCount: integer("review_count").default(0),
-  config: jsonb("config"), // Template configuration
+  config: jsonb("config"),
   imageUrl: text("image_url"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -70,6 +88,7 @@ export const analytics = pgTable("analytics", {
   conversions: integer("conversions").default(0),
 });
 
+// Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -78,6 +97,12 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertSocialAccountSchema = createInsertSchema(socialAccounts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertBotSchema = createInsertSchema(bots).omit({
@@ -95,10 +120,13 @@ export const insertAnalyticsSchema = createInsertSchema(analytics).omit({
   date: true,
 });
 
+// Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Client = typeof clients.$inferSelect;
+export type InsertSocialAccount = z.infer<typeof insertSocialAccountSchema>;
+export type SocialAccount = typeof socialAccounts.$inferSelect;
 export type InsertBot = z.infer<typeof insertBotSchema>;
 export type Bot = typeof bots.$inferSelect;
 export type InsertBotTemplate = z.infer<typeof insertBotTemplateSchema>;
