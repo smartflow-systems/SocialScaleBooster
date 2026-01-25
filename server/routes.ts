@@ -6,12 +6,19 @@ import { storage } from "./storage";
 import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
+import rateLimit from "express-rate-limit";
 
 // Initialize Stripe
 let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
   stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 }
+
+// Rate limiter for authenticated API routes
+const authApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register authentication routes
@@ -215,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Bot routes - Protected
-  app.get("/api/bots", authenticateToken, async (req: AuthRequest, res) => {
+  app.get("/api/bots", authenticateToken, authApiLimiter, async (req: AuthRequest, res) => {
     try {
       const userId = req.userId!;
       const bots = await storage.getBotsByUserId(userId);
