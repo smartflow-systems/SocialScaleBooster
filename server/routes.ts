@@ -36,6 +36,10 @@ if (process.env.STRIPE_SECRET_KEY) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  app.get("/health", (_req, res) => {
+    res.json({ ok: true });
+  });
+
   // Register authentication routes
   registerAuthRoutes(app);
 
