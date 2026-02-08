@@ -12,19 +12,23 @@ export const organizations = pgTable("organizations", {
     socialAccounts: number;
     postsPerMonth: number;
     users: number;
+    aiGenerationsPerMonth: number;
   }>().notNull().default({
     socialAccounts: 1,
     postsPerMonth: 10,
-    users: 1
+    users: 1,
+    aiGenerationsPerMonth: 10
   }),
   currentUsage: jsonb("current_usage").$type<{
     socialAccounts: number;
     postsThisMonth: number;
     users: number;
+    aiGenerationsThisMonth: number;
   }>().notNull().default({
     socialAccounts: 0,
     postsThisMonth: 0,
-    users: 0
+    users: 0,
+    aiGenerationsThisMonth: 0
   }),
   usageResetDate: timestamp("usage_reset_date").defaultNow(), // Monthly reset
   stripeCustomerId: text("stripe_customer_id"),
@@ -183,6 +187,25 @@ export const invitations = pgTable("invitations", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// AI Generations tracking for usage limits
+export const aiGenerations = pgTable("ai_generations", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull().references(() => users.id),
+  type: text("type").notNull(), // 'post', 'caption', 'hashtags'
+  prompt: text("prompt").notNull(),
+  response: text("response").notNull(),
+  tokensUsed: integer("tokens_used").notNull(),
+  model: text("model").notNull().default("gpt-4o-mini"),
+  platform: text("platform"), // Optional: instagram, facebook, etc.
+  metadata: jsonb("metadata").$type<{
+    tone?: string;
+    topic?: string;
+    count?: number;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -231,6 +254,11 @@ export const insertInvitationSchema = createInsertSchema(invitations).omit({
   createdAt: true,
 });
 
+export const insertAiGenerationSchema = createInsertSchema(aiGenerations).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
@@ -256,6 +284,9 @@ export type InsertPost = z.infer<typeof insertPostSchema>;
 export type Invitation = typeof invitations.$inferSelect;
 export type InsertInvitation = z.infer<typeof insertInvitationSchema>;
 
+export type AiGeneration = typeof aiGenerations.$inferSelect;
+export type InsertAiGeneration = z.infer<typeof insertAiGenerationSchema>;
+
 // Plan definitions
 export const PLANS = {
   trial: {
@@ -266,7 +297,8 @@ export const PLANS = {
     limits: {
       socialAccounts: 1,
       postsPerMonth: 10,
-      users: 1
+      users: 1,
+      aiGenerationsPerMonth: 10
     }
   },
   starter: {
@@ -278,7 +310,8 @@ export const PLANS = {
     limits: {
       socialAccounts: 3,
       postsPerMonth: 100,
-      users: 1
+      users: 1,
+      aiGenerationsPerMonth: 100
     }
   },
   pro: {
@@ -290,7 +323,8 @@ export const PLANS = {
     limits: {
       socialAccounts: 10,
       postsPerMonth: -1, // unlimited
-      users: 5
+      users: 5,
+      aiGenerationsPerMonth: 1000
     }
   }
 } as const;

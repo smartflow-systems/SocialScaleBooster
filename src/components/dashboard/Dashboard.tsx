@@ -8,7 +8,7 @@ import {
   CogIcon,
   BellIcon,
   MegaphoneIcon,
-  TrendingUpIcon,
+  ArrowTrendingUpIcon as TrendingUpIcon,
   ClockIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';

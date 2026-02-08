@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { CalculatorIcon, TrendingUpIcon, DollarSignIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { CalculatorIcon, ArrowTrendingUpIcon as TrendingUpIcon, CurrencyDollarIcon as DollarSignIcon, ClockIcon } from '@heroicons/react/24/outline';
 import '../../styles/brand.css';
 
 interface CalculatorInputs {

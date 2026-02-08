@@ -218,7 +218,8 @@ async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
       currentUsage: {
         socialAccounts: 0, // Don't reset social accounts count
         postsThisMonth: 0, // Reset posts counter
-        users: 0 // Don't reset users count
+        users: 0, // Don't reset users count
+        aiGenerationsThisMonth: 0 // Reset AI generations counter
       },
       usageResetDate: new Date(),
       status: 'active',
@@ -261,7 +262,7 @@ function getPlanFromPriceId(priceId: string): keyof typeof PLANS {
 // Usage enforcement
 export async function checkUsageLimit(
   organizationId: string, 
-  limitType: 'socialAccounts' | 'postsPerMonth' | 'users'
+  limitType: 'socialAccounts' | 'postsPerMonth' | 'users' | 'aiGenerationsPerMonth'
 ): Promise<{ allowed: boolean; current: number; limit: number }> {
   const [org] = await db
     .select()
@@ -272,7 +273,12 @@ export async function checkUsageLimit(
     throw new Error('Organization not found');
   }
 
-  const current = org.currentUsage[limitType] || 0;
+  // Map limit types to current usage keys
+  const usageKey = limitType === 'postsPerMonth' ? 'postsThisMonth' : 
+                   limitType === 'aiGenerationsPerMonth' ? 'aiGenerationsThisMonth' : 
+                   limitType;
+  
+  const current = org.currentUsage[usageKey as keyof typeof org.currentUsage] || 0;
   const limit = org.planLimits[limitType] || 0;
   
   // -1 means unlimited
@@ -283,7 +289,7 @@ export async function checkUsageLimit(
 
 export async function incrementUsage(
   organizationId: string,
-  limitType: 'socialAccounts' | 'postsPerMonth' | 'users',
+  limitType: 'socialAccounts' | 'postsPerMonth' | 'users' | 'aiGenerationsPerMonth',
   increment: number = 1
 ) {
   const [org] = await db
@@ -295,9 +301,14 @@ export async function incrementUsage(
     throw new Error('Organization not found');
   }
 
+  // Map limit types to current usage keys
+  const usageKey = limitType === 'postsPerMonth' ? 'postsThisMonth' : 
+                   limitType === 'aiGenerationsPerMonth' ? 'aiGenerationsThisMonth' : 
+                   limitType;
+  
   const newUsage = {
     ...org.currentUsage,
-    [limitType]: (org.currentUsage[limitType] || 0) + increment
+    [usageKey]: (org.currentUsage[usageKey as keyof typeof org.currentUsage] || 0) + increment
   };
 
   await db

@@ -62,6 +62,7 @@ router.post('/signup', async (req, res) => {
           socialAccounts: 0,
           postsThisMonth: 0,
           users: 1,
+          aiGenerationsThisMonth: 0,
         },
         status: 'active',
       })

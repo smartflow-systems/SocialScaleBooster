@@ -8,6 +8,7 @@ import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insert
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
+import aiStudioRoutes from "./routes/ai-studio";
 
 // Rate limiter for bot management operations (create, update, delete)
 // Limits to 20 requests per minute per IP to prevent abuse
@@ -38,6 +39,9 @@ if (process.env.STRIPE_SECRET_KEY) {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register authentication routes
   registerAuthRoutes(app);
+  
+  // Register AI Studio routes
+  app.use("/api/ai", aiStudioRoutes);
 
   // Server-side rendered landing page for SEO crawlability
   app.get("/landing-ssr", (req, res) => {
