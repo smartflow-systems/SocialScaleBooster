@@ -141,12 +141,8 @@ const SignupForm: React.FC = () => {
           organization: data.organization
         }));
 
-        // Redirect to onboarding completion or plan selection
-        if (selectedPlan !== 'trial') {
-          navigate(`/onboarding/billing?plan=${selectedPlan}`);
-        } else {
-          navigate('/onboarding/complete');
-        }
+        // Redirect to guided onboarding wizard
+        navigate(`/onboarding?plan=${selectedPlan}`);
       } else {
         setErrors({ email: data.error || 'Registration failed' });
       }

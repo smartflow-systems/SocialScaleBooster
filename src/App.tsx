@@ -4,6 +4,7 @@ import {
   LandingPage,
   LoginForm,
   SignupForm,
+  OnboardingWizard,
   Dashboard,
   BillingPage
 } from './components';
@@ -62,6 +63,12 @@ function App() {
                 <SignupForm />
               </PublicRoute>
             } 
+          />
+
+          {/* Onboarding - Semi-protected (requires signup but not full auth) */}
+          <Route 
+            path="/onboarding" 
+            element={<OnboardingWizard />}
           />
 
           {/* Protected Routes */}
