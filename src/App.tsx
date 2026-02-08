@@ -83,15 +83,15 @@ function App() {
             } 
           />
 
-          {/* Placeholder routes for future features */}
+          {/* AI Studio & Content */}
           <Route 
-            path="/posts" 
+            path="/ai-studio" 
             element={
               <ProtectedRoute>
                 <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
                   <div className="text-center">
-                    <h1 className="sfs-heading-2 mb-4">Posts Management</h1>
-                    <p className="text-sfs-text-muted">Coming soon...</p>
+                    <h1 className="sfs-heading-2 mb-4">🤖 AI Studio</h1>
+                    <p className="text-sfs-text-muted">AI-powered content creation suite...</p>
                     <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
                       Back to Dashboard
                     </a>
@@ -102,30 +102,13 @@ function App() {
           />
 
           <Route 
-            path="/posts/create" 
+            path="/content-calendar" 
             element={
               <ProtectedRoute>
                 <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
                   <div className="text-center">
-                    <h1 className="sfs-heading-2 mb-4">Create Post</h1>
-                    <p className="text-sfs-text-muted">AI-powered content creation coming soon...</p>
-                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
-                      Back to Dashboard
-                    </a>
-                  </div>
-                </div>
-              </ProtectedRoute>
-            } 
-          />
-
-          <Route 
-            path="/accounts" 
-            element={
-              <ProtectedRoute>
-                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
-                  <div className="text-center">
-                    <h1 className="sfs-heading-2 mb-4">Social Accounts</h1>
-                    <p className="text-sfs-text-muted">Connect your social media accounts...</p>
+                    <h1 className="sfs-heading-2 mb-4">📅 Content Calendar</h1>
+                    <p className="text-sfs-text-muted">Plan and schedule your content...</p>
                     <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
                       Back to Dashboard
                     </a>
@@ -141,8 +124,371 @@ function App() {
               <ProtectedRoute>
                 <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
                   <div className="text-center">
-                    <h1 className="sfs-heading-2 mb-4">Analytics & Reports</h1>
-                    <p className="text-sfs-text-muted">Detailed insights coming soon...</p>
+                    <h1 className="sfs-heading-2 mb-4">📊 Analytics</h1>
+                    <p className="text-sfs-text-muted">Performance insights and reporting...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Content & Creation */}
+          <Route 
+            path="/posts/create" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">✨ Create Post</h1>
+                    <p className="text-sfs-text-muted">AI-powered content creation...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/templates" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">📝 Templates</h1>
+                    <p className="text-sfs-text-muted">Pre-designed post templates...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/hashtag-research" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">#️⃣ Hashtag Research</h1>
+                    <p className="text-sfs-text-muted">Discover trending hashtags...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/caption-generator" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">💭 Caption Generator</h1>
+                    <p className="text-sfs-text-muted">AI-powered caption creation...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Social Automation */}
+          <Route 
+            path="/post-scheduler" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">⏰ Post Scheduler</h1>
+                    <p className="text-sfs-text-muted">Schedule your content...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/auto-engagement" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">🤝 Auto Engagement</h1>
+                    <p className="text-sfs-text-muted">Automated likes, follows, and comments...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/dm-automation" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">💬 DM Automation</h1>
+                    <p className="text-sfs-text-muted">Automated direct messaging...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/connected-accounts" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">🔗 Connected Accounts</h1>
+                    <p className="text-sfs-text-muted">Manage your social media accounts...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Growth & Insights */}
+          <Route 
+            path="/competitor-tracker" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">🔍 Competitor Tracker</h1>
+                    <p className="text-sfs-text-muted">Monitor your competition...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/trending-topics" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">🔥 Trending Topics</h1>
+                    <p className="text-sfs-text-muted">Discover what's trending...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/audience-builder" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">👥 Audience Builder</h1>
+                    <p className="text-sfs-text-muted">Grow your audience strategically...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/performance-score" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">⭐ Performance Score</h1>
+                    <p className="text-sfs-text-muted">Track your performance score...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Marketplace */}
+          <Route 
+            path="/marketplace" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">🛒 Browse Marketplace</h1>
+                    <p className="text-sfs-text-muted">Explore templates, tools, and services...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/subscription-plans" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">💎 Subscription Plans</h1>
+                    <p className="text-sfs-text-muted">Choose your plan...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/checkout" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">💳 Checkout</h1>
+                    <p className="text-sfs-text-muted">Complete your purchase...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Settings & Support */}
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">⚙️ Settings</h1>
+                    <p className="text-sfs-text-muted">Account and organization settings...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/help-center" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">❓ Help Center</h1>
+                    <p className="text-sfs-text-muted">Find answers to your questions...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/tutorials" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">🎓 Tutorials</h1>
+                    <p className="text-sfs-text-muted">Learn how to use our platform...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/contact-support" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">📞 Contact Support</h1>
+                    <p className="text-sfs-text-muted">Get help from our support team...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Legacy routes for backwards compatibility */}
+          <Route 
+            path="/posts" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">📝 Posts Management</h1>
+                    <p className="text-sfs-text-muted">Manage your social media posts...</p>
+                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
+                      Back to Dashboard
+                    </a>
+                  </div>
+                </div>
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/accounts" 
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
+                  <div className="text-center">
+                    <h1 className="sfs-heading-2 mb-4">📱 Social Accounts</h1>
+                    <p className="text-sfs-text-muted">Connect your social media accounts...</p>
                     <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
                       Back to Dashboard
                     </a>
@@ -158,25 +504,8 @@ function App() {
               <ProtectedRoute>
                 <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
                   <div className="text-center">
-                    <h1 className="sfs-heading-2 mb-4">Team Management</h1>
+                    <h1 className="sfs-heading-2 mb-4">👥 Team Management</h1>
                     <p className="text-sfs-text-muted">Invite and manage team members...</p>
-                    <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
-                      Back to Dashboard
-                    </a>
-                  </div>
-                </div>
-              </ProtectedRoute>
-            } 
-          />
-
-          <Route 
-            path="/settings" 
-            element={
-              <ProtectedRoute>
-                <div className="min-h-screen bg-sfs-background sfs-flex sfs-flex-center">
-                  <div className="text-center">
-                    <h1 className="sfs-heading-2 mb-4">Settings</h1>
-                    <p className="text-sfs-text-muted">Organization and account settings...</p>
                     <a href="/dashboard" className="sfs-btn sfs-btn-primary mt-4">
                       Back to Dashboard
                     </a>

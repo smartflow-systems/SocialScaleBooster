@@ -83,66 +83,278 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isLoggedIn = false }) => {
                         Dashboard
                       </span>
                     </Link>
-                    <Link
-                      to="/posts"
-                      className="sfs-mobile-menu-item block py-4 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200 font-medium"
-                      onClick={closeMenu}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="text-lg">📝</span>
-                        Posts
-                      </span>
-                    </Link>
-                    <Link
-                      to="/accounts"
-                      className="sfs-mobile-menu-item block py-4 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200 font-medium"
-                      onClick={closeMenu}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="text-lg">📱</span>
-                        Social Accounts
-                      </span>
-                    </Link>
-                    <Link
-                      to="/analytics"
-                      className="sfs-mobile-menu-item block py-4 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200 font-medium"
-                      onClick={closeMenu}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="text-lg">📈</span>
-                        Analytics
-                      </span>
-                    </Link>
-                    <Link
-                      to="/team"
-                      className="sfs-mobile-menu-item block py-4 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200 font-medium"
-                      onClick={closeMenu}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="text-lg">👥</span>
-                        Team
-                      </span>
-                    </Link>
-                    <Link
-                      to="/billing"
-                      className="sfs-mobile-menu-item block py-4 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200 font-medium"
-                      onClick={closeMenu}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="text-lg">💳</span>
-                        Billing
-                      </span>
-                    </Link>
-                    <Link
-                      to="/settings"
-                      className="sfs-mobile-menu-item block py-4 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200 font-medium"
-                      onClick={closeMenu}
-                    >
-                      <span className="flex items-center gap-3">
-                        <span className="text-lg">⚙️</span>
-                        Settings
-                      </span>
-                    </Link>
+
+                    {/* AI Studio */}
+                    <div className="pt-4">
+                      <div className="px-6 py-2 text-xs font-semibold text-sfs-text-muted uppercase tracking-wider">
+                        AI STUDIO
+                      </div>
+                      <Link
+                        to="/ai-studio"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">🤖</span>
+                          AI Studio
+                        </span>
+                      </Link>
+                      <Link
+                        to="/content-calendar"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">📅</span>
+                          Content Calendar
+                        </span>
+                      </Link>
+                      <Link
+                        to="/analytics"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">📈</span>
+                          Analytics
+                        </span>
+                      </Link>
+                    </div>
+
+                    {/* Content & Creation */}
+                    <div className="pt-4">
+                      <div className="px-6 py-2 text-xs font-semibold text-sfs-text-muted uppercase tracking-wider">
+                        CONTENT & CREATION
+                      </div>
+                      <Link
+                        to="/posts/create"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">✨</span>
+                          Create Post
+                        </span>
+                      </Link>
+                      <Link
+                        to="/templates"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">📝</span>
+                          Templates
+                        </span>
+                      </Link>
+                      <Link
+                        to="/hashtag-research"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">#️⃣</span>
+                          Hashtag Research
+                        </span>
+                      </Link>
+                      <Link
+                        to="/caption-generator"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">💭</span>
+                          Caption Generator
+                        </span>
+                      </Link>
+                    </div>
+
+                    {/* Social Automation */}
+                    <div className="pt-4">
+                      <div className="px-6 py-2 text-xs font-semibold text-sfs-text-muted uppercase tracking-wider">
+                        SOCIAL AUTOMATION
+                      </div>
+                      <Link
+                        to="/post-scheduler"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">⏰</span>
+                          Post Scheduler
+                        </span>
+                      </Link>
+                      <Link
+                        to="/auto-engagement"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">🤝</span>
+                          Auto Engagement
+                        </span>
+                      </Link>
+                      <Link
+                        to="/dm-automation"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">💬</span>
+                          DM Automation
+                        </span>
+                      </Link>
+                      <Link
+                        to="/connected-accounts"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">🔗</span>
+                          Connected Accounts
+                        </span>
+                      </Link>
+                    </div>
+
+                    {/* Growth & Insights */}
+                    <div className="pt-4">
+                      <div className="px-6 py-2 text-xs font-semibold text-sfs-text-muted uppercase tracking-wider">
+                        GROWTH & INSIGHTS
+                      </div>
+                      <Link
+                        to="/competitor-tracker"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">🔍</span>
+                          Competitor Tracker
+                        </span>
+                      </Link>
+                      <Link
+                        to="/trending-topics"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">🔥</span>
+                          Trending Topics
+                        </span>
+                      </Link>
+                      <Link
+                        to="/audience-builder"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">👥</span>
+                          Audience Builder
+                        </span>
+                      </Link>
+                      <Link
+                        to="/performance-score"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">⭐</span>
+                          Performance Score
+                        </span>
+                      </Link>
+                    </div>
+
+                    {/* Marketplace */}
+                    <div className="pt-4">
+                      <div className="px-6 py-2 text-xs font-semibold text-sfs-text-muted uppercase tracking-wider">
+                        MARKETPLACE
+                      </div>
+                      <Link
+                        to="/marketplace"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">🛒</span>
+                          Browse Marketplace
+                        </span>
+                      </Link>
+                      <Link
+                        to="/subscription-plans"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">💎</span>
+                          Subscription Plans
+                        </span>
+                      </Link>
+                      <Link
+                        to="/checkout"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">💳</span>
+                          Checkout
+                        </span>
+                      </Link>
+                    </div>
+
+                    {/* Settings & Support */}
+                    <div className="pt-4">
+                      <div className="px-6 py-2 text-xs font-semibold text-sfs-text-muted uppercase tracking-wider">
+                        SETTINGS & SUPPORT
+                      </div>
+                      <Link
+                        to="/settings"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">⚙️</span>
+                          Settings
+                        </span>
+                      </Link>
+                      <Link
+                        to="/help-center"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">❓</span>
+                          Help Center
+                        </span>
+                      </Link>
+                      <Link
+                        to="/tutorials"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">🎓</span>
+                          Tutorials
+                        </span>
+                      </Link>
+                      <Link
+                        to="/contact-support"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">📞</span>
+                          Contact Support
+                        </span>
+                      </Link>
+                      <Link
+                        to="/billing"
+                        className="sfs-mobile-menu-item block py-3 px-6 text-sfs-text hover:bg-sfs-gold-light rounded-xl transition-all duration-200"
+                        onClick={closeMenu}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg">💳</span>
+                          Billing
+                        </span>
+                      </Link>
+                    </div>
                   </div>
                   
                   <div className="mt-6 pt-6 border-t border-gray-200">
