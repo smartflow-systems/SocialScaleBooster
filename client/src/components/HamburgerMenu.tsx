@@ -1,13 +1,5 @@
-/**
- * SocialScaleBooster Hamburger Menu
- *
- * Comprehensive slide-in sidebar navigation for marketing/social media automation
- */
-
-import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import {
-  Menu,
   X,
   Home,
   Bot,
@@ -102,128 +94,94 @@ const menuSections: MenuSection[] = [
   }
 ];
 
-export default function HamburgerMenu() {
-  const [isOpen, setIsOpen] = useState(false);
+interface HamburgerMenuSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function HamburgerMenuSidebar({ isOpen, onClose }: HamburgerMenuSidebarProps) {
   const [location] = useLocation();
 
   const isActive = (href: string) => {
-    if (href === "/" && location === "/") {
-      return true;
-    }
-    if (href === "/dashboard" && location === "/dashboard") {
-      return true;
-    }
+    if (href === "/" && location === "/") return true;
+    if (href === "/dashboard" && location === "/dashboard") return true;
     return location.startsWith(href) && href !== "/";
   };
 
-  const handleLinkClick = () => {
-    setIsOpen(false);
-  };
-
   return (
-    <>
-      {/* Hamburger Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-accent-gold hover:text-gold-trim transition-colors focus:outline-none focus:ring-2 focus:ring-accent-gold rounded-md"
-        aria-label="Toggle menu"
-      >
-        {isOpen ? (
-          <X className="h-6 w-6" />
-        ) : (
-          <Menu className="h-6 w-6" />
-        )}
-      </button>
-
-      {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/70 z-40 transition-opacity backdrop-blur-sm"
-          onClick={() => setIsOpen(false)}
-        />
+    <div
+      className={cn(
+        "h-screen w-72 flex-shrink-0",
+        "bg-primary-black border-r border-accent-gold/30",
+        "shadow-2xl shadow-accent-gold/10",
+        "sticky top-0"
       )}
-
-      {/* Slide-in Sidebar */}
-      <div
-        className={cn(
-          "fixed top-0 left-0 h-full w-80 z-50",
-          "bg-primary-black/95 backdrop-blur-xl border-r border-accent-gold/30",
-          "transform transition-transform duration-300 ease-in-out",
-          "shadow-2xl shadow-accent-gold/10",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-accent-gold/20 bg-gradient-to-r from-rich-brown to-primary-black">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-accent-gold to-gold-trim rounded-lg flex items-center justify-center shadow-lg shadow-accent-gold/30">
-              <Bot className="w-6 h-6 text-primary-black" />
-            </div>
-            <div>
-              <h1 className="text-accent-gold font-bold text-sm">SmartFlow AI</h1>
-              <p className="text-xs text-neutral-gray">Social Automation</p>
-            </div>
+    >
+      <div className="flex items-center justify-between p-4 border-b border-accent-gold/20 bg-gradient-to-r from-rich-brown to-primary-black">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-accent-gold to-gold-trim rounded-lg flex items-center justify-center shadow-lg shadow-accent-gold/30">
+            <Bot className="w-6 h-6 text-primary-black" />
           </div>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 text-accent-gold/70 hover:text-accent-gold transition-colors rounded-md"
-            aria-label="Close menu"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div>
+            <h1 className="text-accent-gold font-bold text-sm">SmartFlow AI</h1>
+            <p className="text-xs text-neutral-gray">Social Automation</p>
+          </div>
         </div>
+        <button
+          onClick={onClose}
+          className="p-2 text-accent-gold/70 hover:text-accent-gold transition-colors rounded-md"
+          aria-label="Close menu"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
 
-        {/* Menu Sections */}
-        <ScrollArea className="h-[calc(100vh-140px)]">
-          <div className="py-4">
-            {menuSections.map((section, sectionIndex) => (
-              <div key={section.title} className={sectionIndex > 0 ? "mt-6" : ""}>
-                <div className="px-4 mb-2">
-                  <h3 className="text-accent-gold/60 text-xs font-bold uppercase tracking-wider">
-                    {section.title}
-                  </h3>
-                </div>
-                <div className="space-y-1 px-2">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const active = isActive(item.href);
-                    return (
-                      <Link
-                        key={item.id}
-                        href={item.href}
-                        onClick={handleLinkClick}
-                      >
-                        <a
-                          className={cn(
-                            "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative overflow-hidden",
-                            active
-                              ? "bg-accent-gold/20 text-accent-gold border-l-2 border-accent-gold"
-                              : "text-neutral-gray hover:bg-accent-gold/10 hover:text-accent-gold"
-                          )}
-                        >
-                          {/* Hover shimmer effect */}
-                          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-accent-gold/10 to-transparent" />
-
-                          <Icon className={cn("h-5 w-5 flex-shrink-0", active ? "text-accent-gold" : "")} />
-                          <span className="font-medium text-sm relative z-10">{item.label}</span>
-                        </a>
-                      </Link>
-                    );
-                  })}
-                </div>
+      <ScrollArea className="h-[calc(100vh-140px)]">
+        <div className="py-4">
+          {menuSections.map((section, sectionIndex) => (
+            <div key={section.title} className={sectionIndex > 0 ? "mt-6" : ""}>
+              <div className="px-4 mb-2">
+                <h3 className="text-accent-gold/60 text-xs font-bold uppercase tracking-wider">
+                  {section.title}
+                </h3>
               </div>
-            ))}
-          </div>
-        </ScrollArea>
+              <div className="space-y-1 px-2">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = isActive(item.href);
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={onClose}
+                    >
+                      <div
+                        className={cn(
+                          "flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all group relative overflow-hidden cursor-pointer",
+                          active
+                            ? "bg-accent-gold/20 text-accent-gold border-l-2 border-accent-gold"
+                            : "text-neutral-gray hover:bg-accent-gold/10 hover:text-accent-gold"
+                        )}
+                      >
+                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-accent-gold/10 to-transparent" />
+                        <Icon className={cn("h-5 w-5 flex-shrink-0", active ? "text-accent-gold" : "")} />
+                        <span className="font-medium text-sm relative z-10">{item.label}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
 
-        {/* Footer */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-accent-gold/20 bg-gradient-to-r from-rich-brown to-primary-black">
-          <div className="text-xs text-neutral-gray text-center">
-            <p className="font-semibold text-accent-gold">SmartFlow Systems</p>
-            <p>© 2025 Social Automation</p>
-          </div>
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-accent-gold/20 bg-gradient-to-r from-rich-brown to-primary-black">
+        <div className="text-xs text-neutral-gray text-center">
+          <p className="font-semibold text-accent-gold">SmartFlow Systems</p>
+          <p>© 2025 Social Automation</p>
         </div>
       </div>
-    </>
+    </div>
   );
 }
