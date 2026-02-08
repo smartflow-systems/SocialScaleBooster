@@ -1,5 +1,6 @@
 import { users, bots, botTemplates, analytics, clients, socialAccounts, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics, type Client, type InsertClient, type SocialAccount, type InsertSocialAccount } from "@shared/schema";
 import { eq, and, sql } from "drizzle-orm";
+import { db } from "./db";
 
 export interface IStorage {
   // User methods
@@ -55,36 +56,30 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  private db: any;
-
-  constructor() {
-    const { db } = require("./db");
-    this.db = db;
-  }
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await this.db.select().from(users).where(eq(users.id, id));
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await this.db.select().from(users).where(eq(users.username, username));
+    const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await this.db.select().from(users).where(eq(users.email, email));
+    const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await this.db.insert(users).values(insertUser).returning();
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
   async updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User> {
-    const [user] = await this.db
+    const [user] = await db
       .update(users)
       .set({ isPremium })
       .where(eq(users.id, id))
@@ -93,7 +88,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateUserStripeInfo(id: number, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User> {
-    const [user] = await this.db
+    const [user] = await db
       .update(users)
       .set({ stripeCustomerId, stripeSubscriptionId })
       .where(eq(users.id, id))
@@ -102,7 +97,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementUserBotCount(id: number): Promise<User> {
-    const [user] = await this.db
+    const [user] = await db
       .update(users)
       .set({ botCount: sql`${users.botCount} + 1` })
       .where(eq(users.id, id))
@@ -111,7 +106,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async decrementUserBotCount(id: number): Promise<User> {
-    const [user] = await this.db
+    const [user] = await db
       .update(users)
       .set({ botCount: sql`${users.botCount} - 1` })
       .where(eq(users.id, id))
@@ -121,21 +116,21 @@ export class DatabaseStorage implements IStorage {
 
   // Client methods
   async getClientsByUserId(userId: number): Promise<Client[]> {
-    return await this.db.select().from(clients).where(eq(clients.userId, userId));
+    return await db.select().from(clients).where(eq(clients.userId, userId));
   }
 
   async getClient(id: number): Promise<Client | undefined> {
-    const [client] = await this.db.select().from(clients).where(eq(clients.id, id));
+    const [client] = await db.select().from(clients).where(eq(clients.id, id));
     return client || undefined;
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
-    const [client] = await this.db.insert(clients).values(insertClient).returning();
+    const [client] = await db.insert(clients).values(insertClient).returning();
     return client;
   }
 
   async updateClient(id: number, updates: Partial<Client>): Promise<Client> {
-    const [client] = await this.db
+    const [client] = await db
       .update(clients)
       .set(updates)
       .where(eq(clients.id, id))
@@ -145,8 +140,8 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClient(id: number): Promise<void> {
     // Unlink bots first
-    await this.db.update(bots).set({ clientId: null }).where(eq(bots.clientId, id));
-    await this.db.delete(clients).where(eq(clients.id, id));
+    await db.update(bots).set({ clientId: null }).where(eq(bots.clientId, id));
+    await db.delete(clients).where(eq(clients.id, id));
   }
 
   async getClientStats(clientId: number): Promise<{ botCount: number; totalRevenue: number }> {
@@ -163,12 +158,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getClientRevenue(clientId: number): Promise<{ totalRevenue: number; botCount: number }> {
-    const clientBots = await this.db.select().from(bots).where(eq(bots.clientId, clientId));
+    const clientBots = await db.select().from(bots).where(eq(bots.clientId, clientId));
     const botIds = clientBots.map((b: Bot) => b.id);
 
     let totalRevenue = 0;
     for (const botId of botIds) {
-      const botAnalytics = await this.db.select().from(analytics).where(eq(analytics.botId, botId));
+      const botAnalytics = await db.select().from(analytics).where(eq(analytics.botId, botId));
       totalRevenue += botAnalytics.reduce((sum: number, a: Analytics) => sum + parseFloat(a.revenue || "0"), 0);
     }
 
@@ -177,27 +172,27 @@ export class DatabaseStorage implements IStorage {
 
   // Social Account methods
   async getSocialAccountsByUserId(userId: number): Promise<SocialAccount[]> {
-    return await this.db.select().from(socialAccounts).where(eq(socialAccounts.userId, userId));
+    return await db.select().from(socialAccounts).where(eq(socialAccounts.userId, userId));
   }
 
   async getSocialAccountsByPlatform(userId: number, platform: string): Promise<SocialAccount[]> {
-    return await this.db.select().from(socialAccounts).where(
+    return await db.select().from(socialAccounts).where(
       and(eq(socialAccounts.userId, userId), eq(socialAccounts.platform, platform))
     );
   }
 
   async getSocialAccount(id: number): Promise<SocialAccount | undefined> {
-    const [account] = await this.db.select().from(socialAccounts).where(eq(socialAccounts.id, id));
+    const [account] = await db.select().from(socialAccounts).where(eq(socialAccounts.id, id));
     return account || undefined;
   }
 
   async createSocialAccount(account: InsertSocialAccount): Promise<SocialAccount> {
-    const [created] = await this.db.insert(socialAccounts).values(account).returning();
+    const [created] = await db.insert(socialAccounts).values(account).returning();
     return created;
   }
 
   async updateSocialAccount(id: number, updates: Partial<SocialAccount>): Promise<SocialAccount> {
-    const [updated] = await this.db
+    const [updated] = await db
       .update(socialAccounts)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(socialAccounts.id, id))
@@ -207,12 +202,12 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSocialAccount(id: number): Promise<void> {
     // Unlink any bots using this account
-    await this.db.update(bots).set({ socialAccountId: null }).where(eq(bots.socialAccountId, id));
-    await this.db.delete(socialAccounts).where(eq(socialAccounts.id, id));
+    await db.update(bots).set({ socialAccountId: null }).where(eq(bots.socialAccountId, id));
+    await db.delete(socialAccounts).where(eq(socialAccounts.id, id));
   }
 
   async verifySocialAccountOwnership(accountId: number, userId: number): Promise<boolean> {
-    const [account] = await this.db.select().from(socialAccounts).where(
+    const [account] = await db.select().from(socialAccounts).where(
       and(eq(socialAccounts.id, accountId), eq(socialAccounts.userId, userId))
     );
     return !!account;
@@ -220,29 +215,29 @@ export class DatabaseStorage implements IStorage {
 
   // Bot methods
   async getBotsByUserId(userId: number): Promise<Bot[]> {
-    return await this.db.select().from(bots).where(eq(bots.userId, userId));
+    return await db.select().from(bots).where(eq(bots.userId, userId));
   }
 
   async getBotsByClientId(clientId: number): Promise<Bot[]> {
-    return await this.db.select().from(bots).where(eq(bots.clientId, clientId));
+    return await db.select().from(bots).where(eq(bots.clientId, clientId));
   }
 
   async getBotsBySocialAccountId(socialAccountId: number): Promise<Bot[]> {
-    return await this.db.select().from(bots).where(eq(bots.socialAccountId, socialAccountId));
+    return await db.select().from(bots).where(eq(bots.socialAccountId, socialAccountId));
   }
 
   async getBot(id: number): Promise<Bot | undefined> {
-    const [bot] = await this.db.select().from(bots).where(eq(bots.id, id));
+    const [bot] = await db.select().from(bots).where(eq(bots.id, id));
     return bot || undefined;
   }
 
   async createBot(insertBot: InsertBot): Promise<Bot> {
-    const [bot] = await this.db.insert(bots).values(insertBot).returning();
+    const [bot] = await db.insert(bots).values(insertBot).returning();
     return bot;
   }
 
   async updateBot(id: number, updates: Partial<Bot>): Promise<Bot> {
-    const [bot] = await this.db
+    const [bot] = await db
       .update(bots)
       .set(updates)
       .where(eq(bots.id, id))
@@ -251,49 +246,49 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateBotStatus(id: number, status: string): Promise<Bot> {
-    const [bot] = await this.db.update(bots).set({ status }).where(eq(bots.id, id)).returning();
+    const [bot] = await db.update(bots).set({ status }).where(eq(bots.id, id)).returning();
     return bot;
   }
 
   async deleteBot(id: number): Promise<void> {
-    await this.db.delete(bots).where(eq(bots.id, id));
+    await db.delete(bots).where(eq(bots.id, id));
   }
 
   // Bot Template methods
   async getAllBotTemplates(): Promise<BotTemplate[]> {
-    return await this.db.select().from(botTemplates);
+    return await db.select().from(botTemplates);
   }
 
   async getBotTemplatesByCategory(category: string): Promise<BotTemplate[]> {
-    return await this.db.select().from(botTemplates).where(eq(botTemplates.category, category));
+    return await db.select().from(botTemplates).where(eq(botTemplates.category, category));
   }
 
   async getBotTemplate(id: number): Promise<BotTemplate | undefined> {
-    const [template] = await this.db.select().from(botTemplates).where(eq(botTemplates.id, id));
+    const [template] = await db.select().from(botTemplates).where(eq(botTemplates.id, id));
     return template || undefined;
   }
 
   async createBotTemplate(insertTemplate: InsertBotTemplate): Promise<BotTemplate> {
-    const [template] = await this.db.insert(botTemplates).values(insertTemplate).returning();
+    const [template] = await db.insert(botTemplates).values(insertTemplate).returning();
     return template;
   }
 
   // Analytics methods
   async getAnalyticsByUserId(userId: number): Promise<Analytics[]> {
-    return await this.db.select().from(analytics).where(eq(analytics.userId, userId));
+    return await db.select().from(analytics).where(eq(analytics.userId, userId));
   }
 
   async getAnalyticsByBotId(botId: number): Promise<Analytics[]> {
-    return await this.db.select().from(analytics).where(eq(analytics.botId, botId));
+    return await db.select().from(analytics).where(eq(analytics.botId, botId));
   }
 
   async createAnalytics(insertAnalytics: InsertAnalytics): Promise<Analytics> {
-    const [analytic] = await this.db.insert(analytics).values(insertAnalytics).returning();
+    const [analytic] = await db.insert(analytics).values(insertAnalytics).returning();
     return analytic;
   }
 
   async getRevenueMetrics(userId: number): Promise<{ totalRevenue: number; monthlyGrowth: number }> {
-    const result = await this.db
+    const result = await db
       .select({
         totalRevenue: sql<number>`COALESCE(SUM(${analytics.revenue}), 0)`,
         monthlyGrowth: sql<number>`25.5`
@@ -305,7 +300,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getEngagementMetrics(userId: number): Promise<{ avgEngagement: number; totalPosts: number }> {
-    const result = await this.db
+    const result = await db
       .select({
         avgEngagement: sql<number>`COALESCE(AVG(${analytics.engagement}), 0)`,
         totalPosts: sql<number>`COALESCE(SUM(${analytics.posts}), 0)`
