@@ -9,8 +9,16 @@ import {
 } from '../services/ai-usage';
 import { authenticateMultiTenant, requireActiveOrganization } from '../middleware/multitenant-auth';
 import type { MultiTenantAuthRequest } from '../middleware/multitenant-auth';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
+
+const aiUsageLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 60, // limit each IP to 60 requests per windowMs for usage endpoint
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Validation schemas
 const generatePostSchema = z.object({
@@ -214,7 +222,7 @@ router.post('/generate-hashtags', authenticateMultiTenant, requireActiveOrganiza
 });
 
 // GET /api/ai/usage
-router.get('/usage', authenticateMultiTenant, requireActiveOrganization, async (req: MultiTenantAuthRequest, res) => {
+router.get('/usage', authenticateMultiTenant, requireActiveOrganization, aiUsageLimiter, async (req: MultiTenantAuthRequest, res) => {
   try {
     if (!req.user?.organizationId) {
       return res.status(401).json({ error: 'Organization not found' });
