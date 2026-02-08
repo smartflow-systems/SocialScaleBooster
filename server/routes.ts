@@ -9,6 +9,7 @@ import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
 import aiStudioRoutes from "./routes/ai-studio";
+import { generatePost, generateCaption, generateHashtags } from "./services/openai";
 
 // Rate limiter for bot management operations (create, update, delete)
 // Limits to 20 requests per minute per IP to prevent abuse
@@ -42,6 +43,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register AI Studio routes
   app.use("/api/ai", aiStudioRoutes);
+
+  app.post("/api/ai/simple/generate-post", async (req, res) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: "OpenAI API key not configured" });
+      }
+      const { topic, platform, tone, industry, targetAudience } = req.body;
+      if (!topic || !platform || !tone) {
+        return res.status(400).json({ error: "Missing required fields: topic, platform, tone" });
+      }
+      const result = await generatePost({ topic, platform, tone, industry, targetAudience });
+      res.json(result);
+    } catch (error: any) {
+      console.error("AI generate post error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate post" });
+    }
+  });
+
+  app.post("/api/ai/simple/generate-caption", async (req, res) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: "OpenAI API key not configured" });
+      }
+      const { description, platform, tone, maxLength } = req.body;
+      if (!description || !platform) {
+        return res.status(400).json({ error: "Missing required fields: description, platform" });
+      }
+      const result = await generateCaption({ description, platform, tone, maxLength });
+      res.json(result);
+    } catch (error: any) {
+      console.error("AI generate caption error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate caption" });
+    }
+  });
+
+  app.post("/api/ai/simple/generate-hashtags", async (req, res) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: "OpenAI API key not configured" });
+      }
+      const { topic, count, platform, industry } = req.body;
+      if (!topic || !count) {
+        return res.status(400).json({ error: "Missing required fields: topic, count" });
+      }
+      const result = await generateHashtags({ topic, count: Number(count), platform, industry });
+      res.json(result);
+    } catch (error: any) {
+      console.error("AI generate hashtags error:", error);
+      res.status(500).json({ error: error.message || "Failed to generate hashtags" });
+    }
+  });
 
   // Server-side rendered landing page for SEO crawlability
   app.get("/landing-ssr", (req, res) => {
