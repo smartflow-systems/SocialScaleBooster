@@ -29,8 +29,13 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci || npm install
+      - name: Upgrade npm to latest
+        run: npm install -g npm@latest
+
+      - name: Clean install dependencies
+        run: |
+          rm -rf node_modules package-lock.json || true
+          npm install
 
       - name: Run linter
         run: npm run lint || echo "Linting not configured - skipping"
@@ -51,8 +56,13 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci || npm install
+      - name: Upgrade npm to latest
+        run: npm install -g npm@latest
+
+      - name: Clean install dependencies
+        run: |
+          rm -rf node_modules package-lock.json || true
+          npm install
 
       - name: Run tests
         run: npm test
@@ -72,8 +82,13 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci || npm install
+      - name: Upgrade npm to latest
+        run: npm install -g npm@latest
+
+      - name: Clean install dependencies
+        run: |
+          rm -rf node_modules package-lock.json || true
+          npm install
 
       - name: Build project
         run: npm run build
