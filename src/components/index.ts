@@ -13,6 +13,9 @@ export { default as BillingPage } from './billing/BillingPage';
 // Common Components
 export { default as MobileMenu } from './common/MobileMenu';
 
+// Tools & Calculators
+export { default as ROICalculator } from './calculator/ROICalculator';
+
 // Export component types for better development experience
 export type { default as LandingPageProps } from './landing/LandingPage';
 export type { default as LoginFormProps } from './auth/LoginForm';

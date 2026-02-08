@@ -6,7 +6,8 @@ import {
   SignupForm,
   OnboardingWizard,
   Dashboard,
-  BillingPage
+  BillingPage,
+  ROICalculator
 } from './components';
 import './styles/brand.css';
 
@@ -571,6 +572,11 @@ function App() {
                 </div>
               </div>
             } 
+          />
+
+          <Route 
+            path="/roi-calculator" 
+            element={<ROICalculator />}
           />
 
           {/* Error Pages */}

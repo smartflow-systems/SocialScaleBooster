@@ -62,7 +62,7 @@ const LandingPage: React.FC = () => {
             <Link to="/signup" className="sfs-btn sfs-btn-primary sfs-btn-lg">
               Get 3x More Leads - Start Free Trial
             </Link>
-            <Link to="/demo" className="sfs-btn sfs-btn-outline sfs-btn-lg">
+            <Link to="/roi-calculator" className="sfs-btn sfs-btn-outline sfs-btn-lg">
               📺 See ROI Calculator
             </Link>
           </div>
@@ -482,7 +482,7 @@ const LandingPage: React.FC = () => {
                 that's £2,910 in additional revenue - a 30x return on your investment.
               </p>
               <div className="text-center">
-                <Link to="/demo?calculator=true" className="text-sfs-primary hover:text-sfs-primary-hover font-medium">
+                <Link to="/roi-calculator" className="text-sfs-primary hover:text-sfs-primary-hover font-medium">
                   Calculate Your Potential ROI →
                 </Link>
               </div>
