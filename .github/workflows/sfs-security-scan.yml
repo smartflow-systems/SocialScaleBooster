@@ -90,14 +90,15 @@ jobs:
         run: |
           echo "### 🔐 Secret Scanning" >> $GITHUB_STEP_SUMMARY
 
-          # Check for common secret patterns
+          # Check for common secret patterns (using variables to avoid self-detection)
+          GHP_PATTERN="ghp_[a-zA-Z0-9]{36}"
           SECRET_PATTERNS=(
             "sk_live_"
             "pk_live_"
             "whsec_"
             "-----BEGIN.*PRIVATE KEY-----"
             "AKIA[0-9A-Z]{16}"
-            "ghp_[a-zA-Z0-9]{36}"
+            "$GHP_PATTERN"
           )
 
           SECRETS_FOUND=0
