@@ -1,5 +1,6 @@
 // Updated routes.ts with multi-tenant support
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { tenantMiddleware, requireRole, enforceUsageLimit } from './middleware/tenant';
 import { onboardingRoutes } from './routes/onboarding';
 import { billingRoutes } from './routes/billing';
@@ -23,9 +24,18 @@ import crypto from 'crypto';
 
 const router = express.Router();
 
+// Rate limiting for authenticated/protected routes
+const protectedRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+});
+
 // Public routes (no authentication)
 router.use('/onboarding', onboardingRoutes);
 router.use('/webhooks', webhookRoutes);
+
+// Apply rate limiting to subsequent (typically authenticated) routes
+router.use(protectedRateLimiter);
 
 // Login (updated for multi-tenant)
 const loginSchema = z.object({
