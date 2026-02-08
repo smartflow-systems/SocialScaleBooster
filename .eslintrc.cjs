@@ -6,7 +6,19 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs', 'node_modules', 'build'],
+  ignorePatterns: [
+    'dist', 
+    '.eslintrc.cjs', 
+    'node_modules', 
+    'build',
+    'drizzle.config.ts',
+    'tailwind.config.ts',
+    'vitest.config.ts',
+    'vite.config.ts',
+    'postcss.config.cjs',
+    '*.preset.js',
+    'tests/**/*.ts'
+  ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
