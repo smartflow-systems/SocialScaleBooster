@@ -1,89 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SocialScaleBooster — SmartFlow Systems</title>
-  <meta name="description" content="Multi-platform social media management and automation"/>
-  <meta name="theme-color" content="#0D0D0D"/>
-  <link rel="icon" href="assets/favicon.png"/>
-
-  <!-- SFS Master Theme -->
-  <link rel="stylesheet" href="/css/sfs-complete-theme.css"/>
+  <link rel="stylesheet" href="sfs-complete-theme.css">
+  <style>
+    .hero { text-align: center; padding: 6rem 1rem 4rem; }
+    .hero h1 { font-size: 3.5rem; margin-bottom: 1rem; }
+    .hero p { font-size: 1.4rem; max-width: 600px; margin: 0 auto 2rem; color: #f5f5dc; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; padding: 3rem 1rem; max-width: 1200px; margin: 0 auto; }
+    .card { background: rgba(59,47,47,0.4); border: 1px solid rgba(255,215,0,0.3); border-radius: 1rem; padding: 2rem 1.5rem; text-align: center; transition: all 0.3s; }
+    .card:hover { transform: translateY(-8px); border-color: #ffd700; box-shadow: 0 0 30px rgba(255,215,0,0.3); }
+    .cta-btn { display: inline-block; background: linear-gradient(90deg, #ffd700, #e6c200); color: #0d0d0d; font-weight: 700; padding: 1rem 2.5rem; border-radius: 9999px; font-size: 1.2rem; margin-top: 2rem; text-decoration: none; transition: all 0.3s; }
+    .cta-btn:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(255,215,0,0.6); }
+    .free-badge { background: #ffd700; color: #0d0d0d; padding: 0.4rem 1rem; border-radius: 9999px; font-weight: 700; font-size: 0.95rem; display: inline-block; margin: 1rem 0; }
+  </style>
 </head>
 <body>
-  <!-- SFS Circuit Flow Background -->
   <canvas id="circuit-canvas"></canvas>
 
-  <!-- Navigation Header -->
   <header class="nav">
     <a class="brand" href="/">SocialScaleBooster</a>
     <nav>
       <a href="#features">Features</a>
-      <a href="#about">About</a>
-      <a href="https://smartflowsite.replit.app" target="_blank">SmartFlow Systems</a>
-      <a class="btn btn-gold" href="#get-started">Get Started</a>
+      <a href="#pricing">Pricing</a>
+      <a class="btn btn-gold" href="https://your-replit-url.replit.dev/dashboard">Open Dashboard</a>
     </nav>
   </header>
 
-  <!-- Hero Section -->
-  <section id="hero" class="hero">
+  <section class="hero">
     <div class="hero-inner">
-      <h1>Social Media Automation Platform</h1>
-      <p>Scale your social media presence effortlessly</p>
-      <div class="hero-ctas">
-        <a class="btn btn-gold" href="#features">Explore Features</a>
-        <a class="btn btn-ghost" href="https://github.com/smartflow-systems/SocialScaleBooster" target="_blank">View Code</a>
-      </div>
+      <div class="free-badge">Free Plan • 0/3 bots</div>
+      <h1>Scale Your Social Media<br>with AI Bots</h1>
+      <p>Professional automation platform. Beautiful, simple, and ready for your first customer.</p>
+      <a href="https://your-replit-url.replit.dev/dashboard" class="cta-btn">Create New Bot →</a>
+      <p style="margin-top:1rem; font-size:0.95rem; color:#aaa;">Takes 45 seconds • No card required</p>
     </div>
   </section>
 
-  <!-- Features Section -->
   <section id="features" class="section container">
-    <h2 class="section-title">Key Features</h2>
-    <div class="projects-grid">
-      <article class="project-card">
-        <h3>Feature 1</h3>
-        <p>Description of feature 1</p>
-      </article>
-
-      <article class="project-card">
-        <h3>Feature 2</h3>
-        <p>Description of feature 2</p>
-      </article>
-
-      <article class="project-card">
-        <h3>Feature 3</h3>
-        <p>Description of feature 3</p>
-      </article>
+    <h2 class="section-title" style="text-align:center; margin-bottom:3rem;">Everything you need</h2>
+    <div class="grid">
+      <div class="card"><h3>🤖 Bots</h3><p>Build & run AI social bots</p></div>
+      <div class="card"><h3>📊 Analytics</h3><p>Real-time performance</p></div>
+      <div class="card"><h3>🛒 Store</h3><p>Premium templates</p></div>
+      <div class="card"><h3>⏰ Time</h3><p>Smart scheduling</p></div>
+      <div class="card"><h3>🎨 Style</h3><p>Personality designer</p></div>
+      <div class="card"><h3>⚡ Apps</h3><p>Integrations</p></div>
     </div>
   </section>
 
-  <!-- About Section -->
-  <section id="about" class="section container">
-    <h2 class="section-title">About This Project</h2>
-    <div class="glass-card">
-      <p>Part of the SmartFlow Systems ecosystem.</p>
-      <p>Built with the signature brown/black/gold aesthetic and glass card design.</p>
-    </div>
-  </section>
-
-  <!-- Footer -->
   <footer class="footer">
-    <div class="container">
-      <p>&copy; 2024 SmartFlow Systems. All rights reserved.</p>
-      <p>
-        <a href="https://github.com/smartflow-systems" target="_blank">GitHub</a> |
-        <a href="https://smartflowsite.replit.app" target="_blank">Main Site</a>
-      </p>
-    </div>
+    <p>© 2026 SmartFlow Systems • Built on Replit</p>
   </footer>
 
-  <!-- SFS Circuit Flow Animation -->
-  <script src="/js/sfs-circuit-flow.js"></script>
-
-  <!-- SFS Hamburger Menu -->
-  <script src="/js/sfs-hamburger-menu.js"></script>
-  <script src="/js/sfs-currency.js"></script>
+  <script src="sfs-circuit-flow.js"></script>
 </body>
 </html>
