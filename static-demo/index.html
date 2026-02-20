@@ -1,0 +1,11 @@
+// Fallback to mock data if backend fails (free mode)
+try {
+  const response = await fetch('/generate', { ... });  // your original fetch
+  if (!response.ok) throw new Error('Backend unavailable');
+  // ... original code
+} catch (err) {
+  console.log('Using mock data for demo');
+  const mockData = await fetch('mock-api.json').then(r => r.json());
+  // display mockData.results like normal results
+  // copy your display code here, replace data.results with mockData.results
+}

@@ -6,3 +6,6 @@ REPLIT_WEBVIEW = "demo.html"           # Opens your landing page automatically
 
 [deployment]
 run = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+
+[nix]
+packages = ["zip"]
