@@ -110,21 +110,21 @@ export default function HamburgerMenuSidebar({ isOpen, onClose }: HamburgerMenuS
 
   return (
     <>
-      {!isOpen && (
-        <button
-          onClick={onClose}
-          className="fixed top-4 left-4 z-50 p-2 text-accent-gold hover:text-gold-trim transition-colors focus:outline-none focus:ring-2 focus:ring-accent-gold rounded-md bg-black/40 backdrop-blur-sm border border-accent-gold/30"
-          aria-label="Open menu"
-        >
-          <Menu className="h-6 w-6" />
-        </button>
-      )}
+      <button
+        onClick={onClose}
+        className={cn(
+          "fixed top-4 left-4 z-50 p-2 text-accent-gold hover:text-gold-trim transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-gold rounded-md bg-black/40 backdrop-blur-sm border border-accent-gold/30",
+          isOpen ? "opacity-0 pointer-events-none translate-x-[-20px]" : "opacity-100"
+        )}
+        aria-label="Open menu"
+      >
+        <Menu className="h-6 w-6" />
+      </button>
       <div
         className={cn(
-          "h-screen w-72 flex-shrink-0 transition-transform duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 w-72 z-40 transition-transform duration-300 ease-in-out",
           "bg-primary-black border-r border-accent-gold/30",
           "shadow-2xl shadow-accent-gold/10",
-          "sticky top-0",
           !isOpen && "-translate-x-full"
         )}
       >
@@ -194,6 +194,13 @@ export default function HamburgerMenuSidebar({ isOpen, onClose }: HamburgerMenuS
         </div>
       </div>
     </div>
+    {isOpen && (
+      <div 
+        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-30 transition-opacity duration-300"
+        onClick={onClose}
+      />
+    )}
+    </>
   );
 }
 import { Menu } from "lucide-react";

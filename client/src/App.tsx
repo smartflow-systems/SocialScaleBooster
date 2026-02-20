@@ -74,13 +74,7 @@ function AppLayout() {
     <>
       <SpaceBackground />
       <div className="flex min-h-screen text-white relative z-10">
-        <div
-          className="flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden"
-          style={{ width: isMenuOpen ? "288px" : "0px" }}
-        >
-          <HamburgerMenuSidebar isOpen={isMenuOpen} onClose={closeMenu} />
-        </div>
-
+        <HamburgerMenuSidebar isOpen={isMenuOpen} onClose={isMenuOpen ? closeMenu : toggleMenu} />
         <div className="flex-1 min-w-0 relative">
           <Toaster />
           <AppRoutes />
