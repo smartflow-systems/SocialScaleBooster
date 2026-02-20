@@ -236,3 +236,4 @@ postcss.config.js.bak.*
 attached_assets/image_*.png
 
 shared/schema.ts.backup
+*.bak*
