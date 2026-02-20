@@ -1,0 +1,15 @@
+run = "uvicorn main:app --host 0.0.0.0 --port $PORT --reload"
+
+[env]
+PYTHONUNBUFFERED = "1"
+REPLIT_WEBVIEW = "demo.html"           # Tells Replit to show this file in Webview on Run
+
+[deployment]
+run = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+
+[nix]
+channel = "stable-25_05"
+packages = ["python311", "uvicorn"]
+
+[hidden]
+# No nodejs needed — we are pure Python

@@ -109,14 +109,25 @@ export default function HamburgerMenuSidebar({ isOpen, onClose }: HamburgerMenuS
   };
 
   return (
-    <div
-      className={cn(
-        "h-screen w-72 flex-shrink-0",
-        "bg-primary-black border-r border-accent-gold/30",
-        "shadow-2xl shadow-accent-gold/10",
-        "sticky top-0"
+    <>
+      {!isOpen && (
+        <button
+          onClick={onClose}
+          className="fixed top-4 left-4 z-50 p-2 text-accent-gold hover:text-gold-trim transition-colors focus:outline-none focus:ring-2 focus:ring-accent-gold rounded-md bg-black/40 backdrop-blur-sm border border-accent-gold/30"
+          aria-label="Open menu"
+        >
+          <Menu className="h-6 w-6" />
+        </button>
       )}
-    >
+      <div
+        className={cn(
+          "h-screen w-72 flex-shrink-0 transition-transform duration-300 ease-in-out",
+          "bg-primary-black border-r border-accent-gold/30",
+          "shadow-2xl shadow-accent-gold/10",
+          "sticky top-0",
+          !isOpen && "-translate-x-full"
+        )}
+      >
       <div className="flex items-center justify-between p-4 border-b border-accent-gold/20 bg-gradient-to-r from-rich-brown to-primary-black">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-br from-accent-gold to-gold-trim rounded-lg flex items-center justify-center shadow-lg shadow-accent-gold/30">
@@ -185,3 +196,4 @@ export default function HamburgerMenuSidebar({ isOpen, onClose }: HamburgerMenuS
     </div>
   );
 }
+import { Menu } from "lucide-react";

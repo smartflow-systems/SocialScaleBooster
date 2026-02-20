@@ -37,14 +37,16 @@ export default function SpaceBackground() {
     }
 
     function resize() {
-      canvas!.width = window.innerWidth;
-      canvas!.height = window.innerHeight;
+      if (!canvas) return;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
       initStars();
     }
 
     function initStars() {
-      const w = canvas!.width;
-      const h = canvas!.height;
+      if (!canvas) return;
+      const w = canvas.width;
+      const h = canvas.height;
       const starCount = Math.floor((w * h) / 4000);
       stars = [];
 
@@ -68,8 +70,9 @@ export default function SpaceBackground() {
     }
 
     function spawnShootingStar() {
-      const w = canvas!.width;
-      const h = canvas!.height;
+      if (!canvas) return;
+      const w = canvas.width;
+      const h = canvas.height;
       const angle = Math.random() * 0.8 + 0.1;
       const startSide = Math.random();
       let startX: number, startY: number;
@@ -98,11 +101,12 @@ export default function SpaceBackground() {
     let nextShootingStarAt = 400 + Math.random() * 600;
 
     function draw() {
-      const w = canvas!.width;
-      const h = canvas!.height;
+      if (!canvas || !ctx) return;
+      const w = canvas.width;
+      const h = canvas.height;
       time += 1;
 
-      ctx!.clearRect(0, 0, w, h);
+      ctx.clearRect(0, 0, w, h);
 
       for (const star of stars) {
         const twinkle =
@@ -111,22 +115,22 @@ export default function SpaceBackground() {
         const alpha = Math.max(0.04, star.baseAlpha * (0.4 + twinkle * 0.6) + noise);
         const size = star.size * (0.85 + twinkle * 0.15);
 
-        ctx!.beginPath();
-        ctx!.arc(star.x, star.y, size, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(${star.color},${alpha})`;
-        ctx!.fill();
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${star.color},${alpha})`;
+        ctx.fill();
 
         if (star.size > 1.2 && twinkle > 0.9) {
-          const glow = ctx!.createRadialGradient(
+          const glow = ctx.createRadialGradient(
             star.x, star.y, 0,
             star.x, star.y, size * 2.5
           );
           glow.addColorStop(0, `rgba(${star.color},${alpha * 0.2})`);
           glow.addColorStop(1, `rgba(${star.color},0)`);
-          ctx!.beginPath();
-          ctx!.arc(star.x, star.y, size * 2.5, 0, Math.PI * 2);
-          ctx!.fillStyle = glow;
-          ctx!.fill();
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, size * 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = glow;
+          ctx.fill();
         }
       }
 
@@ -158,26 +162,26 @@ export default function SpaceBackground() {
         const tailX = s.x - Math.cos(s.angle) * s.length;
         const tailY = s.y - Math.sin(s.angle) * s.length;
 
-        const gradient = ctx!.createLinearGradient(tailX, tailY, s.x, s.y);
+        const gradient = ctx.createLinearGradient(tailX, tailY, s.x, s.y);
         gradient.addColorStop(0, `rgba(255,255,255,0)`);
         gradient.addColorStop(0.7, `rgba(255,252,245,${s.opacity * 0.15})`);
         gradient.addColorStop(1, `rgba(255,255,255,${s.opacity * 0.5})`);
 
-        ctx!.beginPath();
-        ctx!.moveTo(tailX, tailY);
-        ctx!.lineTo(s.x, s.y);
-        ctx!.strokeStyle = gradient;
-        ctx!.lineWidth = s.thickness;
-        ctx!.lineCap = "round";
-        ctx!.stroke();
+        ctx.beginPath();
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(s.x, s.y);
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = s.thickness;
+        ctx.lineCap = "round";
+        ctx.stroke();
 
-        const headGlow = ctx!.createRadialGradient(s.x, s.y, 0, s.x, s.y, 2);
+        const headGlow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 2);
         headGlow.addColorStop(0, `rgba(255,255,255,${s.opacity * 0.6})`);
         headGlow.addColorStop(1, `rgba(255,255,255,0)`);
-        ctx!.beginPath();
-        ctx!.arc(s.x, s.y, 2, 0, Math.PI * 2);
-        ctx!.fillStyle = headGlow;
-        ctx!.fill();
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = headGlow;
+        ctx.fill();
       }
 
       animationId = requestAnimationFrame(draw);

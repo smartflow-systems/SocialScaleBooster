@@ -82,13 +82,6 @@ function AppLayout() {
         </div>
 
         <div className="flex-1 min-w-0 relative">
-          <button
-            onClick={toggleMenu}
-            className="sticky top-4 left-4 z-40 ml-4 mt-4 p-2 text-accent-gold hover:text-gold-trim transition-colors focus:outline-none focus:ring-2 focus:ring-accent-gold rounded-md bg-black/40 backdrop-blur-sm border border-accent-gold/30"
-            aria-label="Toggle menu"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
           <Toaster />
           <AppRoutes />
         </div>
