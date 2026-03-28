@@ -1,11 +1,46 @@
-run = "pip install --user -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port $PORT --reload"
+modules = ["nodejs-20"]
 
-[env]
-PYTHONUNBUFFERED = "1"
-REPLIT_WEBVIEW = "demo.html"           # Opens your landing page automatically
+[agent]
+expertMode = true
+
+run = "npm start"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm start"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
 
 [deployment]
-run = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+deploymentTarget = "autoscale"
+run = ["npm", "start"]
+
+[userenv]
+
+[userenv.production]
+NODE_ENV = "production"
 
 [nix]
-packages = ["zip"]
+packages = ["gh"]
