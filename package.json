@@ -73,7 +73,7 @@
     "ws": "^8.19.0"
   },
   "devDependencies": {
-    "@heroicons/react": "^2.0.18",
+    "@heroicons/react": "^2.2.0",
     "@replit/vite-plugin-cartographer": "^0.4.4",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.4",
     "@tailwindcss/typography": "^0.5.19",
