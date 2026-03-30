@@ -103,7 +103,7 @@
     "jsonwebtoken": "^9.0.2",
     "postcss": "^8.5.6",
     "prisma": "^5.22.0",
-    "react-router-dom": "^6.26.0",
+    "react-router-dom": "^6.30.3",
     "tailwindcss": "^3.4.19",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.21.0",
