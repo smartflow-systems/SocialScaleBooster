@@ -1,269 +1,330 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navigation from "@/components/ui/navigation";
-import { BarChart3, Store, Wand2, Play, Rocket } from "lucide-react";
+import LiveCaptionDemo from "@/components/LiveCaptionDemo";
 import { useLocation } from "wouter";
 
 export default function Landing() {
   const [, setLocation] = useLocation();
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const handleStartFree = () => {
-    setLocation("/dashboard");
-  };
+  const features = [
+    { title: "AI captions that sound like you", desc: "Not a marketing agency. Punchy, real, written for your trade." },
+    { title: "Smart hashtag sets", desc: "Niche-specific tags that get eyes on your posts, updated regularly." },
+    { title: "Auto posting schedules", desc: "Know exactly when your audience is online and ready to book." },
+    { title: "Built for barbers, salons & gyms", desc: "No bloated features you'll never use. Straight to the point." },
+    { title: "Powered by GPT-4o-mini", desc: "Fast, sharp AI that generates quality content in under 10 seconds." },
+    { title: "Works on your phone", desc: "Generate on the go, between clients — no laptop required." },
+  ];
+
+  const faqs = [
+    {
+      q: "Do I need to know anything about social media to use this?",
+      a: "No. If you can copy and paste text into Instagram, you're qualified. The AI does the thinking. You just post.",
+    },
+    {
+      q: "Is the content actually written for barbers, or is it generic AI?",
+      a: "It's niche-specific. Barber content sounds like barber content. Salon content sounds like salon content. Trained on what works in your industry — not a tech startup.",
+    },
+    {
+      q: "Can I cancel any time?",
+      a: "Yes. No contracts, no minimum term. Cancel from your dashboard whenever you like.",
+    },
+    {
+      q: "What's the difference between this and just using ChatGPT?",
+      a: "ChatGPT doesn't know your industry posting times, doesn't generate matched hashtag sets, and doesn't have a schedule built in. It's the difference between a Swiss Army knife and a proper barber's razor.",
+    },
+    {
+      q: "What's the Bundle deal?",
+      a: "The bundle gets you SocialScaleBooster and Barber Booker (our online booking system) for £49/mo instead of £58. Social content and bookings, sorted.",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-primary-black text-white">
       <Navigation />
-      
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-black to-dark-bg overflow-hidden">
-        {/* Background decoration */}
+
+      {/* Hero */}
+      <section className="relative min-h-screen flex items-center justify-center bg-primary-black overflow-hidden pt-16">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-accent-gold rounded-full filter blur-3xl"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-secondary-brown rounded-full filter blur-3xl"></div>
+          <div className="absolute top-20 left-20 w-64 h-64 bg-accent-gold rounded-full filter blur-3xl" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-secondary-brown rounded-full filter blur-3xl" />
         </div>
-        
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            <span className="text-accent-gold">SmartFlow AI:</span><br />
-            <span className="text-white">10x E-Com Sales</span><br />
-            <span className="text-accent-gold">with AI Bots</span>
+            <span className="text-white">Your Chair's Full.</span><br />
+            <span className="text-accent-gold">Your Instagram's Dead.</span>
           </h1>
-          
-          <p className="text-xl md:text-2xl text-neutral-gray mb-8 max-w-3xl mx-auto leading-relaxed">
-            Premium no-code platform for e-commerce automation. Boost revenue, engagement, and conversions across all social platforms with intelligent AI-powered bots.
+          <p className="text-xl md:text-2xl text-neutral-gray mb-8 max-w-2xl mx-auto leading-relaxed">
+            SocialScaleBooster writes your captions, picks your hashtags, and tells you exactly when to post — in seconds. Built for barbers, salons, and gyms. No faff.
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Button 
-              onClick={handleStartFree}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button
+              onClick={() => setLocation("/dashboard")}
               className="bg-accent-gold text-primary-black px-8 py-4 text-lg font-bold gold-glow gold-glow-hover hover:scale-105 transition-all"
               size="lg"
             >
-              <Rocket className="w-5 h-5 mr-2" />
-              Start Free
-            </Button>
-            <Button 
-              variant="outline" 
-              className="border-accent-gold text-accent-gold px-8 py-4 text-lg font-semibold hover:bg-accent-gold hover:text-primary-black transition-all"
-              size="lg"
-            >
-              <Play className="w-5 h-5 mr-2" />
-              Watch Demo
+              Start Generating Free
             </Button>
           </div>
-          
-          {/* Feature highlights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-colors">
-              <CardContent className="p-6">
-                <BarChart3 className="text-accent-gold w-12 h-12 mb-4 mx-auto" />
-                <h3 className="text-xl font-bold mb-2">Analytics & ROI</h3>
-                <p className="text-neutral-gray">Track engagement, sales, and revenue metrics in real-time</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-colors">
-              <CardContent className="p-6">
-                <Store className="text-accent-gold w-12 h-12 mb-4 mx-auto" />
-                <h3 className="text-xl font-bold mb-2">Bot Marketplace</h3>
-                <p className="text-neutral-gray">Access pre-built templates for every e-commerce niche</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-colors">
-              <CardContent className="p-6">
-                <Wand2 className="text-accent-gold w-12 h-12 mb-4 mx-auto" />
-                <h3 className="text-xl font-bold mb-2">No-Code Builder</h3>
-                <p className="text-neutral-gray">Drag-and-drop interface for creating powerful automation</p>
-              </CardContent>
-            </Card>
+          <p className="text-neutral-gray text-sm mt-4">No card required. Cancel any time.</p>
+        </div>
+      </section>
+
+      {/* Live Demo */}
+      <section className="py-20 bg-dark-bg">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              <span className="text-accent-gold">See it in action.</span> Pick your niche.
+            </h2>
+            <p className="text-neutral-gray text-lg">No signup. No card. Just see what it does.</p>
+          </div>
+          <LiveCaptionDemo />
+        </div>
+      </section>
+
+      {/* Problem */}
+      <section className="py-20 bg-primary-black">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              You're great with scissors.{" "}
+              <span className="text-accent-gold">Not so great with Instagram.</span>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "You don't have 45 minutes to write a caption.",
+                body: "Back-to-back clients, a shop to run, a life outside these four walls. Sitting down to craft the perfect post? It's not happening. So nothing goes up. And nobody new finds you.",
+              },
+              {
+                title: '"Just got a fresh cut" isn\'t a content strategy.',
+                body: "Staring at a blank caption box after a long day is brutal. You post the same thing every week, engagement dies, and you wonder why you bother.",
+              },
+              {
+                title: "The wrong hashtags are worse than no hashtags.",
+                body: "Posting with #barber and #hair and hoping for the best? You're invisible. The people who'd book you tomorrow can't find you.",
+              },
+            ].map((item, i) => (
+              <Card key={i} className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-colors">
+                <CardContent className="p-8">
+                  <h3 className="text-xl font-bold mb-4 text-white">{item.title}</h3>
+                  <p className="text-neutral-gray leading-relaxed">{item.body}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-gradient-to-br from-dark-bg to-card-bg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* How it works */}
+      <section className="py-20 bg-dark-bg">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="text-accent-gold">Powerful Features</span> for E-Commerce Success
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="text-accent-gold">Three steps.</span> Done before your next client.
             </h2>
-            <p className="text-xl text-neutral-gray max-w-3xl mx-auto">
-              Everything you need to automate social media sales and scale your e-commerce business
-            </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-all hover:shadow-lg">
-              <CardContent className="p-8">
-                <BarChart3 className="text-accent-gold w-16 h-16 mb-6" />
-                <h3 className="text-2xl font-bold mb-4">Advanced Analytics</h3>
-                <p className="text-neutral-gray">Real-time revenue tracking, ROI calculations, engagement metrics, and platform performance analytics with Chart.js visualization.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-all hover:shadow-lg">
-              <CardContent className="p-8">
-                <Store className="text-accent-gold w-16 h-16 mb-6" />
-                <h3 className="text-2xl font-bold mb-4">Bot Marketplace</h3>
-                <p className="text-neutral-gray">Access premium templates for beauty, fashion, tech, and e-commerce with category filtering and instant deployment.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-all hover:shadow-lg">
-              <CardContent className="p-8">
-                <Wand2 className="text-accent-gold w-16 h-16 mb-6" />
-                <h3 className="text-2xl font-bold mb-4">Smart Scheduling</h3>
-                <p className="text-neutral-gray">Advanced cron UI with if-then automation rules, peak hours optimization, and engagement threshold posting.</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-primary-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="text-accent-gold">Simple Pricing</span> for Every Business
-            </h2>
-            <p className="text-xl text-neutral-gray max-w-3xl mx-auto">
-              Start free, upgrade when you're ready to scale
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-all">
-              <CardContent className="p-8 text-center">
-                <h3 className="text-2xl font-bold mb-4">Free Plan</h3>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-accent-gold">£0</span>
-                  <span className="text-neutral-gray">/month</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { step: "1", title: "Pick Your Niche", body: "Tell us you're a barber, salon, or gym. The AI knows what works for your world — not some generic playbook." },
+              { step: "2", title: "Hit Generate", body: "One click. A sharp caption, the right hashtags, and the best time to post for maximum reach." },
+              { step: "3", title: "Copy, Post, Get On With It", body: "Grab your content, drop it into Instagram, and get back to what pays — cutting hair, not writing copy." },
+            ].map((item) => (
+              <div key={item.step} className="text-center">
+                <div className="w-16 h-16 bg-accent-gold rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-2xl font-bold text-primary-black">{item.step}</span>
                 </div>
-                <ul className="text-left space-y-3 mb-8">
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-accent-gold rounded-full mr-3"></span>
-                    Up to 3 bots
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-accent-gold rounded-full mr-3"></span>
-                    Basic analytics
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-accent-gold rounded-full mr-3"></span>
-                    Free templates
-                  </li>
-                </ul>
-                <Button 
-                  onClick={() => setLocation("/dashboard")}
-                  className="w-full bg-secondary-brown text-accent-gold border border-accent-gold hover:bg-accent-gold hover:text-primary-black"
-                >
-                  Get Started Free
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-to-br from-rich-brown to-accent-gold border-2 border-accent-gold hover:shadow-xl transition-all">
-              <CardContent className="p-8 text-center">
-                <h3 className="text-2xl font-bold mb-4 text-primary-black">Pro Plan</h3>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-primary-black">£49</span>
-                  <span className="text-primary-black/80">/month</span>
-                </div>
-                <ul className="text-left space-y-3 mb-8 text-primary-black">
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-primary-black rounded-full mr-3"></span>
-                    Unlimited bots
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-primary-black rounded-full mr-3"></span>
-                    Advanced analytics
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-primary-black rounded-full mr-3"></span>
-                    Premium templates
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-primary-black rounded-full mr-3"></span>
-                    Priority support
-                  </li>
-                </ul>
-                <Button 
-                  onClick={() => setLocation("/subscribe")}
-                  className="w-full bg-primary-black text-accent-gold hover:bg-primary-black/90"
-                >
-                  Upgrade to Pro
-                </Button>
-              </CardContent>
-            </Card>
+                <h3 className="text-xl font-bold mb-3 text-white">{item.title}</h3>
+                <p className="text-neutral-gray leading-relaxed">{item.body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Marketplace Section */}
-      <section id="marketplace" className="py-20 bg-gradient-to-br from-card-bg to-dark-bg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Features */}
+      <section className="py-20 bg-primary-black">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="text-accent-gold">Bot Marketplace</span> Templates
-            </h2>
-            <p className="text-xl text-neutral-gray max-w-3xl mx-auto">
-              Ready-to-use templates for every e-commerce niche and social platform
-            </p>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-accent-gold">What you get</h2>
           </div>
-          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((f, i) => (
+              <Card key={i} className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-all">
+                <CardContent className="p-6 flex gap-4">
+                  <span className="w-2 h-2 bg-accent-gold rounded-full mt-2 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-bold text-white mb-1">{f.title}</h3>
+                    <p className="text-neutral-gray text-sm leading-relaxed">{f.desc}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="py-20 bg-dark-bg">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+              <span className="text-accent-gold">Straight-up pricing.</span> No surprises.
+            </h2>
+            <p className="text-neutral-gray text-lg">No contracts. Cancel any time.</p>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-all">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-accent-gold rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-primary-black">E</span>
-                </div>
-                <h3 className="text-lg font-bold mb-2">E-Commerce</h3>
-                <p className="text-sm text-neutral-gray">Product showcases, flash sales, testimonials</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-all">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-accent-gold rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-primary-black">B</span>
-                </div>
-                <h3 className="text-lg font-bold mb-2">Beauty</h3>
-                <p className="text-sm text-neutral-gray">Makeup tutorials, skincare routines, reviews</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-all">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-accent-gold rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-primary-black">F</span>
-                </div>
-                <h3 className="text-lg font-bold mb-2">Fashion</h3>
-                <p className="text-sm text-neutral-gray">Style guides, outfit inspiration, trends</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-all">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-accent-gold rounded-lg mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-primary-black">T</span>
-                </div>
-                <h3 className="text-lg font-bold mb-2">Technology</h3>
-                <p className="text-sm text-neutral-gray">Product reviews, comparisons, demos</p>
-              </CardContent>
-            </Card>
+            {[
+              {
+                name: "Starter",
+                price: "£29",
+                period: "/mo",
+                sub: "100 generations/month",
+                features: ["Captions, hashtags, posting schedule", "Perfect for getting started"],
+                cta: "Get Started",
+                highlight: false,
+              },
+              {
+                name: "Pro",
+                price: "£97",
+                period: "/mo",
+                sub: "1,000 generations/month",
+                features: ["Everything in Starter", "Volume for busy shops posting daily"],
+                cta: "Start Pro",
+                highlight: true,
+              },
+              {
+                name: "Agency",
+                price: "£297",
+                period: "/mo",
+                sub: "Unlimited generations",
+                features: ["Unlimited generations", "White label — sell as your own"],
+                cta: "Go Agency",
+                highlight: false,
+              },
+              {
+                name: "Bundle",
+                price: "£49",
+                period: "/mo",
+                sub: "SocialScaleBooster + Barber Booker",
+                features: ["100 generations/month", "Full online booking system"],
+                cta: "Get the Bundle",
+                highlight: false,
+              },
+            ].map((tier) => (
+              <Card
+                key={tier.name}
+                className={
+                  tier.highlight
+                    ? "border-2 border-accent-gold bg-card-bg transition-all"
+                    : "bg-card-bg border-secondary-brown hover:border-accent-gold transition-all"
+                }
+              >
+                <CardContent className="p-6 text-center flex flex-col h-full">
+                  {tier.highlight && (
+                    <span className="text-xs font-bold text-primary-black bg-accent-gold px-3 py-1 rounded-full mb-4 inline-block">
+                      Most Popular
+                    </span>
+                  )}
+                  <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
+                  <div className="mb-2">
+                    <span className="text-4xl font-bold text-accent-gold">{tier.price}</span>
+                    <span className="text-neutral-gray">{tier.period}</span>
+                  </div>
+                  <p className="text-neutral-gray text-sm mb-4">{tier.sub}</p>
+                  <ul className="text-left space-y-2 mb-6 flex-1">
+                    {tier.features.map((f, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-neutral-gray">
+                        <span className="w-1.5 h-1.5 bg-accent-gold rounded-full mt-1.5 flex-shrink-0" />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    onClick={() => setLocation("/subscribe")}
+                    className={
+                      tier.highlight
+                        ? "w-full bg-accent-gold text-primary-black font-bold hover:scale-105 transition-all"
+                        : "w-full border border-accent-gold text-accent-gold bg-transparent hover:bg-accent-gold hover:text-primary-black transition-all"
+                    }
+                  >
+                    {tier.cta}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          
-          <div className="text-center mt-12">
-            <Button 
-              onClick={() => setLocation("/dashboard")}
-              className="bg-accent-gold text-primary-black font-bold px-8 py-4 text-lg hover:shadow-lg transition-all"
-            >
-              Explore All Templates
-            </Button>
+        </div>
+      </section>
+
+      {/* Testimonial */}
+      <section className="py-20 bg-primary-black">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-3xl font-bold mb-12 text-accent-gold">Don't take our word for it</h2>
+          <Card className="bg-card-bg border-secondary-brown">
+            <CardContent className="p-8 md:p-12">
+              <p className="text-lg md:text-xl text-white leading-relaxed mb-6 italic">
+                "I've been barbering for 11 years and never once bothered with Instagram properly. My mate kept telling me I was leaving money on the table. He was right. I started using SocialScaleBooster in January, spent about two minutes on it between clients, and had three new bookings that week from people who found me through my posts. Can't argue with that."
+              </p>
+              <p className="text-accent-gold font-bold">Danny R.</p>
+              <p className="text-neutral-gray text-sm">Barber Shop Owner, Manchester</p>
+              <p className="text-accent-gold mt-2">⭐⭐⭐⭐⭐</p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="py-20 bg-dark-bg">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <h2 className="text-4xl font-bold text-center mb-12">
+            <span className="text-accent-gold">Got questions?</span> Here's the short version.
+          </h2>
+          <div className="space-y-3">
+            {faqs.map((faq, i) => (
+              <Card key={i} className="bg-card-bg border-secondary-brown">
+                <button
+                  className="w-full text-left p-6 flex justify-between items-start gap-4"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                >
+                  <span className="font-semibold text-white">{faq.q}</span>
+                  <span className="text-accent-gold text-xl flex-shrink-0">{openFaq === i ? "−" : "+"}</span>
+                </button>
+                {openFaq === i && (
+                  <div className="px-6 pb-6 text-neutral-gray leading-relaxed">{faq.a}</div>
+                )}
+              </Card>
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-20 bg-primary-black">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-accent-gold">
+            Stop leaving bookings on the table.
+          </h2>
+          <p className="text-xl text-neutral-gray mb-8 leading-relaxed">
+            Every week you don't post, someone else in your area does. They get the follow. They get the booking. They get the client you should have had.
+          </p>
+          <Button
+            onClick={() => setLocation("/dashboard")}
+            className="bg-accent-gold text-primary-black px-10 py-5 text-xl font-bold gold-glow gold-glow-hover hover:scale-105 transition-all"
+            size="lg"
+          >
+            Get Started Today — From £29/mo
+          </Button>
+          <p className="text-neutral-gray text-sm mt-4">
+            Got questions?{" "}
+            <a href="mailto:gareth@smartflowsystems.co.uk" className="text-accent-gold underline">
+              Gareth answers everything
+            </a>
+          </p>
         </div>
       </section>
     </div>
