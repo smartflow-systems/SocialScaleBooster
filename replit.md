@@ -8,16 +8,23 @@ SmartFlow AI is a premium no-code AI platform designed to automate e-commerce so
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Updates (January 2026)
+
+✓ **Multi-Client Management System**: New feature allowing users to manage multiple clients from one account. Each client gets their own workspace with bots, revenue tracking, and analytics. Perfect for agencies and service providers.
+✓ **Client Management Page**: Dedicated page at /clients to view all clients, add new ones, track monthly fees, bot counts, and total revenue per client.
+✓ **Client-Linked Bots**: Bots can now be assigned to specific clients for organized management and revenue tracking.
+✓ **Revenue Per Client**: Track how much each client is generating through their bots.
+
 ## Recent Updates (January 2025)
 
 ✓ **Brand Rebrand to SmartFlow AI**: Updated all branding from SFS ScaleBots to SmartFlow AI with refined messaging
 ✓ **PostgreSQL Database Integration**: Migrated from memory storage to PostgreSQL with complete schema and seeded data
-✓ **Advanced Analytics Dashboard**: Comprehensive Chart.js integration with revenue tracking ($4,550.50), ROI metrics (340%), engagement rates, and platform performance analytics
+✓ **Advanced Analytics Dashboard**: Comprehensive Chart.js integration with revenue tracking (£4,550.50), ROI metrics (340%), engagement rates, and platform performance analytics
 ✓ **Enhanced Marketplace**: Premium template system with category filtering, search, and gold "Apply Template" buttons with premium locks for Pro users
 ✓ **Smart Scheduling System**: Advanced cron UI with if-then automation rules, peak hours optimization, and engagement threshold posting
 ✓ **Bot Personality Designer**: Comprehensive personality sliders for tone, formality, enthusiasm, creativity with real-time preview and personality presets
 ✓ **Platform Integration Wizard**: Multi-step integration setup for Instagram, TikTok, Facebook, Twitter, YouTube with secure API key management
-✓ **Premium Monetization**: Freemium model with 3-bot limit for free users, $49/mo Pro plan upgrade flow, premium template locks
+✓ **Premium Monetization**: Freemium model with 3-bot limit for free users, £49/mo Pro plan upgrade flow, premium template locks
 ✓ **Server-Side Rendered Landing Page**: Implemented Express SSR route for crawlable landing page with static HTML content, proper meta tags, and SEO optimization
 ✓ **Analytics Dashboard**: Added Chart.js integration with real-time e-commerce metrics, engagement tracking, ROI calculations, and platform performance analytics  
 ✓ **Enhanced Marketplace**: Created comprehensive bot template marketplace with category filtering, search functionality, and premium template system
@@ -25,7 +32,7 @@ Preferred communication style: Simple, everyday language.
 ✓ **E-commerce Bot Presets**: Added specialized bot creation templates for product showcases, flash sales, testimonials, and trend tracking
 ✓ **Premium Brown & Gold Theme**: Transformed color scheme from yellow to sophisticated brown with gold trimmings for luxury aesthetic
 ✓ **Premium Theme Implementation**: Applied consistent dark brown base with gold accents and subtle gold glows throughout
-✓ **Complete Stripe Payment Integration**: Implemented comprehensive payment processing with $49/month Pro plan subscriptions, one-time purchases, subscription management, premium template access controls, payment success notifications, and webhook support for subscription lifecycle events
+✓ **Complete Stripe Payment Integration**: Implemented comprehensive payment processing with £49/month Pro plan subscriptions, one-time purchases, subscription management, premium template access controls, payment success notifications, and webhook support for subscription lifecycle events
 
 ## System Architecture
 

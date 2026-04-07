@@ -11,6 +11,15 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        /* SFS brand aliases — resolve the classes used in dashboard.tsx */
+        "dark-bg": "#0D0D0D",
+        "card-bg": "hsl(25, 8%, 10%)",
+        "secondary-brown": "hsl(25, 8%, 16%)",
+        "accent-gold": "#FFD700",
+        "rich-brown": "#3B2F2F",
+        "gold-trim": "#E6C200",
+        "primary-black": "#0D0D0D",
+        "neutral-gray": "hsl(0, 0%, 55%)",
         background: "var(--background)",
         foreground: "var(--foreground)",
         card: {

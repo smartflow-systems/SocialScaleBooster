@@ -1,0 +1,170 @@
+Skip to content
+
+Files
+Commands
+.config
+.cursor
+.git
+.github
+workflows
+ci.yml
+ci.yml.bak.20251023T193509Z
+ci.yml.bak.20251023T200553Z
+compliance-check.yml
+coverage.yml
+pip-audit.yml
+sfs-ci-deploy.yml
+sfs-deploy.yml
+sfs-security-scan.yml
+dependabot.yml
+.sfs-backups
+assets
+attached_assets
+client
+css
+dist
+docs
+SFS_DESIGN_QUICK_REFERENCE.md
+SFS_DESIGN_SYSTEM_RULES.md
+SFS_FIGMA_MCP_INTEGRATION.md
+SmartFlow-Agent-Master.md
+SmartFlow-Agent-Rules.md
+js
+migrations
+public
+scripts
+server
+shared
+src
+tests
+.codecov.yml
+.env
+.env.example
+.gitignore
+.gitignore.bak.20251023T172558Z
+.replit.bak.20260117T033445
+AGENTS.md
+components.json
+Dockerfile
+drizzle.config.ts
+index.html
+LICENSE
+MODERNIZATION-SUMMARY.md
+package.json.bak.1761457543
+package.json.bak.1761470349
+package.json.bak.1761470413
+postcss.config.cjs
+postcss.config.js.bak.20260117T052859
+postcss.config.js.bak.20260117T053055
+postcss.config.js.bak.20260117T053251
+QUICK-START.md
+README.md
+REPLIT-DEPLOYMENT.md
+replit.md
+replit.md.backup.20251207-162440
+SECURITY.md
+sfs-circuit-flow.js
+sfs-complete-theme.css
+sfs-currency-config.json
+sfs-hamburger-menu.js
+sfs-modernization-apply.sh
+sfs-modernization-rollback.sh
+site.config.json
+tailwind.config.ts
+tailwind.preset.js
+test.txt
+tsconfig.json
+vite.config.ts
+vite.config.ts.bak.20260117T031648
+vite.config.ts.bak.20260117T032051
+vitest.config.ts
+Packager files
+.upm
+node_modules
+package-lock.json
+package.json
+Config files
+.replit
+replit.nix
+Preview your app here
+The app is running, but there's no webpage to preview right now.
+PORT=5000 NODE_ENV=development npm run dev
+5m • 5 minutes ago
+/home/runner/workspace/server/storage.ts:138:11: ERROR: The symbol "c
+lient" has already been declared
+/home/runner/workspace/server/storage.ts:563:10: ERROR: The symbol "c
+lientBots" has already been declared
+/home/runner/workspace/server/storage.ts:599:10: ERROR: Expected ":" 
+but found "bot"
+    at failureErrorWithLog (/home/runner/workspace/node_modules/tsx/n
+ode_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/tsx/node_modules/esbuild/l
+ib/main.js:736:50
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modu
+les/tsx/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/tsx/
+node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/tsx
+/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:5
+12:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+ 
+Node.js v20.20.0
+ 
+npm run dev
+5m • 5 minutes ago
+/home/runner/workspace/server/storage.ts:138:11: ERROR: The symbol "c
+lient" has already been declared
+/home/runner/workspace/server/storage.ts:563:10: ERROR: The symbol "c
+lientBots" has already been declared
+/home/runner/workspace/server/storage.ts:599:10: ERROR: Expected ":" 
+but found "bot"
+    at failureErrorWithLog (/home/runner/workspace/node_modules/tsx/n
+ode_modules/esbuild/lib/main.js:1467:15)
+    at /home/runner/workspace/node_modules/tsx/node_modules/esbuild/l
+ib/main.js:736:50
+    at responseCallbacks.<computed> (/home/runner/workspace/node_modu
+les/tsx/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/home/runner/workspace/node_modules/tsx/
+node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/home/runner/workspace/node_modules/tsx
+/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:5
+12:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+ 
+Node.js v20.20.0
+ 
+~/workspace$ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Unsupported state: you are in the middle of a rebase.Please finish the rebase manually.

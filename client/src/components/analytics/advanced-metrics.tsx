@@ -38,7 +38,7 @@ export default function AdvancedMetrics({ metrics }: AdvancedMetricsProps) {
       {
         label: 'Revenue (£)',
         data: [2850, 3200, 3950, 4100, 4300, 4550],
-        borderColor: '#D4AF37',
+        borderColor: '#FFD700',
         backgroundColor: 'rgba(212, 175, 55, 0.1)',
         borderWidth: 3,
         tension: 0.4,
@@ -52,7 +52,7 @@ export default function AdvancedMetrics({ metrics }: AdvancedMetricsProps) {
       {
         data: [35, 28, 22, 10, 5],
         backgroundColor: [
-          '#D4AF37',
+          '#FFD700',
           '#8B6914',
           '#A0522D',
           '#CD853F',
@@ -69,7 +69,7 @@ export default function AdvancedMetrics({ metrics }: AdvancedMetricsProps) {
       {
         label: 'Conversion Rate (%)',
         data: [4.2, 6.8, 3.1, 5.5, 2.9],
-        backgroundColor: '#D4AF37',
+        backgroundColor: '#FFD700',
         borderColor: '#8B6914',
         borderWidth: 1,
       }

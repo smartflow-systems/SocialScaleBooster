@@ -1,0 +1,11 @@
+run = "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port \$PORT --reload"
+
+[env]
+PYTHONUNBUFFERED = "1"
+REPLIT_WEBVIEW = "demo.html"           # Forces Webview to show your landing page
+
+[deployment]
+run = "uvicorn main:app --host 0.0.0.0 --port \$PORT"
+
+[nix]
+channel = "stable-25_05"
