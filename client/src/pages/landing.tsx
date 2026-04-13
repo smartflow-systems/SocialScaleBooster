@@ -226,8 +226,8 @@ const steps = [
 const heroStats = [
   { value: "150+", label: "Projects Delivered" },
   { value: "98%", label: "Client Satisfaction" },
-  { value: "£8M+", label: "Revenue Generated" },
-  { value: "40+", label: "Team Members" },
+  { value: "12+", label: "Industries Served" },
+  { value: "< 24 hrs", label: "Response Time" },
 ];
 
 const tickerItems = [
@@ -623,45 +623,29 @@ export default function Landing() {
                 </div>
               ) : (
                 <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    {[{ label: "First Name", placeholder: "John" }, { label: "Last Name", placeholder: "Smith" }].map(({ label, placeholder }) => (
-                      <div key={label}>
-                        <label className="block text-xs text-neutral-400 font-medium mb-1.5 uppercase tracking-widest">{label}</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder={placeholder}
-                          className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
-                        />
-                      </div>
-                    ))}
+                  <div>
+                    <label className="block text-xs text-neutral-400 font-medium mb-1.5 uppercase tracking-widest">Name</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Your full name"
+                      className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs text-neutral-400 font-medium mb-1.5 uppercase tracking-widest">Email</label>
                     <input
                       type="email"
                       required
-                      placeholder="john@company.com"
+                      placeholder="you@company.com"
                       className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-neutral-400 font-medium mb-1.5 uppercase tracking-widest">Service</label>
-                    <select
-                      required
-                      className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#FFD700]/50 transition-colors"
-                    >
-                      <option value="">Select a service...</option>
-                      {services.map((s) => (
-                        <option key={s.id} value={s.id}>{s.title}</option>
-                      ))}
-                    </select>
                   </div>
                   <div>
                     <label className="block text-xs text-neutral-400 font-medium mb-1.5 uppercase tracking-widest">Message</label>
                     <textarea
                       required
-                      rows={4}
+                      rows={5}
                       placeholder="Tell us about your project..."
                       className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors resize-none"
                     />
@@ -679,8 +663,12 @@ export default function Landing() {
       {/* ── FOOTER ────────────────────────────────────────────────── */}
       <footer className="border-t border-white/5 bg-[#0a0a0a] py-6 px-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
-          <p className="font-bold text-[#FFD700]">SmartFlow Systems</p>
-          <div className="flex flex-wrap items-center justify-center gap-5 text-neutral-500">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <p className="font-bold text-[#FFD700]">SmartFlow Systems</p>
+            <p className="text-neutral-600 text-xs hidden sm:block">·</p>
+            <p className="text-neutral-600 text-xs">© {new Date().getFullYear()} SmartFlow Systems Ltd. All rights reserved.</p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-5 text-neutral-500 text-xs">
             {[
               { label: "Services", id: "services" },
               { label: "Work", id: "work" },
@@ -693,7 +681,6 @@ export default function Landing() {
             ))}
             <a href="/subscribe" className="hover:text-[#FFD700] transition-colors">Pricing</a>
           </div>
-          <p className="text-neutral-600 text-xs">© {new Date().getFullYear()} SmartFlow Systems Ltd.</p>
         </div>
       </footer>
 
