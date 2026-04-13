@@ -343,20 +343,20 @@ const LiveCaptionDemo: React.FC = () => {
 
       {/* Selectors */}
       <div className="flex flex-col gap-5 mb-6">
-        <Selector<Niche>
+        <Selector
           label="Your Niche"
           value={niche}
-          onChange={setNiche}
+          onChange={setNiche as (v: string) => void}
           options={[
             { value: "barber", label: "💈 Barber" },
             { value: "salon", label: "✂️ Salon" },
             { value: "gym", label: "🏋️ Gym" },
           ]}
         />
-        <Selector<Voice>
+        <Selector
           label="Brand Voice"
           value={voice}
-          onChange={setVoice}
+          onChange={setVoice as (v: string) => void}
           options={[
             { value: "professional", label: "Professional" },
             { value: "casual", label: "Casual" },
