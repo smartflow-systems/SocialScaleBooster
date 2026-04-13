@@ -31,7 +31,7 @@ export class EcommerceAnalyticsService implements AnalyticsService {
       const data = await response.json();
       return data.totalRevenue || 0;
     } catch (error) {
-      console.error("Error fetching total revenue:", error);
+      console.warn("No data for total revenue:", error);
       return 0;
     }
   }
@@ -77,7 +77,7 @@ export class EcommerceAnalyticsService implements AnalyticsService {
         }
       ];
     } catch (error) {
-      console.error("Error fetching engagement metrics:", error);
+      console.warn("No data for engagement metrics:", error);
       return [];
     }
   }
@@ -96,7 +96,7 @@ export class EcommerceAnalyticsService implements AnalyticsService {
         growth: index > 0 ? ((revenues[index] - revenues[index - 1]) / revenues[index - 1]) * 100 : 0
       }));
     } catch (error) {
-      console.error("Error fetching revenue growth:", error);
+      console.warn("No data for revenue growth:", error);
       return [];
     }
   }
@@ -107,7 +107,7 @@ export class EcommerceAnalyticsService implements AnalyticsService {
       const data = await response.json();
       return data.roi || 340;
     } catch (error) {
-      console.error("Error fetching ROI:", error);
+      console.warn("No data for ROI:", error);
       return 0;
     }
   }
@@ -118,7 +118,7 @@ export class EcommerceAnalyticsService implements AnalyticsService {
       const data = await response.json();
       return data.totalPosts || 216;
     } catch (error) {
-      console.error("Error fetching total posts:", error);
+      console.warn("No data for total posts:", error);
       return 0;
     }
   }
@@ -129,7 +129,7 @@ export class EcommerceAnalyticsService implements AnalyticsService {
       const data = await response.json();
       return data.engagementRate || 4.7;
     } catch (error) {
-      console.error("Error fetching conversion rate:", error);
+      console.warn("No data for conversion rate:", error);
       return 0;
     }
   }
