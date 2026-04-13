@@ -6,18 +6,19 @@ import { useLocation } from "wouter";
 import {
   Monitor, Bot, TrendingUp, ArrowRight, X, Check,
   Clock, Users, Star, Zap, Globe, BarChart3,
-  Mail, Phone, MapPin, ChevronRight, Code, Cpu, Megaphone,
+  Mail, Phone, MapPin, ChevronRight, Code, ExternalLink,
 } from "lucide-react";
 
-/* ─── SERVICE DATA ─────────────────────────────────────────────── */
+/* ─── SERVICES ──────────────────────────────────────────────────── */
 const services = [
   {
     id: "web-dev",
     icon: Monitor,
     title: "App & Website Development",
     tagline: "Pixel-perfect digital products built to convert.",
-    summary: "From MVPs to enterprise platforms — we design and develop fast, scalable web and mobile applications.",
+    summary: "From MVPs to enterprise platforms — fast, scalable apps and websites your users love.",
     featured: true,
+    bullets: ["Custom web & mobile app development", "UI/UX design & prototyping", "Performance optimisation & SEO"],
     whatsIncluded: [
       "Custom web & mobile app development",
       "UI/UX design & prototyping",
@@ -40,8 +41,9 @@ const services = [
     icon: Bot,
     title: "Business AI Automation",
     tagline: "Replace hours of manual work with intelligent systems.",
-    summary: "We build AI-powered workflows that handle repetitive tasks, generate insights, and scale your operations.",
+    summary: "AI workflows that handle repetitive tasks, generate insights, and scale your operations without extra headcount.",
     featured: false,
+    bullets: ["Custom AI workflow & pipeline design", "CRM & tool integrations", "AI chatbots & virtual assistants"],
     whatsIncluded: [
       "Custom AI workflow design",
       "CRM & tool integrations",
@@ -64,8 +66,9 @@ const services = [
     icon: TrendingUp,
     title: "Digital Marketing Services",
     tagline: "Data-driven campaigns that generate real revenue.",
-    summary: "SEO, paid ads, social media, and content strategy — all under one roof and aligned to your growth goals.",
+    summary: "SEO, paid ads, social, and content strategy — aligned to your growth goals and tracked to the pound.",
     featured: false,
+    bullets: ["SEO strategy & technical audit", "Google & Meta paid advertising", "Social media management"],
     whatsIncluded: [
       "SEO strategy & technical audit",
       "Google & Meta paid advertising",
@@ -88,8 +91,9 @@ const services = [
     icon: Globe,
     title: "E-Commerce Solutions",
     tagline: "Stores that sell while you sleep.",
-    summary: "Shopify, WooCommerce, or custom — we build e-commerce experiences optimised for conversions.",
+    summary: "Shopify, WooCommerce, or custom — conversion-focused e-commerce experiences from day one.",
     featured: false,
+    bullets: ["Store design & development", "Payment & fulfilment integration", "Conversion rate optimisation"],
     whatsIncluded: [
       "Store design & development",
       "Payment gateway setup",
@@ -114,6 +118,7 @@ const services = [
     tagline: "Turn your data into decisions.",
     summary: "Custom dashboards, BI integrations, and predictive models that deliver actionable business intelligence.",
     featured: false,
+    bullets: ["BI dashboard design & build", "Data pipeline & source integration", "Predictive modelling"],
     whatsIncluded: [
       "BI dashboard design & build",
       "Data pipeline setup",
@@ -138,6 +143,7 @@ const services = [
     tagline: "Look like the business you want to become.",
     summary: "Brand identity, positioning, and go-to-market strategy that makes you memorable and market-ready.",
     featured: false,
+    bullets: ["Brand identity design & guidelines", "Messaging & positioning framework", "Go-to-market strategy"],
     whatsIncluded: [
       "Brand identity design (logo, colours, type)",
       "Brand guidelines document",
@@ -159,12 +165,54 @@ const services = [
 
 /* ─── PORTFOLIO ──────────────────────────────────────────────────── */
 const portfolio = [
-  { title: "NexaTrade Platform", category: "App Development", result: "3× faster order processing", desc: "End-to-end trading platform with real-time data feeds, custom dashboards, and a companion mobile app." },
-  { title: "AutoFlow CRM", category: "AI Automation", result: "80% less manual data entry", desc: "AI-driven CRM automation syncing leads, sending follow-ups, and updating records with zero human input." },
-  { title: "VerdantShop", category: "E-Commerce", result: "£2.1M revenue in Year 1", desc: "Shopify Plus store with custom product configurator, subscription model, and automated fulfilment." },
-  { title: "PulseHealth App", category: "App Development", result: "50K users in 6 months", desc: "Healthcare platform connecting patients and clinicians with AI triage, booking, and video consultations." },
-  { title: "Crestline Finance", category: "Digital Marketing", result: "4.2× ROAS on paid campaigns", desc: "Full-funnel paid media strategy across Google and Meta with conversion-optimised landing pages." },
-  { title: "OrbitSaaS Dashboard", category: "Data & Analytics", result: "Decision time from days to minutes", desc: "Real-time analytics integrating 12 data sources with predictive churn modelling built in." },
+  {
+    title: "NexaTrade Platform",
+    category: "App Development",
+    result: "3× faster order processing",
+    desc: "End-to-end trading platform with real-time data feeds, custom dashboards, and a companion mobile app.",
+    tags: ["React", "Node.js", "WebSockets", "AWS"],
+    dark: true,
+  },
+  {
+    title: "AutoFlow CRM",
+    category: "AI Automation",
+    result: "80% less manual data entry",
+    desc: "AI-driven CRM automation syncing leads, sending follow-ups, and updating records with zero human input.",
+    tags: ["GPT-4", "Zapier", "HubSpot", "Python"],
+    dark: false,
+  },
+  {
+    title: "VerdantShop",
+    category: "E-Commerce",
+    result: "£2.1M revenue in Year 1",
+    desc: "Shopify Plus store with custom product configurator, subscription model, and automated fulfilment.",
+    tags: ["Shopify Plus", "React", "Klaviyo", "Stripe"],
+    dark: true,
+  },
+  {
+    title: "PulseHealth App",
+    category: "App Development",
+    result: "50K users in 6 months",
+    desc: "Healthcare platform connecting patients and clinicians with AI triage, booking, and video consultations.",
+    tags: ["React Native", "GraphQL", "Twilio", "Firebase"],
+    dark: false,
+  },
+  {
+    title: "Crestline Finance",
+    category: "Digital Marketing",
+    result: "4.2× ROAS on paid campaigns",
+    desc: "Full-funnel paid media strategy across Google and Meta with conversion-optimised landing pages.",
+    tags: ["Google Ads", "Meta", "GA4", "Unbounce"],
+    dark: true,
+  },
+  {
+    title: "OrbitSaaS Dashboard",
+    category: "Data & Analytics",
+    result: "Decisions from days to minutes",
+    desc: "Real-time analytics integrating 12 data sources with predictive churn modelling built in.",
+    tags: ["Tableau", "BigQuery", "dbt", "Python"],
+    dark: false,
+  },
 ];
 
 /* ─── PROCESS ────────────────────────────────────────────────────── */
@@ -175,11 +223,11 @@ const steps = [
   { n: "04", title: "Launch & Support", desc: "Go live with confidence — we stay by your side post-launch." },
 ];
 
-const stats = [
+const heroStats = [
   { value: "150+", label: "Projects Delivered" },
   { value: "98%", label: "Client Satisfaction" },
   { value: "£8M+", label: "Revenue Generated" },
-  { value: "5 yrs", label: "In Business" },
+  { value: "40+", label: "Team Members" },
 ];
 
 const tickerItems = [
@@ -188,10 +236,16 @@ const tickerItems = [
   "Mobile Apps", "CRM Automation", "Content Strategy",
 ];
 
+const pillars = [
+  { icon: Monitor, label: "Build" },
+  { icon: Bot, label: "Automate" },
+  { icon: TrendingUp, label: "Grow" },
+  { icon: BarChart3, label: "Analyse" },
+];
+
 /* ─── SERVICE MODAL ──────────────────────────────────────────────── */
 function ServiceModal({ service, onClose }: { service: typeof services[0]; onClose: () => void }) {
   const [, setLocation] = useLocation();
-
   const handleGetStarted = () => {
     onClose();
     setTimeout(() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" }), 100);
@@ -261,7 +315,7 @@ function ServiceModal({ service, onClose }: { service: typeof services[0]; onClo
   );
 }
 
-/* ─── LANDING PAGE ───────────────────────────────────────────────── */
+/* ─── MAIN ───────────────────────────────────────────────────────── */
 export default function Landing() {
   const [activeModal, setActiveModal] = useState<typeof services[0] | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -281,19 +335,24 @@ export default function Landing() {
       {/* ── HERO ──────────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 py-24 overflow-hidden">
         <div className="absolute inset-0 sfs-dot-grid opacity-20 pointer-events-none" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FFD700]/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#FFD700]/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-5xl mx-auto">
           <Badge className="mb-6 bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/30 text-xs font-semibold px-4 py-1.5 tracking-widest uppercase">
             ✦ Now with AI Automation
           </Badge>
+
           <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.05] mb-6 tracking-tight">
             We Build Digital<br />
-            <span className="text-[#FFD700]">Businesses That Scale.</span>
+            <span style={{ background: "linear-gradient(90deg, #FFD700 0%, #E6C200 60%, #FFD700 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              Businesses That Scale.
+            </span>
           </h1>
+
           <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed">
             SmartFlow Systems is a full-service digital agency delivering world-class apps, AI automation, and marketing — all under one roof.
           </p>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <Button
               onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
@@ -310,9 +369,8 @@ export default function Landing() {
             </Button>
           </div>
 
-          {/* Stats row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-            {stats.map((s) => (
+            {heroStats.map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-3xl md:text-4xl font-extrabold text-[#FFD700]">{s.value}</p>
                 <p className="text-xs text-neutral-500 mt-1 uppercase tracking-widest">{s.label}</p>
@@ -356,12 +414,19 @@ export default function Landing() {
                 >
                   {svc.featured && (
                     <span className="inline-block mb-3 text-[10px] font-bold uppercase tracking-widest text-[#0D0D0D] bg-[#FFD700] px-2.5 py-1 rounded-full">
-                      Featured
+                      Most Popular
                     </span>
                   )}
                   <Icon className="w-8 h-8 text-[#FFD700] mb-4" />
                   <h3 className="text-lg font-bold mb-2">{svc.title}</h3>
-                  <p className="text-sm text-neutral-400 leading-relaxed mb-5">{svc.summary}</p>
+                  <p className="text-sm text-neutral-400 leading-relaxed mb-4">{svc.summary}</p>
+                  <ul className="space-y-1.5 mb-5">
+                    {svc.bullets.map((b) => (
+                      <li key={b} className="flex items-center gap-2 text-xs text-neutral-300">
+                        <span className="w-1 h-1 rounded-full bg-[#FFD700] flex-shrink-0" />{b}
+                      </li>
+                    ))}
+                  </ul>
                   <span className="inline-flex items-center text-[#FFD700] text-sm font-medium gap-1 group-hover:gap-2 transition-all">
                     Learn more <ChevronRight className="w-4 h-4" />
                   </span>
@@ -382,14 +447,34 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {portfolio.map((p, i) => (
-              <div key={i} className="group rounded-2xl border border-white/5 bg-[#111] p-7 hover:border-[#FFD700]/25 hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,215,0,0.08)]">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#FFD700] bg-[#FFD700]/10 border border-[#FFD700]/20 px-2.5 py-1 rounded-full">
+              <div
+                key={i}
+                className={`group rounded-2xl border p-7 hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,215,0,0.08)] flex flex-col ${
+                  p.dark
+                    ? "border-white/5 bg-[#111] hover:border-[#FFD700]/25"
+                    : "border-[#FFD700]/10 bg-[#161616] hover:border-[#FFD700]/30"
+                }`}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#FFD700] bg-[#FFD700]/10 border border-[#FFD700]/20 px-2.5 py-1 rounded-full self-start">
                   {p.category}
                 </span>
                 <h3 className="text-xl font-bold mt-4 mb-2">{p.title}</h3>
-                <p className="text-sm text-neutral-400 mb-4 leading-relaxed">{p.desc}</p>
-                <div className="flex items-center gap-2 text-sm font-semibold text-[#FFD700]">
-                  <Zap className="w-4 h-4" />{p.result}
+                <p className="text-sm text-neutral-400 mb-3 leading-relaxed flex-1">{p.desc}</p>
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {p.tags.map((tag) => (
+                    <span key={tag} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-neutral-400 border border-white/10">{tag}</span>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#FFD700]">
+                    <Zap className="w-4 h-4" />{p.result}
+                  </div>
+                  <button
+                    onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
+                    className="text-xs text-neutral-500 hover:text-[#FFD700] flex items-center gap-1 transition-colors"
+                  >
+                    View Case Study <ExternalLink className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -401,17 +486,28 @@ export default function Landing() {
       <section id="about" className="py-24 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-14 items-center">
+            {/* Left */}
             <div>
               <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-4">Who We Are</p>
               <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
                 A team obsessed with<br /><span className="text-[#FFD700]">your results.</span>
               </h2>
               <p className="text-neutral-400 leading-relaxed mb-5">
-                SmartFlow Systems was founded to give ambitious businesses access to the kind of digital expertise typically reserved for large corporations. We combine strategic thinking with technical excellence and creative execution.
+                SmartFlow Systems gives ambitious businesses access to the digital expertise typically reserved for large corporations — combining strategy, technology, and creativity under one roof.
               </p>
               <p className="text-neutral-400 leading-relaxed mb-8">
-                From solo founders to scale-ups, we've built products used by hundreds of thousands of people worldwide — and we're just getting started.
+                From solo founders to scale-ups, we've built products used by hundreds of thousands of people worldwide.
               </p>
+
+              {/* 4 pillar pills */}
+              <div className="flex flex-wrap gap-2 mb-8">
+                {pillars.map(({ icon: Icon, label }) => (
+                  <span key={label} className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#FFD700] bg-[#FFD700]/10 border border-[#FFD700]/20 px-3 py-1.5 rounded-full">
+                    <Icon className="w-3 h-3" />{label}
+                  </span>
+                ))}
+              </div>
+
               <Button
                 onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
                 className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-6"
@@ -420,26 +516,23 @@ export default function Landing() {
               </Button>
             </div>
 
-            {/* Floating stat cards */}
-            <div className="relative">
-              <div className="absolute inset-0 bg-[#FFD700]/5 rounded-3xl blur-2xl" />
-              <div className="relative grid grid-cols-2 gap-4">
-                {[
-                  { value: "150+", label: "Projects Delivered", Icon: Code },
-                  { value: "98%", label: "Client Satisfaction", Icon: Star },
-                  { value: "£8M+", label: "Revenue Generated", Icon: TrendingUp },
-                  { value: "12+", label: "Industries Served", Icon: Globe },
-                ].map(({ value, label, Icon }, i) => (
-                  <div
-                    key={label}
-                    className={`bg-[#111] border border-[#FFD700]/15 rounded-2xl p-5 hover:border-[#FFD700]/35 transition-all hover:shadow-[0_0_30px_rgba(255,215,0,0.1)] ${i % 2 === 1 ? "mt-6" : ""}`}
-                  >
-                    <Icon className="w-5 h-5 text-[#FFD700] mb-2" />
-                    <p className="text-3xl font-extrabold text-[#FFD700]">{value}</p>
-                    <p className="text-xs text-neutral-500 mt-1">{label}</p>
-                  </div>
-                ))}
-              </div>
+            {/* Right — 3 overlapping floating stat cards + glow */}
+            <div className="relative h-72 md:h-80">
+              <div className="absolute inset-8 bg-[#FFD700]/8 rounded-full blur-3xl pointer-events-none" />
+              {[
+                { value: "150+", label: "Projects Delivered", Icon: Code, pos: "top-0 left-0 w-48" },
+                { value: "98%", label: "Client Satisfaction", Icon: Star, pos: "top-8 right-0 w-48" },
+                { value: "£8M+", label: "Revenue Generated", Icon: TrendingUp, pos: "bottom-0 left-1/2 -translate-x-1/2 w-52" },
+              ].map(({ value, label, Icon, pos }) => (
+                <div
+                  key={label}
+                  className={`absolute ${pos} bg-[#111] border border-[#FFD700]/20 rounded-2xl p-5 shadow-[0_0_30px_rgba(255,215,0,0.08)] hover:shadow-[0_0_40px_rgba(255,215,0,0.15)] transition-all`}
+                >
+                  <Icon className="w-4 h-4 text-[#FFD700] mb-2" />
+                  <p className="text-2xl font-extrabold text-[#FFD700]">{value}</p>
+                  <p className="text-xs text-neutral-500 mt-0.5">{label}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -453,17 +546,35 @@ export default function Landing() {
             <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Our Process</h2>
             <p className="text-neutral-400 max-w-xl mx-auto">Simple, transparent, and built around you.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+
+          {/* Desktop: horizontal with → arrows */}
+          <div className="hidden lg:flex items-start gap-0">
             {steps.map((step, i) => (
-              <div key={step.n} className="relative group">
-                {i < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-8 left-[calc(100%+0.5rem)] w-full h-px border-t border-dashed border-[#FFD700]/20 z-10" />
-                )}
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-7 h-full hover:border-[#FFD700]/25 transition-all hover:shadow-[0_0_30px_rgba(255,215,0,0.08)]">
-                  <span className="text-4xl font-extrabold text-[#FFD700]/20 block mb-4">{step.n}</span>
-                  <h3 className="text-lg font-bold mb-2">{step.title}</h3>
-                  <p className="text-sm text-neutral-400 leading-relaxed">{step.desc}</p>
+              <div key={step.n} className="flex items-start flex-1">
+                <div className="bg-[#111] border border-white/5 rounded-2xl p-7 flex-1 hover:border-[#FFD700]/25 transition-all hover:shadow-[0_0_30px_rgba(255,215,0,0.08)]">
+                  <span className="text-3xl font-extrabold text-[#FFD700]/25 block mb-3">{step.n}</span>
+                  <h3 className="text-base font-bold mb-2">{step.title}</h3>
+                  <p className="text-xs text-neutral-400 leading-relaxed">{step.desc}</p>
                 </div>
+                {i < steps.length - 1 && (
+                  <div className="flex items-center px-2 pt-10 flex-shrink-0 text-[#FFD700]/40 text-2xl font-bold select-none">→</div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Mobile: vertical with ↓ arrows */}
+          <div className="lg:hidden flex flex-col items-center gap-0">
+            {steps.map((step, i) => (
+              <div key={step.n} className="flex flex-col items-center w-full max-w-md">
+                <div className="bg-[#111] border border-white/5 rounded-2xl p-7 w-full hover:border-[#FFD700]/25 transition-all">
+                  <span className="text-3xl font-extrabold text-[#FFD700]/25 block mb-3">{step.n}</span>
+                  <h3 className="text-base font-bold mb-2">{step.title}</h3>
+                  <p className="text-xs text-neutral-400 leading-relaxed">{step.desc}</p>
+                </div>
+                {i < steps.length - 1 && (
+                  <div className="py-1 text-[#FFD700]/40 text-2xl font-bold select-none">↓</div>
+                )}
               </div>
             ))}
           </div>
@@ -513,13 +624,13 @@ export default function Landing() {
               ) : (
                 <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    {["First Name", "Last Name"].map((label) => (
+                    {[{ label: "First Name", placeholder: "John" }, { label: "Last Name", placeholder: "Smith" }].map(({ label, placeholder }) => (
                       <div key={label}>
                         <label className="block text-xs text-neutral-400 font-medium mb-1.5 uppercase tracking-widest">{label}</label>
                         <input
                           type="text"
                           required
-                          placeholder={label === "First Name" ? "John" : "Smith"}
+                          placeholder={placeholder}
                           className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
                         />
                       </div>
@@ -566,54 +677,23 @@ export default function Landing() {
       </section>
 
       {/* ── FOOTER ────────────────────────────────────────────────── */}
-      <footer className="border-t border-white/5 bg-[#0a0a0a] py-12 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
-            <div className="md:col-span-2">
-              <p className="text-xl font-bold text-[#FFD700] mb-3">SmartFlow Systems</p>
-              <p className="text-sm text-neutral-500 leading-relaxed max-w-sm">
-                Full-service digital agency delivering apps, AI automation, and marketing that moves the needle.
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-4">Services</p>
-              <ul className="space-y-2 text-sm text-neutral-500">
-                {["App Development", "AI Automation", "Digital Marketing", "E-Commerce", "Branding"].map((s) => (
-                  <li key={s}>
-                    <button onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })} className="hover:text-[#FFD700] transition-colors">
-                      {s}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-4">Company</p>
-              <ul className="space-y-2 text-sm text-neutral-500">
-                {[
-                  { label: "Work", id: "work" },
-                  { label: "About", id: "about" },
-                  { label: "Contact", id: "contact" },
-                ].map(({ label, id }) => (
-                  <li key={label}>
-                    <button onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })} className="hover:text-[#FFD700] transition-colors">
-                      {label}
-                    </button>
-                  </li>
-                ))}
-                <li>
-                  <a href="/subscribe" className="hover:text-[#FFD700] transition-colors">Pricing</a>
-                </li>
-              </ul>
-            </div>
+      <footer className="border-t border-white/5 bg-[#0a0a0a] py-6 px-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
+          <p className="font-bold text-[#FFD700]">SmartFlow Systems</p>
+          <div className="flex flex-wrap items-center justify-center gap-5 text-neutral-500">
+            {[
+              { label: "Services", id: "services" },
+              { label: "Work", id: "work" },
+              { label: "About", id: "about" },
+              { label: "Contact", id: "contact" },
+            ].map(({ label, id }) => (
+              <button key={label} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })} className="hover:text-[#FFD700] transition-colors">
+                {label}
+              </button>
+            ))}
+            <a href="/subscribe" className="hover:text-[#FFD700] transition-colors">Pricing</a>
           </div>
-          <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-600">
-            <p>© {new Date().getFullYear()} SmartFlow Systems Ltd. All rights reserved.</p>
-            <div className="flex gap-5">
-              <span className="hover:text-neutral-400 cursor-pointer transition-colors">Privacy Policy</span>
-              <span className="hover:text-neutral-400 cursor-pointer transition-colors">Terms of Service</span>
-            </div>
-          </div>
+          <p className="text-neutral-600 text-xs">© {new Date().getFullYear()} SmartFlow Systems Ltd.</p>
         </div>
       </footer>
 
