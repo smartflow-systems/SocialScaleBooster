@@ -1,332 +1,645 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/ui/navigation";
-import LiveCaptionDemo from "@/components/LiveCaptionDemo";
 import { useLocation } from "wouter";
+import {
+  Monitor, Bot, TrendingUp, ArrowRight, X, Check,
+  Clock, Users, Star, Zap, Globe, BarChart3,
+  Mail, Phone, MapPin, ChevronRight, Code, Cpu, Megaphone,
+} from "lucide-react";
 
-export default function Landing() {
+/* ─── SERVICE DATA ─────────────────────────────────────────────── */
+const services = [
+  {
+    id: "web-dev",
+    icon: Monitor,
+    title: "App & Website Development",
+    tagline: "Pixel-perfect digital products built to convert.",
+    summary: "From MVPs to enterprise platforms — we design and develop fast, scalable web and mobile applications.",
+    featured: true,
+    whatsIncluded: [
+      "Custom web & mobile app development",
+      "UI/UX design & prototyping",
+      "API integration & third-party services",
+      "Performance optimisation & SEO",
+      "Ongoing maintenance & support",
+      "Hosting & infrastructure setup",
+    ],
+    howItWorks: [
+      { step: "Discovery", desc: "We map your goals, users, and technical requirements." },
+      { step: "Design", desc: "High-fidelity wireframes and brand-aligned visuals." },
+      { step: "Build", desc: "Agile sprints with regular client reviews and demos." },
+      { step: "Launch", desc: "QA, deployment, and handover with full documentation." },
+    ],
+    delivery: "4–12 weeks",
+    idealFor: "Startups, SMEs, and enterprises needing a reliable digital product.",
+  },
+  {
+    id: "ai-automation",
+    icon: Bot,
+    title: "Business AI Automation",
+    tagline: "Replace hours of manual work with intelligent systems.",
+    summary: "We build AI-powered workflows that handle repetitive tasks, generate insights, and scale your operations.",
+    featured: false,
+    whatsIncluded: [
+      "Custom AI workflow design",
+      "CRM & tool integrations",
+      "Document & data processing automation",
+      "AI chatbots & virtual assistants",
+      "Reporting & insight dashboards",
+      "Team training & handover",
+    ],
+    howItWorks: [
+      { step: "Audit", desc: "Identify your highest-impact automation opportunities." },
+      { step: "Design", desc: "Map out the AI workflow architecture end to end." },
+      { step: "Build", desc: "Deploy integrations, models, and automations." },
+      { step: "Optimise", desc: "Monitor, tune, and expand as your business grows." },
+    ],
+    delivery: "2–6 weeks",
+    idealFor: "Businesses spending hours on repeatable manual processes.",
+  },
+  {
+    id: "digital-marketing",
+    icon: TrendingUp,
+    title: "Digital Marketing Services",
+    tagline: "Data-driven campaigns that generate real revenue.",
+    summary: "SEO, paid ads, social media, and content strategy — all under one roof and aligned to your growth goals.",
+    featured: false,
+    whatsIncluded: [
+      "SEO strategy & technical audit",
+      "Google & Meta paid advertising",
+      "Social media management",
+      "Content creation & copywriting",
+      "Email marketing campaigns",
+      "Monthly analytics reporting",
+    ],
+    howItWorks: [
+      { step: "Research", desc: "Competitor analysis, keyword mapping, and audience profiling." },
+      { step: "Strategy", desc: "A tailored growth plan with measurable KPIs." },
+      { step: "Execute", desc: "Campaigns launch across agreed channels on schedule." },
+      { step: "Report", desc: "Monthly performance reviews with clear ROI tracking." },
+    ],
+    delivery: "Ongoing monthly retainer",
+    idealFor: "Brands looking to grow their audience and online revenue.",
+  },
+  {
+    id: "ecom",
+    icon: Globe,
+    title: "E-Commerce Solutions",
+    tagline: "Stores that sell while you sleep.",
+    summary: "Shopify, WooCommerce, or custom — we build e-commerce experiences optimised for conversions.",
+    featured: false,
+    whatsIncluded: [
+      "Store design & development",
+      "Payment gateway setup",
+      "Inventory & order management",
+      "Conversion rate optimisation",
+      "Product photography direction",
+      "Post-launch analytics setup",
+    ],
+    howItWorks: [
+      { step: "Platform", desc: "Choose the right stack for your catalogue and volume." },
+      { step: "Design", desc: "Brand-aligned storefront built to convert browsers to buyers." },
+      { step: "Integrate", desc: "Payments, shipping, and fulfilment wired up end to end." },
+      { step: "Grow", desc: "Ongoing CRO and marketing support post-launch." },
+    ],
+    delivery: "3–8 weeks",
+    idealFor: "Retailers and DTC brands moving or scaling online.",
+  },
+  {
+    id: "analytics",
+    icon: BarChart3,
+    title: "Data & Analytics",
+    tagline: "Turn your data into decisions.",
+    summary: "Custom dashboards, BI integrations, and predictive models that deliver actionable business intelligence.",
+    featured: false,
+    whatsIncluded: [
+      "BI dashboard design & build",
+      "Data pipeline setup",
+      "Google Analytics 4 implementation",
+      "Custom KPI tracking",
+      "Predictive modelling",
+      "Team training & documentation",
+    ],
+    howItWorks: [
+      { step: "Audit", desc: "Assess your current data infrastructure and gaps." },
+      { step: "Design", desc: "Architect the metrics, sources, and dashboard layout." },
+      { step: "Build", desc: "Implement pipelines, connectors, and visualisations." },
+      { step: "Train", desc: "Handover with documentation and team enablement." },
+    ],
+    delivery: "2–5 weeks",
+    idealFor: "Teams flying blind on performance and wanting clarity fast.",
+  },
+  {
+    id: "branding",
+    icon: Star,
+    title: "Branding & Strategy",
+    tagline: "Look like the business you want to become.",
+    summary: "Brand identity, positioning, and go-to-market strategy that makes you memorable and market-ready.",
+    featured: false,
+    whatsIncluded: [
+      "Brand identity design (logo, colours, type)",
+      "Brand guidelines document",
+      "Messaging & positioning framework",
+      "Competitor landscape analysis",
+      "Go-to-market strategy",
+      "Pitch deck & sales materials",
+    ],
+    howItWorks: [
+      { step: "Discover", desc: "Deep-dive workshops on your vision, values, and market." },
+      { step: "Define", desc: "Positioning strategy and brand architecture." },
+      { step: "Design", desc: "Visual identity that embodies who you are." },
+      { step: "Deliver", desc: "Full asset pack and brand guidelines." },
+    ],
+    delivery: "2–4 weeks",
+    idealFor: "New businesses and companies rebranding for growth.",
+  },
+];
+
+/* ─── PORTFOLIO ──────────────────────────────────────────────────── */
+const portfolio = [
+  { title: "NexaTrade Platform", category: "App Development", result: "3× faster order processing", desc: "End-to-end trading platform with real-time data feeds, custom dashboards, and a companion mobile app." },
+  { title: "AutoFlow CRM", category: "AI Automation", result: "80% less manual data entry", desc: "AI-driven CRM automation syncing leads, sending follow-ups, and updating records with zero human input." },
+  { title: "VerdantShop", category: "E-Commerce", result: "£2.1M revenue in Year 1", desc: "Shopify Plus store with custom product configurator, subscription model, and automated fulfilment." },
+  { title: "PulseHealth App", category: "App Development", result: "50K users in 6 months", desc: "Healthcare platform connecting patients and clinicians with AI triage, booking, and video consultations." },
+  { title: "Crestline Finance", category: "Digital Marketing", result: "4.2× ROAS on paid campaigns", desc: "Full-funnel paid media strategy across Google and Meta with conversion-optimised landing pages." },
+  { title: "OrbitSaaS Dashboard", category: "Data & Analytics", result: "Decision time from days to minutes", desc: "Real-time analytics integrating 12 data sources with predictive churn modelling built in." },
+];
+
+/* ─── PROCESS ────────────────────────────────────────────────────── */
+const steps = [
+  { n: "01", title: "Discovery Call", desc: "We learn your goals, challenges, and vision in a focused 30-minute session." },
+  { n: "02", title: "Strategy & Proposal", desc: "A clear scope, timeline, and investment — no fluff, no surprises." },
+  { n: "03", title: "Build & Iterate", desc: "Agile delivery with regular check-ins so you're always in the loop." },
+  { n: "04", title: "Launch & Support", desc: "Go live with confidence — we stay by your side post-launch." },
+];
+
+const stats = [
+  { value: "150+", label: "Projects Delivered" },
+  { value: "98%", label: "Client Satisfaction" },
+  { value: "£8M+", label: "Revenue Generated" },
+  { value: "5 yrs", label: "In Business" },
+];
+
+const tickerItems = [
+  "App Development", "AI Automation", "Digital Marketing", "E-Commerce",
+  "Brand Strategy", "Data & Analytics", "SEO", "Paid Ads", "Web Design",
+  "Mobile Apps", "CRM Automation", "Content Strategy",
+];
+
+/* ─── SERVICE MODAL ──────────────────────────────────────────────── */
+function ServiceModal({ service, onClose }: { service: typeof services[0]; onClose: () => void }) {
   const [, setLocation] = useLocation();
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const features = [
-    { title: "AI captions that sound like you", desc: "Not a marketing agency. Punchy, real, written for your trade." },
-    { title: "Smart hashtag sets", desc: "Niche-specific tags that get eyes on your posts, updated regularly." },
-    { title: "Auto posting schedules", desc: "Know exactly when your audience is online and ready to book." },
-    { title: "Built for barbers, salons & gyms", desc: "No bloated features you'll never use. Straight to the point." },
-    { title: "Powered by GPT-4o-mini", desc: "Fast, sharp AI that generates quality content in under 10 seconds." },
-    { title: "Works on your phone", desc: "Generate on the go, between clients — no laptop required." },
-  ];
-
-  const faqs = [
-    {
-      q: "Do I need to know anything about social media to use this?",
-      a: "No. If you can copy and paste text into Instagram, you're qualified. The AI does the thinking. You just post.",
-    },
-    {
-      q: "Is the content actually written for barbers, or is it generic AI?",
-      a: "It's niche-specific. Barber content sounds like barber content. Salon content sounds like salon content. Trained on what works in your industry — not a tech startup.",
-    },
-    {
-      q: "Can I cancel any time?",
-      a: "Yes. No contracts, no minimum term. Cancel from your dashboard whenever you like.",
-    },
-    {
-      q: "What's the difference between this and just using ChatGPT?",
-      a: "ChatGPT doesn't know your industry posting times, doesn't generate matched hashtag sets, and doesn't have a schedule built in. It's the difference between a Swiss Army knife and a proper barber's razor.",
-    },
-    {
-      q: "What's the Bundle deal?",
-      a: "The bundle gets you SocialScaleBooster and Barber Booker (our online booking system) for £49/mo instead of £58. Social content and bookings, sorted.",
-    },
-  ];
+  const handleGetStarted = () => {
+    onClose();
+    setTimeout(() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" }), 100);
+  };
 
   return (
-    <div className="min-h-screen bg-primary-black text-white">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full md:max-w-2xl bg-[#111] border border-[#FFD700]/20 rounded-t-3xl md:rounded-2xl overflow-y-auto max-h-[90vh] md:max-h-[85vh]">
+        <div className="sticky top-0 bg-[#111] border-b border-[#FFD700]/10 px-6 py-4 flex items-start justify-between">
+          <div>
+            <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-1">{service.tagline}</p>
+            <h2 className="text-xl font-bold text-white">{service.title}</h2>
+          </div>
+          <button onClick={onClose} className="text-neutral-400 hover:text-white ml-4 mt-1">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="px-6 py-5 space-y-6">
+          <p className="text-neutral-300 leading-relaxed">{service.summary}</p>
+          <div>
+            <h3 className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">What's Included</h3>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {service.whatsIncluded.map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm text-neutral-300">
+                  <Check className="w-4 h-4 text-[#FFD700] flex-shrink-0 mt-0.5" /> {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">How It Works</h3>
+            <ol className="space-y-3">
+              {service.howItWorks.map((s, i) => (
+                <li key={s.step} className="flex gap-3 text-sm">
+                  <span className="text-[#FFD700] font-bold w-5 flex-shrink-0">{i + 1}.</span>
+                  <span className="text-neutral-300"><span className="text-white font-medium">{s.step}:</span> {s.desc}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div className="flex items-center gap-2 text-neutral-400">
+              <Clock className="w-4 h-4 text-[#FFD700]" />
+              <span><span className="text-white font-medium">Delivery:</span> {service.delivery}</span>
+            </div>
+            <div className="flex items-center gap-2 text-neutral-400">
+              <Users className="w-4 h-4 text-[#FFD700]" />
+              <span><span className="text-white font-medium">Ideal for:</span> {service.idealFor}</span>
+            </div>
+          </div>
+        </div>
+        <div className="sticky bottom-0 bg-[#111] border-t border-[#FFD700]/10 px-6 py-4 flex gap-3">
+          <Button onClick={handleGetStarted} className="flex-1 bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold">
+            Get Started
+          </Button>
+          <Button
+            onClick={() => { onClose(); setLocation("/subscribe"); }}
+            variant="outline"
+            className="flex-1 border-[#FFD700]/40 text-[#FFD700] hover:bg-[#FFD700]/10"
+          >
+            View Pricing
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── LANDING PAGE ───────────────────────────────────────────────── */
+export default function Landing() {
+  const [activeModal, setActiveModal] = useState<typeof services[0] | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [formSent, setFormSent] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormSent(true);
+    formRef.current?.reset();
+    setTimeout(() => setFormSent(false), 4000);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0D0D0D] text-white overflow-x-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
       <Navigation />
 
-      {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center bg-primary-black overflow-hidden pt-16">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-accent-gold rounded-full filter blur-3xl" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-secondary-brown rounded-full filter blur-3xl" />
-        </div>
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-            <span className="text-white">Your Chair's Full.</span><br />
-            <span className="text-accent-gold">Your Instagram's Dead.</span>
+      {/* ── HERO ──────────────────────────────────────────────────── */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 py-24 overflow-hidden">
+        <div className="absolute inset-0 sfs-dot-grid opacity-20 pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FFD700]/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 max-w-5xl mx-auto">
+          <Badge className="mb-6 bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/30 text-xs font-semibold px-4 py-1.5 tracking-widest uppercase">
+            ✦ Now with AI Automation
+          </Badge>
+          <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.05] mb-6 tracking-tight">
+            We Build Digital<br />
+            <span className="text-[#FFD700]">Businesses That Scale.</span>
           </h1>
-          <p className="text-xl md:text-2xl text-neutral-gray mb-8 max-w-2xl mx-auto leading-relaxed">
-            SocialScaleBooster writes your captions, picks your hashtags, and tells you exactly when to post — in seconds. Built for barbers, salons, and gyms. No faff.
+          <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+            SmartFlow Systems is a full-service digital agency delivering world-class apps, AI automation, and marketing — all under one roof.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
             <Button
-              onClick={() => setLocation("/dashboard")}
-              className="bg-accent-gold text-primary-black px-8 py-4 text-lg font-bold gold-glow gold-glow-hover hover:scale-105 transition-all"
-              size="lg"
+              onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
+              className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-8 py-4 text-base h-auto"
             >
-              Start Generating Free
+              Start a Project <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+            <Button
+              onClick={() => document.getElementById("work")?.scrollIntoView({ behavior: "smooth" })}
+              variant="outline"
+              className="border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 px-8 py-4 text-base h-auto"
+            >
+              See Our Work
             </Button>
           </div>
-          <p className="text-neutral-gray text-sm mt-4">No card required. Cancel any time.</p>
-        </div>
-      </section>
 
-      {/* Live Demo */}
-      <section className="py-20 bg-dark-bg">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              <span className="text-accent-gold">See it in action.</span> Pick your niche.
-            </h2>
-            <p className="text-neutral-gray text-lg">No signup. No card. Just see what it does.</p>
-          </div>
-          <LiveCaptionDemo />
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section className="py-20 bg-primary-black">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              You're great with scissors.{" "}
-              <span className="text-accent-gold">Not so great with Instagram.</span>
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "You don't have 45 minutes to write a caption.",
-                body: "Back-to-back clients, a shop to run, a life outside these four walls. Sitting down to craft the perfect post? It's not happening. So nothing goes up. And nobody new finds you.",
-              },
-              {
-                title: '"Just got a fresh cut" isn\'t a content strategy.',
-                body: "Staring at a blank caption box after a long day is brutal. You post the same thing every week, engagement dies, and you wonder why you bother.",
-              },
-              {
-                title: "The wrong hashtags are worse than no hashtags.",
-                body: "Posting with #barber and #hair and hoping for the best? You're invisible. The people who'd book you tomorrow can't find you.",
-              },
-            ].map((item, i) => (
-              <Card key={i} className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-colors">
-                <CardContent className="p-8">
-                  <h3 className="text-xl font-bold mb-4 text-white">{item.title}</h3>
-                  <p className="text-neutral-gray leading-relaxed">{item.body}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works */}
-      <section className="py-20 bg-dark-bg">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="text-accent-gold">Three steps.</span> Done before your next client.
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { step: "1", title: "Pick Your Niche", body: "Tell us you're a barber, salon, or gym. The AI knows what works for your world — not some generic playbook." },
-              { step: "2", title: "Hit Generate", body: "One click. A sharp caption, the right hashtags, and the best time to post for maximum reach." },
-              { step: "3", title: "Copy, Post, Get On With It", body: "Grab your content, drop it into Instagram, and get back to what pays — cutting hair, not writing copy." },
-            ].map((item) => (
-              <div key={item.step} className="text-center">
-                <div className="w-16 h-16 bg-accent-gold rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl font-bold text-primary-black">{item.step}</span>
-                </div>
-                <h3 className="text-xl font-bold mb-3 text-white">{item.title}</h3>
-                <p className="text-neutral-gray leading-relaxed">{item.body}</p>
+          {/* Stats row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+            {stats.map((s) => (
+              <div key={s.label} className="text-center">
+                <p className="text-3xl md:text-4xl font-extrabold text-[#FFD700]">{s.value}</p>
+                <p className="text-xs text-neutral-500 mt-1 uppercase tracking-widest">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="py-20 bg-primary-black">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-accent-gold">What you get</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((f, i) => (
-              <Card key={i} className="bg-card-bg border-secondary-brown hover:border-accent-gold transition-all">
-                <CardContent className="p-6 flex gap-4">
-                  <span className="w-2 h-2 bg-accent-gold rounded-full mt-2 flex-shrink-0" />
-                  <div>
-                    <h3 className="font-bold text-white mb-1">{f.title}</h3>
-                    <p className="text-neutral-gray text-sm leading-relaxed">{f.desc}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+      {/* ── TICKER ────────────────────────────────────────────────── */}
+      <div className="border-y border-[#FFD700]/15 bg-[#0D0D0D] py-3 overflow-hidden">
+        <div className="sfs-ticker flex items-center whitespace-nowrap">
+          {[...tickerItems, ...tickerItems].map((item, i) => (
+            <span key={i} className="inline-flex items-center gap-4 px-6 text-sm text-neutral-400 font-medium">
+              <span className="text-[#FFD700]">✦</span>{item}
+            </span>
+          ))}
         </div>
-      </section>
+      </div>
 
-      {/* Pricing */}
-      <section id="pricing" className="py-20 bg-dark-bg">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              <span className="text-accent-gold">Straight-up pricing.</span> No surprises.
-            </h2>
-            <p className="text-neutral-gray text-lg">No contracts. Cancel any time.</p>
+      {/* ── SERVICES ──────────────────────────────────────────────── */}
+      <section id="services" className="py-24 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">What We Do</p>
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Our Services</h2>
+            <p className="text-neutral-400 max-w-xl mx-auto">Three core disciplines. One agency. Everything you need to build, automate, and grow.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                name: "Starter",
-                price: "£29",
-                period: "/mo",
-                sub: "100 generations/month",
-                features: ["Captions, hashtags, posting schedule", "Perfect for getting started"],
-                cta: "Get Started",
-                highlight: false,
-              },
-              {
-                name: "Pro",
-                price: "£97",
-                period: "/mo",
-                sub: "1,000 generations/month",
-                features: ["Everything in Starter", "Volume for busy shops posting daily"],
-                cta: "Start Pro",
-                highlight: true,
-              },
-              {
-                name: "Agency",
-                price: "£297",
-                period: "/mo",
-                sub: "Unlimited generations",
-                features: ["Unlimited generations", "White label — sell as your own"],
-                cta: "Go Agency",
-                highlight: false,
-              },
-              {
-                name: "Bundle",
-                price: "£49",
-                period: "/mo",
-                sub: "SocialScaleBooster + Barber Booker",
-                features: ["100 generations/month", "Full online booking system"],
-                cta: "Get the Bundle",
-                highlight: false,
-              },
-            ].map((tier) => (
-              <Card
-                key={tier.name}
-                className={
-                  tier.highlight
-                    ? "border-2 border-accent-gold bg-card-bg transition-all"
-                    : "bg-card-bg border-secondary-brown hover:border-accent-gold transition-all"
-                }
-              >
-                <CardContent className="p-6 text-center flex flex-col h-full">
-                  {tier.highlight && (
-                    <span className="text-xs font-bold text-primary-black bg-accent-gold px-3 py-1 rounded-full mb-4 inline-block">
-                      Most Popular
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {services.map((svc) => {
+              const Icon = svc.icon;
+              return (
+                <button
+                  key={svc.id}
+                  onClick={() => setActiveModal(svc)}
+                  className={`group text-left rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(255,215,0,0.12)] focus:outline-none ${
+                    svc.featured
+                      ? "border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/10 to-[#0D0D0D]"
+                      : "border-white/5 bg-[#111] hover:border-[#FFD700]/25"
+                  }`}
+                >
+                  {svc.featured && (
+                    <span className="inline-block mb-3 text-[10px] font-bold uppercase tracking-widest text-[#0D0D0D] bg-[#FFD700] px-2.5 py-1 rounded-full">
+                      Featured
                     </span>
                   )}
-                  <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
-                  <div className="mb-2">
-                    <span className="text-4xl font-bold text-accent-gold">{tier.price}</span>
-                    <span className="text-neutral-gray">{tier.period}</span>
-                  </div>
-                  <p className="text-neutral-gray text-sm mb-4">{tier.sub}</p>
-                  <ul className="text-left space-y-2 mb-6 flex-1">
-                    {tier.features.map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-neutral-gray">
-                        <span className="w-1.5 h-1.5 bg-accent-gold rounded-full mt-1.5 flex-shrink-0" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    onClick={() => setLocation("/subscribe")}
-                    className={
-                      tier.highlight
-                        ? "w-full bg-accent-gold text-primary-black font-bold hover:scale-105 transition-all"
-                        : "w-full border border-accent-gold text-accent-gold bg-transparent hover:bg-accent-gold hover:text-primary-black transition-all"
-                    }
-                  >
-                    {tier.cta}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonial */}
-      <section className="py-20 bg-primary-black">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-3xl font-bold mb-12 text-accent-gold">Don't take our word for it</h2>
-          <Card className="bg-card-bg border-secondary-brown">
-            <CardContent className="p-8 md:p-12">
-              <p className="text-lg md:text-xl text-white leading-relaxed mb-6 italic">
-                "I've been barbering for 11 years and never once bothered with Instagram properly. My mate kept telling me I was leaving money on the table. He was right. I started using SocialScaleBooster in January, spent about two minutes on it between clients, and had three new bookings that week from people who found me through my posts. Can't argue with that."
-              </p>
-              <p className="text-accent-gold font-bold">Danny R.</p>
-              <p className="text-neutral-gray text-sm">Barber Shop Owner, Manchester</p>
-              <p className="text-accent-gold mt-2">⭐⭐⭐⭐⭐</p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="py-20 bg-dark-bg">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <h2 className="text-4xl font-bold text-center mb-12">
-            <span className="text-accent-gold">Got questions?</span> Here's the short version.
-          </h2>
-          <div className="space-y-3">
-            {faqs.map((faq, i) => (
-              <Card key={i} className="bg-card-bg border-secondary-brown">
-                <button
-                  className="w-full text-left p-6 flex justify-between items-start gap-4"
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                >
-                  <span className="font-semibold text-white">{faq.q}</span>
-                  <span className="text-accent-gold text-xl flex-shrink-0">{openFaq === i ? "−" : "+"}</span>
+                  <Icon className="w-8 h-8 text-[#FFD700] mb-4" />
+                  <h3 className="text-lg font-bold mb-2">{svc.title}</h3>
+                  <p className="text-sm text-neutral-400 leading-relaxed mb-5">{svc.summary}</p>
+                  <span className="inline-flex items-center text-[#FFD700] text-sm font-medium gap-1 group-hover:gap-2 transition-all">
+                    Learn more <ChevronRight className="w-4 h-4" />
+                  </span>
                 </button>
-                {openFaq === i && (
-                  <div className="px-6 pb-6 text-neutral-gray leading-relaxed">{faq.a}</div>
-                )}
-              </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── WORK ──────────────────────────────────────────────────── */}
+      <section id="work" className="py-24 px-4 bg-[#0a0a0a]">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">Case Studies</p>
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Our Work</h2>
+            <p className="text-neutral-400 max-w-xl mx-auto">Real projects. Real results. Delivered on time, every time.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {portfolio.map((p, i) => (
+              <div key={i} className="group rounded-2xl border border-white/5 bg-[#111] p-7 hover:border-[#FFD700]/25 hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,215,0,0.08)]">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#FFD700] bg-[#FFD700]/10 border border-[#FFD700]/20 px-2.5 py-1 rounded-full">
+                  {p.category}
+                </span>
+                <h3 className="text-xl font-bold mt-4 mb-2">{p.title}</h3>
+                <p className="text-sm text-neutral-400 mb-4 leading-relaxed">{p.desc}</p>
+                <div className="flex items-center gap-2 text-sm font-semibold text-[#FFD700]">
+                  <Zap className="w-4 h-4" />{p.result}
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-20 bg-primary-black">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-accent-gold">
-            Stop leaving bookings on the table.
-          </h2>
-          <p className="text-xl text-neutral-gray mb-8 leading-relaxed">
-            Every week you don't post, someone else in your area does. They get the follow. They get the booking. They get the client you should have had.
-          </p>
-          <Button
-            onClick={() => setLocation("/dashboard")}
-            className="bg-accent-gold text-primary-black px-10 py-5 text-xl font-bold gold-glow gold-glow-hover hover:scale-105 transition-all"
-            size="lg"
-          >
-            Get Started Today — From £29/mo
-          </Button>
-          <p className="text-neutral-gray text-sm mt-4">
-            Got questions?{" "}
-            <a href="mailto:gareth@smartflowsystems.co.uk" className="text-accent-gold underline">
-              Gareth answers everything
-            </a>
-          </p>
+      {/* ── ABOUT ─────────────────────────────────────────────────── */}
+      <section id="about" className="py-24 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-14 items-center">
+            <div>
+              <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-4">Who We Are</p>
+              <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
+                A team obsessed with<br /><span className="text-[#FFD700]">your results.</span>
+              </h2>
+              <p className="text-neutral-400 leading-relaxed mb-5">
+                SmartFlow Systems was founded to give ambitious businesses access to the kind of digital expertise typically reserved for large corporations. We combine strategic thinking with technical excellence and creative execution.
+              </p>
+              <p className="text-neutral-400 leading-relaxed mb-8">
+                From solo founders to scale-ups, we've built products used by hundreds of thousands of people worldwide — and we're just getting started.
+              </p>
+              <Button
+                onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
+                className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-6"
+              >
+                Work With Us <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* Floating stat cards */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-[#FFD700]/5 rounded-3xl blur-2xl" />
+              <div className="relative grid grid-cols-2 gap-4">
+                {[
+                  { value: "150+", label: "Projects Delivered", Icon: Code },
+                  { value: "98%", label: "Client Satisfaction", Icon: Star },
+                  { value: "£8M+", label: "Revenue Generated", Icon: TrendingUp },
+                  { value: "12+", label: "Industries Served", Icon: Globe },
+                ].map(({ value, label, Icon }, i) => (
+                  <div
+                    key={label}
+                    className={`bg-[#111] border border-[#FFD700]/15 rounded-2xl p-5 hover:border-[#FFD700]/35 transition-all hover:shadow-[0_0_30px_rgba(255,215,0,0.1)] ${i % 2 === 1 ? "mt-6" : ""}`}
+                  >
+                    <Icon className="w-5 h-5 text-[#FFD700] mb-2" />
+                    <p className="text-3xl font-extrabold text-[#FFD700]">{value}</p>
+                    <p className="text-xs text-neutral-500 mt-1">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* ── PROCESS ───────────────────────────────────────────────── */}
+      <section className="py-24 px-4 bg-[#0a0a0a]">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">How We Work</p>
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Our Process</h2>
+            <p className="text-neutral-400 max-w-xl mx-auto">Simple, transparent, and built around you.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+            {steps.map((step, i) => (
+              <div key={step.n} className="relative group">
+                {i < steps.length - 1 && (
+                  <div className="hidden lg:block absolute top-8 left-[calc(100%+0.5rem)] w-full h-px border-t border-dashed border-[#FFD700]/20 z-10" />
+                )}
+                <div className="bg-[#111] border border-white/5 rounded-2xl p-7 h-full hover:border-[#FFD700]/25 transition-all hover:shadow-[0_0_30px_rgba(255,215,0,0.08)]">
+                  <span className="text-4xl font-extrabold text-[#FFD700]/20 block mb-4">{step.n}</span>
+                  <h3 className="text-lg font-bold mb-2">{step.title}</h3>
+                  <p className="text-sm text-neutral-400 leading-relaxed">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CONTACT ───────────────────────────────────────────────── */}
+      <section id="contact" className="py-24 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-14 items-start">
+            <div>
+              <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-4">Get In Touch</p>
+              <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
+                Ready to build<br /><span className="text-[#FFD700]">something great?</span>
+              </h2>
+              <p className="text-neutral-400 leading-relaxed mb-10">
+                Tell us about your project and we'll get back to you within one business day. No sales pressure — just an honest conversation.
+              </p>
+              <div className="space-y-5">
+                {[
+                  { Icon: Mail, label: "Email", value: "hello@smartflowsystems.co.uk" },
+                  { Icon: Phone, label: "Phone", value: "+44 20 1234 5678" },
+                  { Icon: MapPin, label: "Based in", value: "London, United Kingdom" },
+                ].map(({ Icon, label, value }) => (
+                  <div key={label} className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/20 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-4 h-4 text-[#FFD700]" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-neutral-500 uppercase tracking-widest">{label}</p>
+                      <p className="text-sm text-white font-medium">{value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-[#111] border border-white/5 rounded-2xl p-8">
+              {formSent ? (
+                <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+                  <div className="w-14 h-14 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 flex items-center justify-center mb-4">
+                    <Check className="w-7 h-7 text-[#FFD700]" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Message Sent!</h3>
+                  <p className="text-neutral-400 text-sm">We'll be in touch within one business day.</p>
+                </div>
+              ) : (
+                <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {["First Name", "Last Name"].map((label) => (
+                      <div key={label}>
+                        <label className="block text-xs text-neutral-400 font-medium mb-1.5 uppercase tracking-widest">{label}</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder={label === "First Name" ? "John" : "Smith"}
+                          className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <label className="block text-xs text-neutral-400 font-medium mb-1.5 uppercase tracking-widest">Email</label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="john@company.com"
+                      className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-neutral-400 font-medium mb-1.5 uppercase tracking-widest">Service</label>
+                    <select
+                      required
+                      className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#FFD700]/50 transition-colors"
+                    >
+                      <option value="">Select a service...</option>
+                      {services.map((s) => (
+                        <option key={s.id} value={s.id}>{s.title}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-neutral-400 font-medium mb-1.5 uppercase tracking-widest">Message</label>
+                    <textarea
+                      required
+                      rows={4}
+                      placeholder="Tell us about your project..."
+                      className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors resize-none"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold py-4 h-auto text-base">
+                    Send Message <ArrowRight className="ml-2 w-4 h-4" />
+                  </Button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ────────────────────────────────────────────────── */}
+      <footer className="border-t border-white/5 bg-[#0a0a0a] py-12 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
+            <div className="md:col-span-2">
+              <p className="text-xl font-bold text-[#FFD700] mb-3">SmartFlow Systems</p>
+              <p className="text-sm text-neutral-500 leading-relaxed max-w-sm">
+                Full-service digital agency delivering apps, AI automation, and marketing that moves the needle.
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-4">Services</p>
+              <ul className="space-y-2 text-sm text-neutral-500">
+                {["App Development", "AI Automation", "Digital Marketing", "E-Commerce", "Branding"].map((s) => (
+                  <li key={s}>
+                    <button onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })} className="hover:text-[#FFD700] transition-colors">
+                      {s}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-neutral-400 uppercase tracking-widest mb-4">Company</p>
+              <ul className="space-y-2 text-sm text-neutral-500">
+                {[
+                  { label: "Work", id: "work" },
+                  { label: "About", id: "about" },
+                  { label: "Contact", id: "contact" },
+                ].map(({ label, id }) => (
+                  <li key={label}>
+                    <button onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })} className="hover:text-[#FFD700] transition-colors">
+                      {label}
+                    </button>
+                  </li>
+                ))}
+                <li>
+                  <a href="/subscribe" className="hover:text-[#FFD700] transition-colors">Pricing</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-600">
+            <p>© {new Date().getFullYear()} SmartFlow Systems Ltd. All rights reserved.</p>
+            <div className="flex gap-5">
+              <span className="hover:text-neutral-400 cursor-pointer transition-colors">Privacy Policy</span>
+              <span className="hover:text-neutral-400 cursor-pointer transition-colors">Terms of Service</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* ── MODAL ─────────────────────────────────────────────────── */}
+      {activeModal && <ServiceModal service={activeModal} onClose={() => setActiveModal(null)} />}
+
+      {/* ── ANIMATIONS ────────────────────────────────────────────── */}
+      <style>{`
+        .sfs-dot-grid {
+          background-image: radial-gradient(circle, #FFD700 1px, transparent 1px);
+          background-size: 32px 32px;
+          animation: sfs-dot-drift 20s linear infinite;
+        }
+        @keyframes sfs-dot-drift {
+          0%   { background-position: 0 0; }
+          100% { background-position: 32px 32px; }
+        }
+        .sfs-ticker {
+          width: max-content;
+          animation: sfs-ticker-move 30s linear infinite;
+        }
+        @keyframes sfs-ticker-move {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
     </div>
   );
 }
