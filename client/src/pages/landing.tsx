@@ -451,8 +451,8 @@ export default function Landing() {
                 key={i}
                 className={`group rounded-2xl border p-7 hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,215,0,0.08)] flex flex-col ${
                   p.dark
-                    ? "border-white/5 bg-[#111] hover:border-[#FFD700]/25"
-                    : "border-[#FFD700]/10 bg-[#161616] hover:border-[#FFD700]/30"
+                    ? "border-white/5 bg-[#0f0f0f] hover:border-[#FFD700]/25"
+                    : "border-[#FFD700]/20 bg-[#1a1a14] hover:border-[#FFD700]/40"
                 }`}
               >
                 <span className="text-[10px] font-bold uppercase tracking-widest text-[#FFD700] bg-[#FFD700]/10 border border-[#FFD700]/20 px-2.5 py-1 rounded-full self-start">
