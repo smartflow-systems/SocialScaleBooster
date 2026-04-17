@@ -2,17 +2,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Navigation() {
   const [, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user } = useAuth();
 
   const scrollTo = (id: string) => {
     setMobileOpen(false);
     const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    }
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
   const navLinks = [
@@ -43,12 +43,30 @@ export default function Navigation() {
                 {link.label}
               </button>
             ))}
-            <Button
-              onClick={() => scrollTo("contact")}
-              className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-5 py-2 text-sm"
-            >
-              Get Started
-            </Button>
+
+            {user ? (
+              <Button
+                onClick={() => setLocation("/dashboard")}
+                className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-5 py-2 text-sm"
+              >
+                Go to Dashboard
+              </Button>
+            ) : (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setLocation("/login")}
+                  className="text-sm text-neutral-400 hover:text-[#FFD700] transition-colors font-medium"
+                >
+                  Sign In
+                </button>
+                <Button
+                  onClick={() => setLocation("/login")}
+                  className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-5 py-2 text-sm"
+                >
+                  Get Started
+                </Button>
+              </div>
+            )}
           </div>
 
           <button
@@ -72,12 +90,29 @@ export default function Navigation() {
               {link.label}
             </button>
           ))}
-          <Button
-            onClick={() => scrollTo("contact")}
-            className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold w-full mt-1"
-          >
-            Get Started
-          </Button>
+          {user ? (
+            <Button
+              onClick={() => { setMobileOpen(false); setLocation("/dashboard"); }}
+              className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold w-full mt-1"
+            >
+              Go to Dashboard
+            </Button>
+          ) : (
+            <>
+              <button
+                onClick={() => { setMobileOpen(false); setLocation("/login"); }}
+                className="text-left text-sm text-neutral-400 hover:text-[#FFD700] py-2 transition-colors font-medium"
+              >
+                Sign In
+              </button>
+              <Button
+                onClick={() => { setMobileOpen(false); setLocation("/login"); }}
+                className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold w-full mt-1"
+              >
+                Get Started Free
+              </Button>
+            </>
+          )}
         </div>
       )}
     </nav>

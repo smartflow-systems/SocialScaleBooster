@@ -1,354 +1,169 @@
-import React, { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Crown, Bot, BarChart3, Store, File, Search, Calendar, Users, Zap, Settings } from "lucide-react";
-import BotCard from "@/components/bots/bot-card";
-import CreateBotDialog from "@/components/bots/create-bot-dialog";
-import BotStatsDialog from "@/components/bots/bot-stats-dialog";
-import TemplateCard from "@/components/marketplace/template-card";
-import AnalyticsCharts from "@/components/analytics/charts";
-import CategoryFilter from "@/components/marketplace/category-filter";
-import EngagementMetrics from "@/components/analytics/engagement-metrics";
-import AdvancedMetrics from "@/components/analytics/advanced-metrics";
-import RealtimeDashboard from "@/components/analytics/realtime-dashboard";
-import SchedulerInterface from "@/components/scheduling/scheduler-interface";
-import PersonalityDesigner from "@/components/personality/personality-designer";
-import IntegrationWizard from "@/components/integrations/integration-wizard";
-import EnhancedMarketplace from "@/components/marketplace/enhanced-marketplace";
-import UpgradeCard from "@/components/subscription/upgrade-card";
-import SubscriptionStatus from "@/components/subscription/subscription-status";
-import PaymentSuccess from "@/components/subscription/payment-success";
-import { analyticsService } from "@/services/analytics";
+import {
+  Sparkles, Calendar, BarChart3, Globe, ArrowRight, CheckCircle2,
+  MessageSquare, Hash, Zap, Users, Bot, TrendingUp, Crown, Bell,
+} from "lucide-react";
+
+const quickActions = [
+  { label: "Generate a Caption", desc: "AI writes your post in seconds", icon: MessageSquare, href: "/captions", color: "bg-[#FFD700]/10 border-[#FFD700]/20" },
+  { label: "Find Hashtags", desc: "Discover hashtags that convert", icon: Hash, href: "/hashtags", color: "bg-blue-500/10 border-blue-500/20" },
+  { label: "Create a Post", desc: "Full post with image & copy", icon: Sparkles, href: "/create", color: "bg-purple-500/10 border-purple-500/20" },
+  { label: "Schedule Content", desc: "Queue posts at the best times", icon: Calendar, href: "/scheduler", color: "bg-green-500/10 border-green-500/20" },
+  { label: "Connect Accounts", desc: "Link Instagram, TikTok & more", icon: Globe, href: "/accounts", color: "bg-pink-500/10 border-pink-500/20" },
+  { label: "View Analytics", desc: "See your growth and results", icon: BarChart3, href: "/analytics", color: "bg-orange-500/10 border-orange-500/20" },
+];
+
+const gettingStarted = [
+  { step: 1, label: "Connect a social account", desc: "Link your Instagram, TikTok, or Facebook page.", href: "/accounts", icon: Globe },
+  { step: 2, label: "Generate your first post", desc: "Use AI to create a caption and hashtags in seconds.", href: "/captions", icon: Sparkles },
+  { step: 3, label: "Schedule it for posting", desc: "Set a time and let SmartFlow publish it for you.", href: "/scheduler", icon: Calendar },
+  { step: 4, label: "Track your results", desc: "See impressions, clicks, and follower growth.", href: "/analytics", icon: BarChart3 },
+];
+
+const features = [
+  { label: "AI Studio", desc: "Generate content in bulk", href: "/ai-studio", icon: Bot },
+  { label: "Auto Engagement", desc: "Like, comment & follow automatically", href: "/auto-engage", icon: Zap },
+  { label: "Competitor Tracker", desc: "See what others are posting", href: "/competitors", icon: TrendingUp },
+  { label: "Client Manager", desc: "Handle multiple accounts", href: "/clients", icon: Users },
+];
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState("bots");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [successType, setSuccessType] = useState<"subscription" | "payment">("subscription");
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
 
-  // Check for success parameters
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const upgradeSuccess = urlParams.get('upgrade');
-    const paymentSuccess = urlParams.get('payment');
-    
-    if (upgradeSuccess === 'success') {
-      setSuccessType('subscription');
-      setShowSuccess(true);
-      // Clean up URL
-      window.history.replaceState({}, '', '/dashboard');
-    } else if (paymentSuccess === 'success') {
-      setSuccessType('payment');
-      setShowSuccess(true);
-      // Clean up URL
-      window.history.replaceState({}, '', '/dashboard');
-    }
-  }, []);
-
-  const { data: userStatus } = useQuery({
-    queryKey: ["/api/user/status"],
-  });
-
-  const { data: bots } = useQuery({
-    queryKey: ["/api/bots"],
-  });
-
-  const { data: templates } = useQuery({
-    queryKey: ["/api/templates"],
-  });
-
-  const { data: analyticsMetrics } = useQuery({
-    queryKey: ["/api/analytics/metrics"],
-  });
-
-  const { data: engagementMetrics } = useQuery({
-    queryKey: ["engagement-metrics"],
-    queryFn: () => analyticsService.getEngagementByPlatform(),
-  });
-
-  // Filter templates based on category and search
-  const filteredTemplates = templates?.filter((template: any) => {
-    const matchesCategory = selectedCategory === "all" || template.category === selectedCategory;
-    const matchesSearch = searchQuery === "" || 
-      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      template.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  // Show success modal if needed
-  if (showSuccess) {
-    return (
-      <PaymentSuccess 
-        type={successType}
-        onContinue={() => setShowSuccess(false)}
-      />
-    );
-  }
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 18) return "Good afternoon";
+    return "Good evening";
+  };
 
   return (
-    <div className="min-h-screen bg-dark-bg">
-      {/* Dashboard Header */}
-      <header className="bg-card-bg border-b border-secondary-brown">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Bot className="text-accent-gold w-8 h-8 cursor-pointer hover:scale-110 transition-transform" onClick={() => window.location.href = "/"} />
-              <span className="text-xl font-bold">Dashboard</span>
-              <Badge className="bg-rich-brown text-gold-trim border border-accent-gold font-semibold gold-glow">
-                {userStatus?.isPremium ? "Pro Plan" : `Free Plan (${userStatus?.botCount || 0}/3 bots)`}
-              </Badge>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                onClick={() => window.location.href = "/clients"}
-                className="bg-card-bg text-accent-gold border border-accent-gold font-semibold hover:bg-accent-gold hover:text-primary-black"
+    <div className="min-h-screen bg-[#0D0D0D] text-white" style={{ fontFamily: "'Inter', sans-serif" }}>
+
+      {/* Top bar */}
+      <div className="border-b border-white/5 bg-[#0D0D0D]/80 backdrop-blur px-6 py-3.5 flex items-center justify-between sticky top-0 z-20">
+        <div>
+          <p className="text-sm text-neutral-400">{greeting()}, <span className="text-white font-semibold">{user?.businessName || user?.username || "there"}</span></p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-neutral-400 hover:text-white transition-colors">
+            <Bell className="w-4 h-4" />
+          </button>
+          <Button
+            onClick={() => setLocation("/subscribe")}
+            className="bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/30 hover:bg-[#FFD700] hover:text-[#0D0D0D] text-xs font-bold px-4 py-2 h-auto"
+          >
+            <Crown className="w-3.5 h-3.5 mr-1.5" /> Upgrade
+          </Button>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+
+        {/* Quick Actions */}
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {quickActions.map(({ label, desc, icon: Icon, href, color }) => (
+              <button
+                key={href}
+                onClick={() => setLocation(href)}
+                className={`group rounded-xl border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_20px_rgba(255,215,0,0.08)] ${color}`}
               >
-                <Users className="w-4 h-4 mr-2" />
-                Clients
-              </Button>
-              <Button
-                onClick={() => window.location.href = "/subscribe"}
-                className="bg-rich-brown text-gold-trim border border-accent-gold font-semibold gold-glow-hover hover:bg-accent-gold hover:text-primary-black"
-              >
-                <Crown className="w-4 h-4 mr-2" />
-                Upgrade Pro
-              </Button>
-              <div className="w-8 h-8 bg-accent-gold rounded-full"></div>
-            </div>
+                <Icon className="w-5 h-5 text-white mb-2.5" />
+                <p className="text-xs font-semibold text-white leading-tight">{label}</p>
+                <p className="text-[10px] text-neutral-500 mt-0.5 leading-tight">{desc}</p>
+              </button>
+            ))}
           </div>
         </div>
-      </header>
 
-      {/* Tab Navigation */}
-      <div className="bg-card-bg border-b border-secondary-brown">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-transparent h-auto p-2 grid grid-cols-3 sm:flex sm:gap-4 lg:gap-8 w-full">
-              <TabsTrigger 
-                value="bots" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
+        {/* Getting Started checklist */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-neutral-500">Getting Started</h2>
+            <span className="text-xs text-neutral-600">4 steps to your first post</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {gettingStarted.map(({ step, label, desc, href, icon: Icon }) => (
+              <button
+                key={step}
+                onClick={() => setLocation(href)}
+                className="group flex items-center gap-4 bg-[#111] border border-white/5 rounded-xl p-5 text-left hover:border-[#FFD700]/25 hover:bg-[#161610] transition-all"
               >
-                <Bot className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                <span className="sm:hidden">Bots</span>
-                <span className="hidden sm:inline">My Bots</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="analytics" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <BarChart3 className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger 
-                value="marketplace" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <Store className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                <span className="sm:hidden">Store</span>
-                <span className="hidden sm:inline">Marketplace</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="scheduling" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <Calendar className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                <span className="sm:hidden">Time</span>
-                <span className="hidden sm:inline">Scheduling</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="personality" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <Users className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                <span className="sm:hidden">Style</span>
-                <span className="hidden sm:inline">Personality</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="integrations" 
-                className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
-              >
-                <Zap className="w-4 h-4 mb-1 sm:mb-0 sm:mr-2" />
-                <span className="sm:hidden">Apps</span>
-                <span className="hidden sm:inline">Integrations</span>
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Tab Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <TabsContent value="bots" className="mt-0">
-                <div className="flex justify-between items-center mb-8">
-                  <h2 className="text-3xl font-bold">My Bots</h2>
-                  <CreateBotDialog 
-                    isPremium={userStatus?.isPremium || false}
-                    botCount={userStatus?.botCount || 0}
-                  />
+                <div className="w-10 h-10 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/20 flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-5 h-5 text-[#FFD700]" />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {bots?.map((bot: any) => (
-                    <BotCard key={bot.id} bot={bot} />
-                  ))}
-                  
-                  {/* Upgrade prompt card */}
-                  {!userStatus?.isPremium && (
-                    <div className="bg-gradient-to-br from-accent-gold to-yellow-600 rounded-xl p-6 text-primary-black">
-                      <div className="text-center">
-                        <Crown className="w-16 h-16 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold mb-2">Create More Bots</h3>
-                        <p className="mb-4 text-sm opacity-90">Upgrade to Pro for unlimited bot creation</p>
-                        <Button 
-                          onClick={() => window.location.href = "/subscribe"}
-                          className="bg-primary-black text-accent-gold hover:bg-secondary-brown"
-                        >
-                          Unlock Now
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[10px] font-bold text-[#FFD700]/60 uppercase tracking-widest">Step {step}</span>
+                  </div>
+                  <p className="text-sm font-semibold text-white">{label}</p>
+                  <p className="text-xs text-neutral-500">{desc}</p>
                 </div>
-
-                {/* Subscription Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                  <UpgradeCard />
-                  <SubscriptionStatus />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="analytics" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">Real-Time Analytics & ROI</h2>
-                <div className="space-y-8">
-                  <RealtimeDashboard />
-                  <AdvancedMetrics metrics={analyticsMetrics} />
-                </div>
-              </TabsContent>
-
-              <TabsContent value="marketplace" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">Premium Bot Marketplace</h2>
-                <EnhancedMarketplace userStatus={userStatus} />
-              </TabsContent>
-
-              <TabsContent value="templates" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">E-Commerce Bot Presets</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <Store className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Product Showcase Bot</h3>
-                    <p className="text-neutral-gray mb-4">Highlight product features with engaging visuals and automatic hashtag optimization</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <Crown className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Flash Sale Announcer</h3>
-                    <p className="text-neutral-gray mb-4">Create urgency with flash sales, countdown timers, and limited-time offers</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <BarChart3 className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Customer Testimonial Bot</h3>
-                    <p className="text-neutral-gray mb-4">Share authentic customer reviews and success stories to build social proof</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <Bot className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Behind the Scenes Bot</h3>
-                    <p className="text-neutral-gray mb-4">Show product creation process and company culture to build authentic connections</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <File className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Trend Tracker Bot</h3>
-                    <p className="text-neutral-gray mb-4">AI-powered trend analysis to create viral content that drives maximum engagement</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-
-                  <div className="bg-card-bg border border-secondary-brown rounded-xl p-6 hover:border-accent-gold transition-colors">
-                    <div className="w-12 h-12 bg-accent-gold rounded-lg flex items-center justify-center mb-4">
-                      <Crown className="text-primary-black w-6 h-6" />
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">Multi-Platform Scheduler</h3>
-                    <p className="text-neutral-gray mb-4">Coordinate campaigns across TikTok, Instagram, Facebook, and Twitter simultaneously</p>
-                    <CreateBotDialog 
-                      isPremium={userStatus?.isPremium || false}
-                      botCount={userStatus?.botCount || 0}
-                    >
-                      <Button className="w-full bg-secondary-brown text-accent-gold hover:bg-accent-gold hover:text-primary-black">
-                        Create Bot
-                      </Button>
-                    </CreateBotDialog>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="scheduling" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">Smart Scheduling & Automation</h2>
-                <SchedulerInterface />
-              </TabsContent>
-
-              <TabsContent value="personality" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">Bot Personality Designer</h2>
-                <PersonalityDesigner />
-              </TabsContent>
-
-              <TabsContent value="integrations" className="mt-0">
-                <h2 className="text-3xl font-bold mb-8">Platform Integrations</h2>
-                <IntegrationWizard />
-              </TabsContent>
-            </div>
-          </Tabs>
+                <ArrowRight className="w-4 h-4 text-neutral-600 group-hover:text-[#FFD700] transition-colors flex-shrink-0" />
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Stats row — placeholder / coming soon */}
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-4">Your Stats</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: "Posts This Month", value: "—", note: "Connect an account to track" },
+              { label: "Total Reach", value: "—", note: "Data populates after first post" },
+              { label: "Followers Gained", value: "—", note: "Tracked after 7 days" },
+              { label: "Engagement Rate", value: "—", note: "Avg. across platforms" },
+            ].map((s) => (
+              <div key={s.label} className="bg-[#111] border border-white/5 rounded-xl p-5">
+                <p className="text-xs text-neutral-500 mb-1">{s.label}</p>
+                <p className="text-2xl font-extrabold text-neutral-600">{s.value}</p>
+                <p className="text-[10px] text-neutral-700 mt-1">{s.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Explore features */}
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-neutral-500 mb-4">Explore Features</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            {features.map(({ label, desc, href, icon: Icon }) => (
+              <button
+                key={href}
+                onClick={() => setLocation(href)}
+                className="group bg-[#111] border border-white/5 rounded-xl p-5 text-left hover:border-[#FFD700]/25 transition-all hover:-translate-y-0.5"
+              >
+                <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center mb-3">
+                  <Icon className="w-4 h-4 text-neutral-400 group-hover:text-[#FFD700] transition-colors" />
+                </div>
+                <p className="text-sm font-semibold text-white mb-0.5">{label}</p>
+                <p className="text-xs text-neutral-500">{desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Upgrade banner */}
+        <div className="rounded-2xl border border-[#FFD700]/20 bg-gradient-to-r from-[#FFD700]/8 to-[#0D0D0D] p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-[#FFD700] text-xs font-bold uppercase tracking-widest mb-1">You're on the Free Plan</p>
+            <h3 className="text-lg font-extrabold text-white mb-1">Unlock unlimited posts, automation & AI generation</h3>
+            <p className="text-sm text-neutral-400">Upgrade to Pro — from £29/mo. Cancel any time.</p>
+          </div>
+          <Button
+            onClick={() => setLocation("/subscribe")}
+            className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-6 flex-shrink-0"
+          >
+            See Plans <ArrowRight className="ml-2 w-4 h-4" />
+          </Button>
+        </div>
+
       </div>
     </div>
   );

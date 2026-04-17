@@ -8,6 +8,22 @@ SmartFlow AI is a premium no-code AI platform designed to automate e-commerce so
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Updates (April 2026)
+
+✓ **SmartFlow Systems Landing Page**: Full rebuild as digital agency landing page — Hero (dot-grid animation, gradient headline, stats), Ticker marquee, Services 3×2 grid with modals, Work portfolio with alternating cards + tags, About with floating stat cards, Process with → arrows, Contact form, single-row footer. Gold (#FFD700) / dark (#0D0D0D) brand, Inter font.
+
+✓ **Auth System**: AuthProvider (`client/src/lib/auth-context.tsx`) wrapping the app — login/logout with JWT token stored in localStorage, user object persisted. Auth guard on all `/dashboard` and app routes → redirects to `/login` if unauthenticated.
+
+✓ **Login / Register page** (`/login`): Branded, tabbed Sign In / Create Account. Username + password (+ email for register). Connects to `/api/auth/login` and `/api/auth/register`. Redirects to `/onboarding` for new users, `/dashboard` for returning.
+
+✓ **Onboarding Wizard** (`/onboarding`): 3-step flow — (1) Business name + Solo/Agency type, (2) Pick niche (8 options), (3) Pick goals (multi-select). Progress bar, skip option. Saves to auth context, redirects to `/dashboard`.
+
+✓ **App Sidebar** (`client/src/components/AppSidebar.tsx`): Persistent collapsible left sidebar shown on all authenticated app pages. Grouped sections: Main, Create, Automate, Grow, Account, Support. Active link highlight, collapse/expand toggle, user info + logout at bottom.
+
+✓ **Dashboard redesign** (`/dashboard`): Clean welcome page — greeting, 6 quick-action tiles, 4-step Getting Started checklist, stats row (with empty state prompts), Explore Features cards, upgrade banner. No more broken API calls on load.
+
+✓ **Navigation updates**: Landing page nav shows Sign In + Get Started for guests; Go to Dashboard for logged-in users.
+
 ## Recent Updates (January 2026)
 
 ✓ **Multi-Client Management System**: New feature allowing users to manage multiple clients from one account. Each client gets their own workspace with bots, revenue tracking, and analytics. Perfect for agencies and service providers.
