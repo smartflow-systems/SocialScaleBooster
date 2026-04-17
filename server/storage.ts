@@ -1,4 +1,4 @@
-import { users, bots, botTemplates, analytics, clients, socialAccounts, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics, type Client, type InsertClient, type SocialAccount, type InsertSocialAccount } from "@shared/schema";
+import { users, bots, botTemplates, analytics, clients, socialAccounts, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics, type Client, type InsertClient, type SocialAccount, type InsertSocialAccount, type ScheduledPost, type InsertScheduledPost } from "@shared/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { db } from "./db";
 
@@ -53,6 +53,11 @@ export interface IStorage {
   createAnalytics(analytics: InsertAnalytics): Promise<Analytics>;
   getRevenueMetrics(userId: number): Promise<{ totalRevenue: number; monthlyGrowth: number }>;
   getEngagementMetrics(userId: number): Promise<{ avgEngagement: number; totalPosts: number }>;
+
+  // Scheduled Post methods
+  getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]>;
+  createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost>;
+  deleteScheduledPost(id: number, userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -310,6 +315,28 @@ export class DatabaseStorage implements IStorage {
 
     return result[0] || { avgEngagement: 0, totalPosts: 0 };
   }
+
+  // Scheduled Post methods (in-memory even for DB storage since no migration needed)
+  private scheduledPostsMap: Map<number, ScheduledPost> = new Map();
+  private currentScheduledPostId: number = 1;
+
+  async getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]> {
+    return Array.from(this.scheduledPostsMap.values()).filter(post => post.userId === userId);
+  }
+
+  async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {
+    const id = this.currentScheduledPostId++;
+    const newPost: ScheduledPost = { ...post, id, status: post.status || "scheduled", createdAt: new Date() };
+    this.scheduledPostsMap.set(id, newPost);
+    return newPost;
+  }
+
+  async deleteScheduledPost(id: number, userId: number): Promise<boolean> {
+    const post = this.scheduledPostsMap.get(id);
+    if (!post || post.userId !== userId) return false;
+    this.scheduledPostsMap.delete(id);
+    return true;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -319,12 +346,14 @@ export class MemStorage implements IStorage {
   private bots: Map<number, Bot>;
   private botTemplates: Map<number, BotTemplate>;
   private analytics: Map<number, Analytics>;
+  private scheduledPosts: Map<number, ScheduledPost>;
   private currentUserId: number;
   private currentClientId: number;
   private currentSocialAccountId: number;
   private currentBotId: number;
   private currentTemplateId: number;
   private currentAnalyticsId: number;
+  private currentScheduledPostId: number;
 
   constructor() {
     this.users = new Map();
@@ -333,12 +362,14 @@ export class MemStorage implements IStorage {
     this.bots = new Map();
     this.botTemplates = new Map();
     this.analytics = new Map();
+    this.scheduledPosts = new Map();
     this.currentUserId = 1;
     this.currentClientId = 1;
     this.currentSocialAccountId = 1;
     this.currentBotId = 1;
     this.currentTemplateId = 1;
     this.currentAnalyticsId = 1;
+    this.currentScheduledPostId = 1;
 
     this.initializeSampleTemplates();
     this.initializeSampleUser();
@@ -790,6 +821,25 @@ export class MemStorage implements IStorage {
       ? userAnalytics.reduce((sum, a) => sum + parseFloat(a.engagement || "0"), 0) / userAnalytics.length
       : 0;
     return { avgEngagement, totalPosts };
+  }
+
+  // Scheduled Post methods
+  async getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]> {
+    return Array.from(this.scheduledPosts.values()).filter(post => post.userId === userId);
+  }
+
+  async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {
+    const id = this.currentScheduledPostId++;
+    const newPost: ScheduledPost = { ...post, id, status: post.status || "scheduled", createdAt: new Date() };
+    this.scheduledPosts.set(id, newPost);
+    return newPost;
+  }
+
+  async deleteScheduledPost(id: number, userId: number): Promise<boolean> {
+    const post = this.scheduledPosts.get(id);
+    if (!post || post.userId !== userId) return false;
+    this.scheduledPosts.delete(id);
+    return true;
   }
 }
 

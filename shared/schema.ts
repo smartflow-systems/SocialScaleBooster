@@ -120,6 +120,27 @@ export const insertAnalyticsSchema = createInsertSchema(analytics).omit({
   date: true,
 });
 
+// Scheduled Posts (in-memory only, no DB table needed)
+export const insertScheduledPostSchema = z.object({
+  userId: z.number(),
+  platform: z.string().min(1, "Platform is required"),
+  content: z.string().min(1, "Content is required"),
+  scheduledAt: z.string().min(1, "Scheduled time is required"),
+  status: z.string().default("scheduled"),
+});
+
+export type InsertScheduledPost = z.infer<typeof insertScheduledPostSchema>;
+
+export type ScheduledPost = {
+  id: number;
+  userId: number;
+  platform: string;
+  content: string;
+  scheduledAt: string;
+  status: string;
+  createdAt: Date;
+};
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;

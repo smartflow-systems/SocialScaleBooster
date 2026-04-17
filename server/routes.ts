@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import rateLimit from "express-rate-limit";
 import { AnalyticsWebSocketServer } from "./websocket";
 import { storage } from "./storage";
-import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema } from "@shared/schema";
+import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema, insertScheduledPostSchema } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
@@ -1005,6 +1005,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         currentPeriodEnd: subscription.current_period_end,
       });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Scheduled Posts routes (require authentication)
+  app.get("/api/scheduled-posts", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const posts = await storage.getScheduledPostsByUserId(userId);
+      res.json(posts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/scheduled-posts", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const parsed = insertScheduledPostSchema.safeParse({ ...req.body, userId });
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
+      }
+      const post = await storage.createScheduledPost(parsed.data);
+      res.status(201).json(post);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/scheduled-posts/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user!.id;
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+      const deleted = await storage.deleteScheduledPost(id, userId);
+      if (!deleted) return res.status(404).json({ message: "Post not found or not owned by you" });
+      res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
