@@ -48,6 +48,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Register AI Studio routes
   app.use("/api/ai", aiStudioRoutes);
 
+  // Simple Stripe checkout — no multi-tenant auth needed
+  app.post("/api/billing/simple/create-checkout", async (req, res) => {
+    try {
+      if (!stripe) {
+        return res.status(500).json({ error: "Stripe is not configured" });
+      }
+      const { plan, email } = req.body;
+      if (!plan || !["pro", "agency"].includes(plan)) {
+        return res.status(400).json({ error: "Invalid plan. Choose 'pro' or 'agency'" });
+      }
+
+      const priceId = plan === "pro"
+        ? process.env.STRIPE_PRICE_ID_PRO
+        : process.env.STRIPE_PRICE_ID_ENTERPRISE;
+
+      if (!priceId) {
+        return res.status(500).json({ error: `Stripe price ID not configured for plan: ${plan}` });
+      }
+
+      const origin = req.headers.origin || `https://${req.headers.host}`;
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        mode: "subscription",
+        line_items: [{ price: priceId, quantity: 1 }],
+        ...(email ? { customer_email: email } : {}),
+        success_url: `${origin}/checkout?success=true&plan=${plan}`,
+        cancel_url: `${origin}/subscribe?canceled=true`,
+        subscription_data: { trial_period_days: 14 },
+        metadata: { plan },
+      });
+
+      res.json({ url: session.url });
+    } catch (error: any) {
+      console.error("Stripe checkout error:", error);
+      res.status(500).json({ error: error.message || "Failed to create checkout session" });
+    }
+  });
+
   app.post("/api/ai/simple/generate-post", async (req, res) => {
     try {
       if (!process.env.OPENAI_API_KEY) {
