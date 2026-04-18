@@ -1,11 +1,24 @@
 import { Link } from "wouter";
 import { Settings, ArrowLeft, Bell, Zap } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useNotificationPrefs } from "@/hooks/use-notification-prefs";
-import { GlassCard, GoldHeading, SfsContainer } from "@/components/sfs";
+import { useToast } from "@/hooks/use-toast";
+import { GlassCard, GoldButton, GhostButton, GoldHeading, SfsContainer } from "@/components/sfs";
+
+const DEFAULT_PREFS = { badgePulse: true, toastNotifications: true };
 
 export default function SettingsPage() {
   const { prefs, update } = useNotificationPrefs();
+  const { toast } = useToast();
+
+  const handleSave = () =>
+    toast({ title: "Preferences saved", description: "Your notification settings are up to date." });
+
+  const handleReset = () => {
+    update(DEFAULT_PREFS);
+    toast({ title: "Preferences reset", description: "Notification settings have been restored to defaults." });
+  };
 
   return (
     <div className="min-h-screen bg-[var(--sf-black)] text-white">
@@ -25,49 +38,59 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="space-y-6">
-          <GlassCard className="p-0 overflow-hidden">
-            <div className="flex items-center gap-3 px-6 py-4 border-b border-[var(--sf-gold)]/10">
-              <Bell className="w-5 h-5 text-[var(--sf-gold)]" />
-              <div>
-                <GoldHeading level={3} className="text-base font-semibold">Notification Preferences</GoldHeading>
-                <p className="text-neutral-400 text-xs mt-0.5">Choose which events trigger badge and toast notifications</p>
-              </div>
-            </div>
-            <div className="divide-y divide-[var(--sf-gold)]/10">
-              <div className="flex items-center justify-between px-6 py-5">
-                <div className="flex items-start gap-3">
-                  <Zap className="w-4 h-4 text-[var(--sf-gold)] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-white">Badge pulse animation</p>
-                    <p className="text-xs text-neutral-400 mt-0.5">
-                      Animate the scheduler badge when the scheduled post count changes
-                    </p>
-                  </div>
+        <Tabs defaultValue="notifications" className="space-y-6">
+          <TabsList className="bg-white/5 border border-white/10">
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="notifications">
+            <GlassCard className="p-0 overflow-hidden">
+              <div className="flex items-center gap-3 px-6 py-4 border-b border-[var(--sf-gold)]/10">
+                <Bell className="w-5 h-5 text-[var(--sf-gold)]" />
+                <div>
+                  <GoldHeading level={3} className="text-base font-semibold">Notification Preferences</GoldHeading>
+                  <p className="text-neutral-400 text-xs mt-0.5">Choose which events trigger badge and toast notifications</p>
                 </div>
-                <Switch
-                  checked={prefs.badgePulse}
-                  onCheckedChange={(checked) => update({ badgePulse: checked })}
-                />
               </div>
-              <div className="flex items-center justify-between px-6 py-5">
-                <div className="flex items-start gap-3">
-                  <Bell className="w-4 h-4 text-[var(--sf-gold)] mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-white">Toast notifications</p>
-                    <p className="text-xs text-neutral-400 mt-0.5">
-                      Show a pop-up toast when posts are published or newly scheduled
-                    </p>
+              <div className="divide-y divide-[var(--sf-gold)]/10">
+                <div className="flex items-center justify-between px-6 py-5">
+                  <div className="flex items-start gap-3">
+                    <Zap className="w-4 h-4 text-[var(--sf-gold)] mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-white">Badge pulse animation</p>
+                      <p className="text-xs text-neutral-400 mt-0.5">
+                        Animate the scheduler badge when the scheduled post count changes
+                      </p>
+                    </div>
                   </div>
+                  <Switch
+                    checked={prefs.badgePulse}
+                    onCheckedChange={(checked) => update({ badgePulse: checked })}
+                  />
                 </div>
-                <Switch
-                  checked={prefs.toastNotifications}
-                  onCheckedChange={(checked) => update({ toastNotifications: checked })}
-                />
+                <div className="flex items-center justify-between px-6 py-5">
+                  <div className="flex items-start gap-3">
+                    <Bell className="w-4 h-4 text-[var(--sf-gold)] mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-white">Toast notifications</p>
+                      <p className="text-xs text-neutral-400 mt-0.5">
+                        Show a pop-up toast when posts are published or newly scheduled
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={prefs.toastNotifications}
+                    onCheckedChange={(checked) => update({ toastNotifications: checked })}
+                  />
+                </div>
               </div>
-            </div>
-          </GlassCard>
-        </div>
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[var(--sf-gold)]/10">
+                <GhostButton onClick={handleReset}>Reset</GhostButton>
+                <GoldButton onClick={handleSave}>Save</GoldButton>
+              </div>
+            </GlassCard>
+          </TabsContent>
+        </Tabs>
       </SfsContainer>
     </div>
   );
