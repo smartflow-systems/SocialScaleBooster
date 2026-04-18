@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import {
   FileText, ArrowLeft, Send, Copy, Loader2, Sparkles,
-  BookmarkPlus, Trash2, ChevronDown, ChevronUp, CalendarClock,
+  BookmarkPlus, Trash2, ChevronDown, ChevronUp, CalendarClock, Pencil, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
@@ -52,6 +52,7 @@ export default function CreatePost() {
   const [loading, setLoading] = useState(false);
   const [tokensUsed, setTokensUsed] = useState(0);
   const [showDrafts, setShowDrafts] = useState(false);
+  const [editingDraftId, setEditingDraftId] = useState<number | null>(null);
 
   // Schedule modal state
   const [showSchedule, setShowSchedule] = useState(false);
@@ -62,6 +63,12 @@ export default function CreatePost() {
   const { data: drafts = [], isLoading: draftsLoading } = useQuery<Draft[]>({
     queryKey: ["/api/drafts"],
   });
+
+  useEffect(() => {
+    if (editingDraftId !== null && !draftsLoading && !drafts.some((d) => d.id === editingDraftId)) {
+      setEditingDraftId(null);
+    }
+  }, [drafts, draftsLoading, editingDraftId]);
 
   const saveDraftMutation = useMutation({
     mutationFn: async () => {
@@ -89,6 +96,26 @@ export default function CreatePost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/drafts"] });
       toast({ title: "Draft deleted" });
+    },
+  });
+
+  const updateDraftMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("PUT", `/api/drafts/${id}`, {
+        topic,
+        content: result,
+        platform,
+        tone,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/drafts"] });
+      setEditingDraftId(null);
+      toast({ title: "Draft updated!" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to update draft", description: err.message, variant: "destructive" });
     },
   });
 
@@ -133,7 +160,22 @@ export default function CreatePost() {
     setTone(draft.tone);
     setTopic(draft.topic);
     setShowDrafts(false);
+    setEditingDraftId(null);
     toast({ title: "Draft loaded" });
+  };
+
+  const editDraft = (draft: Draft) => {
+    setResult(draft.content);
+    setPlatform(draft.platform);
+    setTone(draft.tone);
+    setTopic(draft.topic);
+    setEditingDraftId(draft.id);
+    setShowDrafts(false);
+    toast({ title: "Editing draft — modify fields then click \"Update Draft\"" });
+  };
+
+  const cancelEditDraft = () => {
+    setEditingDraftId(null);
   };
 
   const handleSchedule = async () => {
@@ -228,8 +270,15 @@ export default function CreatePost() {
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button
-                    onClick={() => loadDraft(draft)}
+                    onClick={() => editDraft(draft)}
                     className="text-xs text-accent-gold hover:text-gold-trim transition-colors border border-accent-gold/30 rounded px-2 py-1"
+                  >
+                    <Pencil className="w-3 h-3 inline mr-0.5" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => loadDraft(draft)}
+                    className="text-xs text-neutral-gray hover:text-white transition-colors border border-white/10 rounded px-2 py-1"
                   >
                     Load
                   </button>
@@ -331,8 +380,16 @@ export default function CreatePost() {
 
           <div className="border border-accent-gold/20 rounded-xl p-6 bg-rich-brown/10 flex flex-col min-h-[420px]">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white font-semibold">Generated Post</h2>
-              {result && (
+              <div className="flex items-center gap-2">
+                <h2 className="text-white font-semibold">Generated Post</h2>
+                {editingDraftId && (
+                  <span className="text-xs bg-accent-gold/20 text-accent-gold border border-accent-gold/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Pencil className="w-3 h-3" />
+                    Editing draft
+                  </span>
+                )}
+              </div>
+              {result && !editingDraftId && (
                 <span className="text-xs text-neutral-gray bg-primary-black px-2 py-1 rounded border border-accent-gold/10">
                   {platformLabel} · {tokensUsed} tokens
                 </span>
@@ -359,27 +416,54 @@ export default function CreatePost() {
                     <Copy className="w-3.5 h-3.5 mr-1.5" />
                     Copy Post
                   </Button>
-                  <Button
-                    onClick={() => saveDraftMutation.mutate()}
-                    disabled={saveDraftMutation.isPending}
-                    variant="outline"
-                    className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
-                  >
-                    {saveDraftMutation.isPending ? (
-                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                    ) : (
-                      <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
-                    )}
-                    Save Draft
-                  </Button>
-                  <Button
-                    onClick={() => { setScheduleContent(result); setShowSchedule(true); }}
-                    variant="outline"
-                    className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
-                  >
-                    <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
-                    Schedule Post
-                  </Button>
+                  {editingDraftId ? (
+                    <>
+                      <Button
+                        onClick={() => updateDraftMutation.mutate(editingDraftId)}
+                        disabled={updateDraftMutation.isPending}
+                        variant="outline"
+                        className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
+                      >
+                        {updateDraftMutation.isPending ? (
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        ) : (
+                          <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                        )}
+                        Update Draft
+                      </Button>
+                      <Button
+                        onClick={cancelEditDraft}
+                        variant="outline"
+                        className="border-white/10 text-neutral-gray hover:text-white text-xs px-3"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={() => saveDraftMutation.mutate()}
+                        disabled={saveDraftMutation.isPending}
+                        variant="outline"
+                        className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
+                      >
+                        {saveDraftMutation.isPending ? (
+                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        ) : (
+                          <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
+                        )}
+                        Save Draft
+                      </Button>
+                      <Button
+                        onClick={() => { setScheduleContent(result); setShowSchedule(true); }}
+                        variant="outline"
+                        className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
+                      >
+                        <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
+                        Schedule Post
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             ) : (

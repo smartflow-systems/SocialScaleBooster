@@ -1200,6 +1200,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/drafts/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user!.id;
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+      const parsed = insertDraftSchema.omit({ userId: true }).partial().safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: parsed.error.message });
+      if (Object.keys(parsed.data).length === 0) return res.status(400).json({ message: "No fields to update" });
+      const updated = await storage.updateDraft(id, userId, parsed.data);
+      if (!updated) return res.status(404).json({ message: "Draft not found" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.delete("/api/drafts/:id", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const id = parseInt(req.params.id);

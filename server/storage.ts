@@ -66,6 +66,7 @@ export interface IStorage {
   // Draft methods
   getDraftsByUserId(userId: number): Promise<Draft[]>;
   createDraft(draft: InsertDraft): Promise<Draft>;
+  updateDraft(id: number, userId: number, updates: Partial<Pick<Draft, "topic" | "content" | "platform" | "tone">>): Promise<Draft | undefined>;
   deleteDraft(id: number, userId: number): Promise<boolean>;
 }
 
@@ -386,6 +387,15 @@ export class DatabaseStorage implements IStorage {
   async createDraft(draft: InsertDraft): Promise<Draft> {
     const [created] = await db.insert(drafts).values(draft).returning();
     return created;
+  }
+
+  async updateDraft(id: number, userId: number, updates: Partial<Pick<Draft, "topic" | "content" | "platform" | "tone">>): Promise<Draft | undefined> {
+    const [updated] = await db
+      .update(drafts)
+      .set(updates)
+      .where(and(eq(drafts.id, id), eq(drafts.userId, userId)))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteDraft(id: number, userId: number): Promise<boolean> {
@@ -947,6 +957,14 @@ export class MemStorage implements IStorage {
     const newDraft: Draft = { ...draft, id, createdAt: new Date() };
     this.draftsMap.set(id, newDraft);
     return newDraft;
+  }
+
+  async updateDraft(id: number, userId: number, updates: Partial<Pick<Draft, "topic" | "content" | "platform" | "tone">>): Promise<Draft | undefined> {
+    const draft = this.draftsMap.get(id);
+    if (!draft || draft.userId !== userId) return undefined;
+    const updated: Draft = { ...draft, ...updates };
+    this.draftsMap.set(id, updated);
+    return updated;
   }
 
   async deleteDraft(id: number, userId: number): Promise<boolean> {
