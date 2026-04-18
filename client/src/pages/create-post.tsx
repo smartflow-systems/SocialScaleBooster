@@ -599,13 +599,13 @@ export default function CreatePost() {
                         )}
                         Save Draft
                       </GhostButton>
-                      <GhostButton
+                      <GoldButton
                         onClick={() => { setScheduleContent(result); setShowSchedule(true); }}
                         className="flex-1 inline-flex items-center justify-center text-xs px-3"
                       >
                         <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
                         Schedule Post
-                      </GhostButton>
+                      </GoldButton>
                     </>
                   )}
                 </div>
