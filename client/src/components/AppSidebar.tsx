@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth-context";
+import type { Draft } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Bot, Calendar, BarChart3, FileText, Hash,
@@ -30,6 +31,12 @@ export default function AppSidebar() {
   const scheduledCount = countData?.count ?? 0;
   const platformBreakdown = countData?.breakdown ?? {};
   const dataLoaded = countData !== undefined;
+
+  const { data: draftsData } = useQuery<Draft[]>({
+    queryKey: ["/api/drafts"],
+    refetchInterval: 60_000,
+  });
+  const draftsCount = draftsData?.length ?? 0;
 
   useEffect(() => {
     if (!dataLoaded) return;
@@ -109,7 +116,7 @@ export default function AppSidebar() {
       title: "Create",
       items: [
         { label: "Create Post", href: "/create", icon: FileText },
-        { label: "Drafts", href: "/drafts", icon: BookmarkPlus },
+        { label: "Drafts", href: "/drafts", icon: BookmarkPlus, badge: draftsCount > 0 ? draftsCount : undefined },
         { label: "Caption Generator", href: "/captions", icon: MessageSquare },
         { label: "Hashtag Research", href: "/hashtags", icon: Hash },
         { label: "Templates", href: "/templates", icon: BookOpen },
