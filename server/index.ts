@@ -41,8 +41,16 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  await runMigrations();
-  await seedBotTemplates();
+  try {
+    await runMigrations();
+  } catch (err: any) {
+    console.error('[db] startup: database unavailable, falling back to in-memory storage:', err.message);
+  }
+  try {
+    await seedBotTemplates();
+  } catch (err: any) {
+    console.warn('[seed] skipped bot template seeding — database unavailable:', err.message);
+  }
   await startPostScheduler();
 
   const server = await registerRoutes(app);

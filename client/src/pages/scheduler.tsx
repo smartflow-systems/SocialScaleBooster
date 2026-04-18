@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, ChevronUp, ChevronDown, GripVertical, ArrowUpDown } from "lucide-react";
+import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, ChevronUp, ChevronDown, GripVertical, ArrowUpDown, CheckCircle2 } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DndContext,
   closestCenter,
@@ -239,7 +240,6 @@ function SortablePostCard({
     zIndex: isDragging ? 10 : undefined,
   };
 
-  const isPast = new Date(post.scheduledAt) < new Date();
   const isEditing = editingPostId === post.id;
 
   return (
@@ -292,13 +292,9 @@ function SortablePostCard({
             </span>
             <Badge
               variant="outline"
-              className={`text-xs capitalize border-0 px-2 py-0.5 ${
-                isPast
-                  ? "bg-neutral-gray/20 text-neutral-gray"
-                  : "bg-accent-gold/10 text-accent-gold"
-              }`}
+              className="text-xs capitalize border-0 px-2 py-0.5 bg-accent-gold/10 text-accent-gold"
             >
-              {isPast ? "past" : post.status}
+              {post.status}
             </Badge>
             <span className="text-xs text-neutral-gray capitalize">
               {platforms.find(p => p.value === post.platform)?.label ?? post.platform}
@@ -341,6 +337,48 @@ function SortablePostCard({
   );
 }
 
+function PublishedPostCard({
+  post,
+  onDelete,
+  deletePending,
+}: {
+  post: ScheduledPost;
+  onDelete: (id: number) => void;
+  deletePending: boolean;
+}) {
+  return (
+    <div className="border border-green-500/20 rounded-xl bg-green-500/5 overflow-hidden">
+      <div className="flex items-start gap-3 p-4">
+        <div className="w-9 h-9 rounded-lg bg-primary-black border border-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <PlatformIcon platform={post.platform} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-sm line-clamp-2 mb-2">{post.content}</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="flex items-center gap-1 text-xs text-neutral-gray">
+              <CheckCircle2 className="w-3 h-3 text-green-400" />
+              Published {formatScheduledAt(post.scheduledAt)}
+            </span>
+            <span className="text-xs text-neutral-gray capitalize">
+              {platforms.find(p => p.value === post.platform)?.label ?? post.platform}
+            </span>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onDelete(post.id)}
+          disabled={deletePending}
+          className="text-neutral-gray hover:text-red-400 hover:bg-red-400/10 flex-shrink-0"
+          title="Remove from history"
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function Scheduler() {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
@@ -349,6 +387,10 @@ export default function Scheduler() {
   const { data: posts = [], isLoading } = useQuery<ScheduledPost[]>({
     queryKey: ["/api/scheduled-posts"],
   });
+
+  const upcomingPosts = posts.filter(p => p.status !== "published");
+  const publishedPosts = posts.filter(p => p.status === "published")
+    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -408,7 +450,7 @@ export default function Scheduler() {
   });
 
   const resetToChronological = () => {
-    const sorted = [...posts].sort(
+    const sorted = [...upcomingPosts].sort(
       (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
     );
     sortByDateMutation.mutate(sorted.map(p => p.id));
@@ -419,7 +461,7 @@ export default function Scheduler() {
   };
 
   const movePost = (index: number, direction: "up" | "down") => {
-    const newPosts = [...posts];
+    const newPosts = [...upcomingPosts];
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= newPosts.length) return;
     [newPosts[index], newPosts[targetIndex]] = [newPosts[targetIndex], newPosts[index]];
@@ -440,10 +482,10 @@ export default function Scheduler() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = posts.findIndex(p => p.id === active.id);
-    const newIndex = posts.findIndex(p => p.id === over.id);
+    const oldIndex = upcomingPosts.findIndex(p => p.id === active.id);
+    const newIndex = upcomingPosts.findIndex(p => p.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
-    const reordered = arrayMove(posts, oldIndex, newIndex);
+    const reordered = arrayMove(upcomingPosts, oldIndex, newIndex);
     reorderMutation.mutate(reordered.map(p => p.id));
   };
 
@@ -566,71 +608,138 @@ export default function Scheduler() {
           </div>
         )}
 
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">
-              Scheduled Queue
-              <span className="ml-2 text-sm font-normal text-neutral-gray">({posts.length} post{posts.length !== 1 ? "s" : ""})</span>
-            </h2>
-            {posts.length > 1 && (
-              <div className="flex items-center gap-3">
-                <p className="text-xs text-neutral-gray">Drag or use arrows to reorder</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={resetToChronological}
-                  disabled={sortByDateMutation.isPending || reorderMutation.isPending}
-                  className="border-accent-gold/30 text-neutral-gray hover:text-accent-gold hover:border-accent-gold/60 hover:bg-accent-gold/5 gap-1.5 text-xs h-7 px-3"
-                  title="Reset to chronological order"
-                >
-                  <ArrowUpDown className="w-3 h-3" />
-                  Sort by date
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="border border-accent-gold/10 rounded-xl p-4 bg-rich-brown/10 animate-pulse h-24" />
-              ))}
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="border border-accent-gold/20 rounded-xl p-10 bg-rich-brown/10 text-center">
-              <Clock className="w-12 h-12 text-accent-gold/30 mx-auto mb-3" />
-              <p className="text-neutral-gray">No posts scheduled yet. Click "Schedule Post" to add one.</p>
-            </div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
+        <Tabs defaultValue="upcoming">
+          <TabsList className="bg-rich-brown/20 border border-accent-gold/20 mb-6 w-full sm:w-auto">
+            <TabsTrigger
+              value="upcoming"
+              className="data-[state=active]:bg-accent-gold data-[state=active]:text-primary-black text-neutral-gray flex-1 sm:flex-none gap-2"
             >
-              <SortableContext
-                items={posts.map(p => p.id)}
-                strategy={verticalListSortingStrategy}
-              >
+              <Clock className="w-4 h-4" />
+              Upcoming
+              {upcomingPosts.length > 0 && (
+                <span className="ml-1 rounded-full bg-accent-gold/20 data-[state=active]:bg-primary-black/20 px-1.5 py-0.5 text-xs leading-none">
+                  {upcomingPosts.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              value="published"
+              className="data-[state=active]:bg-green-500 data-[state=active]:text-white text-neutral-gray flex-1 sm:flex-none gap-2"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              Published
+              {publishedPosts.length > 0 && (
+                <span className="ml-1 rounded-full bg-green-500/20 data-[state=active]:bg-white/20 px-1.5 py-0.5 text-xs leading-none">
+                  {publishedPosts.length}
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upcoming">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">
+                  Scheduled Queue
+                  <span className="ml-2 text-sm font-normal text-neutral-gray">({upcomingPosts.length} post{upcomingPosts.length !== 1 ? "s" : ""})</span>
+                </h2>
+                {upcomingPosts.length > 1 && (
+                  <div className="flex items-center gap-3">
+                    <p className="text-xs text-neutral-gray hidden sm:block">Drag or use arrows to reorder</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetToChronological}
+                      disabled={sortByDateMutation.isPending || reorderMutation.isPending}
+                      className="border-accent-gold/30 text-neutral-gray hover:text-accent-gold hover:border-accent-gold/60 hover:bg-accent-gold/5 gap-1.5 text-xs h-7 px-3"
+                      title="Reset to chronological order"
+                    >
+                      <ArrowUpDown className="w-3 h-3" />
+                      Sort by date
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {isLoading ? (
                 <div className="space-y-3">
-                  {posts.map((post, index) => (
-                    <SortablePostCard
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="border border-accent-gold/10 rounded-xl p-4 bg-rich-brown/10 animate-pulse h-24" />
+                  ))}
+                </div>
+              ) : upcomingPosts.length === 0 ? (
+                <div className="border border-accent-gold/20 rounded-xl p-10 bg-rich-brown/10 text-center">
+                  <Clock className="w-12 h-12 text-accent-gold/30 mx-auto mb-3" />
+                  <p className="text-neutral-gray">No posts scheduled yet. Click "Schedule Post" to add one.</p>
+                </div>
+              ) : (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={upcomingPosts.map(p => p.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {upcomingPosts.map((post, index) => (
+                        <SortablePostCard
+                          key={post.id}
+                          post={post}
+                          index={index}
+                          total={upcomingPosts.length}
+                          isReordering={reorderMutation.isPending}
+                          editingPostId={editingPostId}
+                          onMovePost={movePost}
+                          onSetEditingPostId={setEditingPostId}
+                          onDelete={(id) => deleteMutation.mutate(id)}
+                          deletePending={deleteMutation.isPending}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="published">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">
+                  Published History
+                  <span className="ml-2 text-sm font-normal text-neutral-gray">({publishedPosts.length} post{publishedPosts.length !== 1 ? "s" : ""})</span>
+                </h2>
+              </div>
+
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2].map(i => (
+                    <div key={i} className="border border-green-500/10 rounded-xl p-4 bg-green-500/5 animate-pulse h-20" />
+                  ))}
+                </div>
+              ) : publishedPosts.length === 0 ? (
+                <div className="border border-green-500/20 rounded-xl p-10 bg-green-500/5 text-center">
+                  <CheckCircle2 className="w-12 h-12 text-green-400/30 mx-auto mb-3" />
+                  <p className="text-neutral-gray">No posts published yet.</p>
+                  <p className="text-neutral-gray/60 text-sm mt-1">Posts will appear here once they go live automatically.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {publishedPosts.map(post => (
+                    <PublishedPostCard
                       key={post.id}
                       post={post}
-                      index={index}
-                      total={posts.length}
-                      isReordering={reorderMutation.isPending}
-                      editingPostId={editingPostId}
-                      onMovePost={movePost}
-                      onSetEditingPostId={setEditingPostId}
                       onDelete={(id) => deleteMutation.mutate(id)}
                       deletePending={deleteMutation.isPending}
                     />
                   ))}
                 </div>
-              </SortableContext>
-            </DndContext>
-          )}
-        </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
