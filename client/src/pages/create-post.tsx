@@ -530,7 +530,7 @@ export default function CreatePost() {
                 value={scheduleContent}
                 onChange={(e) => setScheduleContent(e.target.value)}
                 rows={5}
-                className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-3 py-2.5 text-white text-xs leading-relaxed resize-none focus:outline-none focus:border-accent-gold/50 placeholder:text-neutral-gray/40"
+                className={`w-full bg-primary-black border rounded-lg px-3 py-2.5 text-white text-xs leading-relaxed resize-none focus:outline-none placeholder:text-neutral-gray/40 ${scheduleContent.length > (PLATFORM_CHAR_LIMITS[platform] ?? 3000) ? "border-red-500/60 focus:border-red-500" : "border-accent-gold/20 focus:border-accent-gold/50"}`}
                 placeholder="Edit your post content here…"
               />
               <div className="flex justify-end mt-1">
@@ -538,6 +538,12 @@ export default function CreatePost() {
                   {scheduleContent.length} / {PLATFORM_CHAR_LIMITS[platform] ?? 3000}
                 </span>
               </div>
+              {scheduleContent.length > (PLATFORM_CHAR_LIMITS[platform] ?? 3000) && (
+                <p className="text-xs text-red-400 mt-2 flex items-center gap-1.5">
+                  <span className="inline-block w-3.5 h-3.5 rounded-full bg-red-500/20 border border-red-500/40 text-red-400 text-[10px] font-bold flex items-center justify-center leading-none">!</span>
+                  Content is {scheduleContent.length - (PLATFORM_CHAR_LIMITS[platform] ?? 3000)} character{scheduleContent.length - (PLATFORM_CHAR_LIMITS[platform] ?? 3000) === 1 ? "" : "s"} over the {platformLabel} limit. Trim it before scheduling.
+                </p>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -550,7 +556,7 @@ export default function CreatePost() {
               </Button>
               <Button
                 onClick={handleSchedule}
-                disabled={scheduling || !scheduleDate}
+                disabled={scheduling || !scheduleDate || scheduleContent.length > (PLATFORM_CHAR_LIMITS[platform] ?? 3000)}
                 className="flex-1 bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold hover:opacity-90 disabled:opacity-50"
               >
                 {scheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : "Schedule"}
