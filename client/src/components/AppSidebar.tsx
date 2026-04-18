@@ -18,6 +18,8 @@ export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [badgePulse, setBadgePulse] = useState(false);
   const prevCountRef = useRef<number | null>(null);
+  const pendingDeltaRef = useRef<number>(0);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast } = useToast();
   const { prefs } = useNotificationPrefs();
 
@@ -42,32 +44,44 @@ export default function AppSidebar() {
 
     if (scheduledCount === prev) return;
 
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    pendingDeltaRef.current += scheduledCount - prev;
 
+    let pulseTimer: ReturnType<typeof setTimeout> | undefined;
     if (prefs.badgePulse) {
       setBadgePulse(true);
-      timer = setTimeout(() => setBadgePulse(false), 1200);
+      pulseTimer = setTimeout(() => setBadgePulse(false), 1200);
     }
 
     if (prefs.toastNotifications) {
-      if (scheduledCount < prev) {
-        const diff = prev - scheduledCount;
-        toast({
-          title: "Post Published",
-          description: `${diff} scheduled post${diff > 1 ? "s were" : " was"} published. ${scheduledCount} remaining in queue.`,
-        });
-      } else {
-        const diff = scheduledCount - prev;
-        toast({
-          title: "New Scheduled Post",
-          description: `${diff} new post${diff > 1 ? "s" : ""} added to your schedule. ${scheduledCount} total queued.`,
-        });
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
+
+      debounceTimerRef.current = setTimeout(() => {
+        const netDelta = pendingDeltaRef.current;
+        pendingDeltaRef.current = 0;
+        debounceTimerRef.current = null;
+
+        const currentCount = prevCountRef.current ?? scheduledCount;
+
+        if (netDelta < 0) {
+          const diff = Math.abs(netDelta);
+          toast({
+            title: "Post Published",
+            description: `${diff} scheduled post${diff > 1 ? "s were" : " was"} published. ${currentCount} remaining in queue.`,
+          });
+        } else if (netDelta > 0) {
+          toast({
+            title: "New Scheduled Post",
+            description: `${netDelta} new post${netDelta > 1 ? "s" : ""} added to your schedule. ${currentCount} total queued.`,
+          });
+        }
+      }, 5_000);
     }
 
     return () => {
-      if (timer) {
-        clearTimeout(timer);
+      if (pulseTimer) {
+        clearTimeout(pulseTimer);
         setBadgePulse(false);
       }
     };
