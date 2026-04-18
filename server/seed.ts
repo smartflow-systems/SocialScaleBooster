@@ -1,6 +1,7 @@
+import { type InsertBotTemplate } from "@shared/schema";
 import { storage } from "./storage";
 
-const DEFAULT_TEMPLATES = [
+const DEFAULT_TEMPLATES: InsertBotTemplate[] = [
   {
     name: "Instagram Growth Bot",
     category: "growth",
@@ -9,7 +10,7 @@ const DEFAULT_TEMPLATES = [
     isPremium: false,
     price: null,
     imageUrl: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400&h=200&fit=crop",
-    config: JSON.stringify({ engageFrequency: "high", targetHashtags: ["growth", "smallbusiness"] }),
+    config: { engageFrequency: "high", targetHashtags: ["growth", "smallbusiness"] },
     rating: "4.8",
     reviewCount: 312,
   },
@@ -21,7 +22,7 @@ const DEFAULT_TEMPLATES = [
     isPremium: false,
     price: null,
     imageUrl: "https://images.unsplash.com/photo-1611605698335-8b1569810432?w=400&h=200&fit=crop",
-    config: JSON.stringify({ replyEnabled: true, retweetEnabled: true }),
+    config: { replyEnabled: true, retweetEnabled: true },
     rating: "4.6",
     reviewCount: 189,
   },
@@ -33,7 +34,7 @@ const DEFAULT_TEMPLATES = [
     isPremium: true,
     price: "29.00",
     imageUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=200&fit=crop",
-    config: JSON.stringify({ targetTitle: "CEO, Founder, CMO", sendConnectionNote: true }),
+    config: { targetTitle: "CEO, Founder, CMO", sendConnectionNote: true },
     rating: "4.9",
     reviewCount: 97,
   },
@@ -45,7 +46,7 @@ const DEFAULT_TEMPLATES = [
     isPremium: false,
     price: null,
     imageUrl: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400&h=200&fit=crop",
-    config: JSON.stringify({ trendCheckInterval: "6h" }),
+    config: { trendCheckInterval: "6h" },
     rating: "4.7",
     reviewCount: 254,
   },
@@ -57,7 +58,7 @@ const DEFAULT_TEMPLATES = [
     isPremium: false,
     price: null,
     imageUrl: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=400&h=200&fit=crop",
-    config: JSON.stringify({ autoWelcome: true, postSchedule: "daily" }),
+    config: { autoWelcome: true, postSchedule: "daily" },
     rating: "4.5",
     reviewCount: 143,
   },
@@ -69,21 +70,17 @@ const DEFAULT_TEMPLATES = [
     isPremium: true,
     price: "99.00",
     imageUrl: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=200&fit=crop",
-    config: JSON.stringify({ clientLimit: 999, whiteLabel: true }),
+    config: { clientLimit: 999, whiteLabel: true },
     rating: "5.0",
     reviewCount: 41,
   },
 ];
 
 export async function seedBotTemplates() {
-  try {
-    const existing = await storage.getAllBotTemplates();
-    if (existing.length > 0) return;
-    for (const tpl of DEFAULT_TEMPLATES) {
-      await storage.createBotTemplate(tpl as any);
-    }
-    console.log(`[seed] inserted ${DEFAULT_TEMPLATES.length} default bot templates`);
-  } catch (err: any) {
-    console.error("[seed] failed to seed bot templates:", err.message);
+  const existing = await storage.getAllBotTemplates();
+  if (existing.length > 0) return;
+  for (const tpl of DEFAULT_TEMPLATES) {
+    await storage.createBotTemplate(tpl);
   }
+  console.log(`[seed] inserted ${DEFAULT_TEMPLATES.length} default bot templates`);
 }
