@@ -333,11 +333,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined> {
-    const post = this.scheduledPostsMap.get(id);
-    if (!post || post.userId !== userId) return undefined;
-    const updatedPost = { ...post, ...updates };
-    this.scheduledPostsMap.set(id, updatedPost);
-    return updatedPost;
+    const [updated] = await db
+      .update(scheduledPosts)
+      .set(updates)
+      .where(and(eq(scheduledPosts.id, id), eq(scheduledPosts.userId, userId)))
+      .returning();
+    return updated || undefined;
   }
 
   async deleteScheduledPost(id: number, userId: number): Promise<boolean> {

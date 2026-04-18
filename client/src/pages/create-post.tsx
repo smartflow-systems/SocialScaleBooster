@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   FileText, ArrowLeft, Send, Copy, Loader2, Sparkles,
   BookmarkPlus, Trash2, ChevronDown, ChevronUp, CalendarClock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ToastAction } from "@/components/ui/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -33,6 +34,7 @@ const INDUSTRIES = [
 
 export default function CreatePost() {
   const { toast } = useToast();
+  const [, navigate] = useLocation();
   const [topic, setTopic] = useState("");
   const [platform, setPlatform] = useState("instagram");
   const [tone, setTone] = useState("friendly");
@@ -147,7 +149,15 @@ export default function CreatePost() {
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
       setShowSchedule(false);
       setScheduleDate("");
-      toast({ title: "Post scheduled!", description: `Scheduled for ${scheduledAt.toLocaleString()}` });
+      toast({
+        title: "Post scheduled!",
+        description: `Scheduled for ${scheduledAt.toLocaleString()}.`,
+        action: (
+          <ToastAction altText="View Schedule" onClick={() => navigate("/scheduler")}>
+            View Schedule
+          </ToastAction>
+        ),
+      });
     } catch (err: any) {
       toast({ title: "Failed to schedule", description: err.message, variant: "destructive" });
     } finally {
@@ -329,35 +339,33 @@ export default function CreatePost() {
                 <div className="flex-1 bg-primary-black rounded-lg p-4 border border-accent-gold/10">
                   <p className="text-white whitespace-pre-wrap leading-relaxed text-sm">{result}</p>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={copyToClipboard}
-                      className="flex-1 bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold hover:opacity-90"
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy Post
-                    </Button>
-                    <Button
-                      onClick={() => saveDraftMutation.mutate()}
-                      disabled={saveDraftMutation.isPending}
-                      variant="outline"
-                      className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim"
-                    >
-                      {saveDraftMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <BookmarkPlus className="w-4 h-4 mr-2" />
-                      )}
-                      Save Draft
-                    </Button>
-                  </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={copyToClipboard}
+                    className="flex-1 bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold hover:opacity-90 text-xs px-3"
+                  >
+                    <Copy className="w-3.5 h-3.5 mr-1.5" />
+                    Copy Post
+                  </Button>
+                  <Button
+                    onClick={() => saveDraftMutation.mutate()}
+                    disabled={saveDraftMutation.isPending}
+                    variant="outline"
+                    className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
+                  >
+                    {saveDraftMutation.isPending ? (
+                      <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    ) : (
+                      <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
+                    )}
+                    Save Draft
+                  </Button>
                   <Button
                     onClick={() => setShowSchedule(true)}
                     variant="outline"
-                    className="w-full border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim"
+                    className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
                   >
-                    <CalendarClock className="w-4 h-4 mr-2" />
+                    <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
                     Schedule Post
                   </Button>
                 </div>
