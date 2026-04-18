@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import { storage } from "../storage";
 import { log } from "../vite";
+import { getAnalyticsWS } from "../websocket";
 
 async function publishDuePosts(): Promise<void> {
   try {
@@ -13,6 +14,16 @@ async function publishDuePosts(): Promise<void> {
       try {
         await storage.markScheduledPostPublished(post.id);
         log(`[scheduler] Published post ${post.id} (platform: ${post.platform}, user: ${post.userId})`);
+
+        const ws = getAnalyticsWS();
+        if (ws) {
+          ws.broadcastPostPublished({
+            id: post.id,
+            platform: post.platform,
+            content: post.content,
+            userId: post.userId,
+          });
+        }
       } catch (err) {
         log(`[scheduler] Failed to publish post ${post.id}: ${err}`);
       }

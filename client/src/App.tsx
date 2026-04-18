@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 import AppSidebar from "@/components/AppSidebar";
+import { usePostPublishedNotifications } from "@/hooks/usePostPublishedNotifications";
 
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
@@ -49,8 +50,13 @@ function isAppPath(path: string) {
   return APP_PATHS.some((p) => path === p || path.startsWith(p + "/"));
 }
 
+function PostPublishedNotifier({ userId, token }: { userId: number; token: string }) {
+  usePostPublishedNotifications({ userId, token });
+  return null;
+}
+
 function AppRoutes() {
-  const { user, isLoading } = useAuth();
+  const { user, token, isLoading } = useAuth();
   const [location] = useLocation();
 
   if (isLoading) {
@@ -65,6 +71,8 @@ function AppRoutes() {
     <div className="flex min-h-screen bg-[#0D0D0D]">
       {/* Sidebar only for authenticated app pages */}
       {user && isAppPath(location) && <AppSidebar />}
+      {/* Global post-published notification listener */}
+      {user && token && <PostPublishedNotifier userId={user.id} token={token} />}
 
       <div className="flex-1 min-w-0 overflow-x-hidden">
         <Toaster />

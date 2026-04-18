@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import rateLimit from "express-rate-limit";
-import { AnalyticsWebSocketServer } from "./websocket";
+import { AnalyticsWebSocketServer, setAnalyticsWS } from "./websocket";
 import { storage } from "./storage";
 import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema, insertScheduledPostSchema, insertDraftSchema } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
@@ -1303,6 +1303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Initialize WebSocket server for real-time analytics
   const analyticsWS = new AnalyticsWebSocketServer(httpServer);
+  setAnalyticsWS(analyticsWS);
 
   // Handle server shutdown
   process.on('SIGTERM', () => {
