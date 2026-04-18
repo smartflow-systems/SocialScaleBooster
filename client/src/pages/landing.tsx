@@ -370,14 +370,18 @@ export default function Landing() {
             </GhostButton>
           </div>
 
-          <FadeInUp className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-            {heroStats.map((s) => (
-              <div key={s.label} className="text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+            {heroStats.map((s, i) => (
+              <FadeInUp
+                key={s.label}
+                stagger={(Math.min(i + 1, 4) as 1 | 2 | 3 | 4)}
+                className="text-center"
+              >
                 <p className="text-3xl md:text-4xl font-extrabold text-[var(--sf-gold)]">{s.value}</p>
                 <p className="text-xs text-neutral-500 mt-1 uppercase tracking-widest">{s.label}</p>
-              </div>
+              </FadeInUp>
             ))}
-          </FadeInUp>
+          </div>
         </SfsContainer>
       </SfsSection>
 
