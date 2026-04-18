@@ -548,7 +548,7 @@ export default function CreatePost() {
 
             <div className="flex gap-3">
               <Button
-                onClick={() => { setShowSchedule(false); setScheduleDate(""); }}
+                onClick={() => { setResult(scheduleContent); setShowSchedule(false); setScheduleDate(""); }}
                 variant="outline"
                 className="flex-1 border-white/10 text-neutral-gray hover:text-white"
               >
