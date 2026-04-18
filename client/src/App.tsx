@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
+import { NotificationPrefsProvider } from "@/hooks/use-notification-prefs";
 import AppSidebar from "@/components/AppSidebar";
 import { usePostPublishedNotifications } from "@/hooks/usePostPublishedNotifications";
 
@@ -169,7 +170,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <AppRoutes />
+          <NotificationPrefsProvider>
+            <AppRoutes />
+          </NotificationPrefsProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

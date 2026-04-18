@@ -10,6 +10,7 @@ import {
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useNotificationPrefs } from "@/hooks/use-notification-prefs";
 
 export default function AppSidebar() {
   const [location, setLocation] = useLocation();
@@ -18,6 +19,7 @@ export default function AppSidebar() {
   const [badgePulse, setBadgePulse] = useState(false);
   const prevCountRef = useRef<number | null>(null);
   const { toast } = useToast();
+  const { prefs } = useNotificationPrefs();
 
   const { data: countData } = useQuery<{ count: number; breakdown: Record<string, number> }>({
     queryKey: ["/api/scheduled-posts/count"],
@@ -40,25 +42,36 @@ export default function AppSidebar() {
 
     if (scheduledCount === prev) return;
 
-    setBadgePulse(true);
-    const timer = setTimeout(() => setBadgePulse(false), 1200);
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    if (scheduledCount < prev) {
-      const diff = prev - scheduledCount;
-      toast({
-        title: "Post Published",
-        description: `${diff} scheduled post${diff > 1 ? "s were" : " was"} published. ${scheduledCount} remaining in queue.`,
-      });
-    } else {
-      const diff = scheduledCount - prev;
-      toast({
-        title: "New Scheduled Post",
-        description: `${diff} new post${diff > 1 ? "s" : ""} added to your schedule. ${scheduledCount} total queued.`,
-      });
+    if (prefs.badgePulse) {
+      setBadgePulse(true);
+      timer = setTimeout(() => setBadgePulse(false), 1200);
     }
 
-    return () => clearTimeout(timer);
-  }, [scheduledCount, dataLoaded]);
+    if (prefs.toastNotifications) {
+      if (scheduledCount < prev) {
+        const diff = prev - scheduledCount;
+        toast({
+          title: "Post Published",
+          description: `${diff} scheduled post${diff > 1 ? "s were" : " was"} published. ${scheduledCount} remaining in queue.`,
+        });
+      } else {
+        const diff = scheduledCount - prev;
+        toast({
+          title: "New Scheduled Post",
+          description: `${diff} new post${diff > 1 ? "s" : ""} added to your schedule. ${scheduledCount} total queued.`,
+        });
+      }
+    }
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+        setBadgePulse(false);
+      }
+    };
+  }, [scheduledCount, dataLoaded, prefs.badgePulse, prefs.toastNotifications]);
 
   const isActive = (href: string) =>
     href === "/dashboard" ? location === "/dashboard" : location.startsWith(href);
