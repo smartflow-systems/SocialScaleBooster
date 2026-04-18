@@ -74,6 +74,7 @@ function EditPostForm({
     mutationFn: (data: FormData) => apiRequest("PATCH", `/api/scheduled-posts/${post.id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
       toast({ title: "Post updated", description: "Your scheduled post has been updated." });
       onSaved();
     },
@@ -198,6 +199,7 @@ export default function Scheduler() {
     mutationFn: (data: FormData) => apiRequest("POST", "/api/scheduled-posts", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
       form.reset();
       setShowForm(false);
       toast({ title: "Post scheduled", description: "Your post has been added to the queue." });
@@ -211,6 +213,7 @@ export default function Scheduler() {
     mutationFn: (id: number) => apiRequest("DELETE", `/api/scheduled-posts/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
       toast({ title: "Post removed", description: "The scheduled post has been deleted." });
     },
   });
