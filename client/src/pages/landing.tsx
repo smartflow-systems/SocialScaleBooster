@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/ui/navigation";
 import SpaceBackground from "@/components/SpaceBackground";
 import { useLocation } from "wouter";
-import { GlassCard, GoldButton, GhostButton, FadeInUp, SfsSection, SfsContainer } from "@/components/sfs";
+import { GlassCard, GoldButton, GhostButton, FadeInUp, GoldHeading, SfsSection, SfsContainer } from "@/components/sfs";
 import {
   Monitor, Bot, TrendingUp, ArrowRight, X, Check,
   Clock, Users, Star, Zap, Globe, BarChart3,
@@ -346,10 +346,10 @@ export default function Landing() {
             ✦ Now with AI Automation
           </Badge>
 
-          <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.05] mb-6 tracking-tight text-white">
-            We Build Digital<br />
-            <span className="text-gold-gradient">Businesses That Scale.</span>
-          </h1>
+          <GoldHeading level={1} className="text-5xl md:text-7xl font-extrabold leading-[1.05] mb-6 tracking-tight">
+            <span className="text-plain-white">We Build Digital</span><br />
+            Businesses That Scale.
+          </GoldHeading>
 
           <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed">
             SmartFlow Systems is a full-service digital agency delivering world-class apps, AI automation, and marketing — all under one roof.
@@ -402,12 +402,10 @@ export default function Landing() {
             <span className="inline-flex items-center gap-2 text-[var(--sf-gold)] text-xs font-bold uppercase tracking-widest mb-4 bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/20 px-4 py-1.5 rounded-full">
               <Play className="w-3 h-3" /> Live Platform Demo
             </span>
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">
-              Everything your business needs,<br />
-              <span style={{ background: "linear-gradient(90deg,var(--sf-gold),var(--sf-gold-2))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                in one place.
-              </span>
-            </h2>
+            <GoldHeading level={2} className="text-4xl md:text-5xl font-extrabold mb-4">
+              <span className="text-plain-white">Everything your business needs,</span><br />
+              in one place.
+            </GoldHeading>
             <p className="text-neutral-400 max-w-2xl mx-auto text-lg">
               SmartFlow gives your team AI-powered content creation, automated social scheduling, and a full agency CRM — all under one dashboard.
             </p>
@@ -696,7 +694,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-3">What We Do</p>
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Our Services</h2>
+            <GoldHeading level={2} className="text-4xl md:text-5xl font-extrabold mb-4">Our Services</GoldHeading>
             <p className="text-neutral-400 max-w-xl mx-auto">Three core disciplines. One agency. Everything you need to build, automate, and grow.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -742,7 +740,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-3">Case Studies</p>
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Our Work</h2>
+            <GoldHeading level={2} className="text-4xl md:text-5xl font-extrabold mb-4">Our Work</GoldHeading>
             <p className="text-neutral-400 max-w-xl mx-auto">Real projects. Real results. Delivered on time, every time.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -789,9 +787,9 @@ export default function Landing() {
             {/* Left */}
             <div>
               <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-4">Who We Are</p>
-              <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-                A team obsessed with<br /><span className="text-[var(--sf-gold)]">your results.</span>
-              </h2>
+              <GoldHeading level={2} className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
+                <span className="text-plain-white">A team obsessed with</span><br />your results.
+              </GoldHeading>
               <p className="text-neutral-400 leading-relaxed mb-5">
                 SmartFlow Systems gives ambitious businesses access to the digital expertise typically reserved for large corporations — combining strategy, technology, and creativity under one roof.
               </p>
@@ -843,7 +841,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-3">How We Work</p>
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Our Process</h2>
+            <GoldHeading level={2} className="text-4xl md:text-5xl font-extrabold mb-4">Our Process</GoldHeading>
             <p className="text-neutral-400 max-w-xl mx-auto">Simple, transparent, and built around you.</p>
           </div>
 
@@ -887,9 +885,9 @@ export default function Landing() {
           <div className="grid md:grid-cols-2 gap-14 items-start">
             <div>
               <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-4">Get In Touch</p>
-              <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-                Ready to build<br /><span className="text-[var(--sf-gold)]">something great?</span>
-              </h2>
+              <GoldHeading level={2} className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
+                <span className="text-plain-white">Ready to build</span><br />something great?
+              </GoldHeading>
               <p className="text-neutral-400 leading-relaxed mb-10">
                 Tell us about your project and we'll get back to you within one business day. No sales pressure — just an honest conversation.
               </p>

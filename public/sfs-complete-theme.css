@@ -213,6 +213,16 @@ h4 { font-size: clamp(1.25rem, 2.5vw, 1.5rem); }
   color: var(--sf-gold);
 }
 
+/* Override inside .text-gold-gradient to render plain (non-gradient) text */
+.text-gold-gradient .text-plain-white,
+.text-plain-white {
+  background: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: var(--sf-white) !important;
+  color: var(--sf-white) !important;
+}
+
 /* ========================================================================== */
 /* PART 6: BUTTONS */
 /* ========================================================================== */

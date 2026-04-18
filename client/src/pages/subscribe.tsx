@@ -144,10 +144,14 @@ export default function Subscribe() {
                 )}
 
                 <div className="pt-4 pb-4">
-                  <h3 className={`${plan.titleGold ? "text-[var(--sf-gold)]" : "text-white"} text-xl flex items-center gap-2 mb-1 font-bold`}>
+                  <GoldHeading
+                    level={3}
+                    className={`text-xl flex items-center gap-2 mb-1 font-bold ${plan.titleGold ? "" : "!text-white !bg-none"}`}
+                    style={plan.titleGold ? undefined : { WebkitTextFillColor: "var(--sf-white)", backgroundClip: "initial" }}
+                  >
                     <Crown className="w-5 h-5" />
                     {plan.name}
-                  </h3>
+                  </GoldHeading>
                   <div className="flex items-end gap-1 mt-2">
                     <span className="text-4xl font-extrabold text-white">{plan.price}</span>
                     <span className="text-neutral-500 mb-1">{plan.period}</span>
@@ -172,11 +176,11 @@ export default function Subscribe() {
                     >
                       {plan.cta}
                     </button>
-                  ) : plan.highlight ? (
+                  ) : (
                     <GoldButton
                       onClick={() => handleCta(plan)}
                       disabled={loadingPlan !== null}
-                      className="w-full py-4 text-base disabled:opacity-60"
+                      className={`w-full py-4 text-base disabled:opacity-60 ${plan.highlight ? "" : "!opacity-90 hover:!opacity-100"}`}
                     >
                       {loadingPlan === plan.id ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Redirecting...</>
@@ -184,18 +188,6 @@ export default function Subscribe() {
                         plan.cta
                       )}
                     </GoldButton>
-                  ) : (
-                    <GhostButton
-                      onClick={() => handleCta(plan)}
-                      disabled={loadingPlan !== null}
-                      className="w-full py-4 text-base disabled:opacity-60"
-                    >
-                      {loadingPlan === plan.id ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Redirecting...</>
-                      ) : (
-                        plan.cta
-                      )}
-                    </GhostButton>
                   )}
                 </div>
               </GlassCard>
