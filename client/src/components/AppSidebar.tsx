@@ -7,6 +7,7 @@ import {
   Users, Zap, TrendingUp, Settings, CreditCard, HelpCircle,
   MessageSquare, BookOpen, Target, Activity, Share2, Globe,
   Sparkles, LogOut, ChevronLeft, ChevronRight, User, BookmarkPlus,
+  ShieldCheck,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -103,6 +104,16 @@ export default function AppSidebar() {
   };
 
   const sections = [
+    ...(user?.isAdmin
+      ? [
+          {
+            title: "Admin",
+            items: [
+              { label: "Template Manager", href: "/admin/templates", icon: ShieldCheck },
+            ],
+          },
+        ]
+      : []),
     {
       title: "Main",
       items: [
