@@ -18,6 +18,7 @@ import AIStudio from "@/pages/ai-studio";
 import ContentCalendar from "@/pages/calendar";
 import AnalyticsPage from "@/pages/analytics";
 import CreatePost from "@/pages/create-post";
+import DraftsPage from "@/pages/drafts";
 import Templates from "@/pages/templates";
 import Hashtags from "@/pages/hashtags";
 import Captions from "@/pages/captions";
@@ -37,7 +38,7 @@ import Support from "@/pages/support";
 
 const APP_PATHS = [
   "/dashboard", "/ai-studio", "/calendar", "/analytics", "/create",
-  "/templates", "/hashtags", "/captions", "/scheduler", "/auto-engage",
+  "/drafts", "/templates", "/hashtags", "/captions", "/scheduler", "/auto-engage",
   "/dm-automation", "/accounts", "/competitors", "/trends", "/audience",
   "/performance", "/marketplace", "/clients", "/settings", "/help",
   "/tutorials", "/support", "/subscribe", "/checkout",
@@ -90,6 +91,9 @@ function AppRoutes() {
           </Route>
           <Route path="/create">
             {user ? <CreatePost /> : <Redirect to="/login" />}
+          </Route>
+          <Route path="/drafts">
+            {user ? <DraftsPage /> : <Redirect to="/login" />}
           </Route>
           <Route path="/templates">
             {user ? <Templates /> : <Redirect to="/login" />}

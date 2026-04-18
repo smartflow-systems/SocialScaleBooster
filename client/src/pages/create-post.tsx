@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useSearch } from "wouter";
 import {
   FileText, ArrowLeft, Send, Copy, Loader2, Sparkles,
   BookmarkPlus, Trash2, ChevronDown, ChevronUp, CalendarClock, Pencil, X,
@@ -43,6 +43,7 @@ const INDUSTRIES = [
 export default function CreatePost() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const search = useSearch();
   const [topic, setTopic] = useState("");
   const [platform, setPlatform] = useState("instagram");
   const [tone, setTone] = useState("friendly");
@@ -53,6 +54,7 @@ export default function CreatePost() {
   const [tokensUsed, setTokensUsed] = useState(0);
   const [showDrafts, setShowDrafts] = useState(false);
   const [editingDraftId, setEditingDraftId] = useState<number | null>(null);
+  const [autoLoadedDraftId, setAutoLoadedDraftId] = useState<number | null>(null);
 
   // Schedule modal state
   const [showSchedule, setShowSchedule] = useState(false);
@@ -69,6 +71,24 @@ export default function CreatePost() {
       setEditingDraftId(null);
     }
   }, [drafts, draftsLoading, editingDraftId]);
+
+  // Auto-load a draft when navigated from /drafts page with ?draftId=
+  useEffect(() => {
+    if (draftsLoading || drafts.length === 0) return;
+    const params = new URLSearchParams(search);
+    const draftId = params.get("draftId");
+    if (!draftId) return;
+    const id = parseInt(draftId, 10);
+    if (isNaN(id) || id === autoLoadedDraftId) return;
+    const draft = drafts.find((d) => d.id === id);
+    if (!draft) return;
+    setResult(draft.content);
+    setPlatform(draft.platform);
+    setTone(draft.tone);
+    setTopic(draft.topic);
+    setAutoLoadedDraftId(id);
+    toast({ title: "Draft loaded" });
+  }, [drafts, draftsLoading, search]);
 
   const saveDraftMutation = useMutation({
     mutationFn: async () => {

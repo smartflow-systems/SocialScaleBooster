@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Bot, Calendar, BarChart3, FileText, Hash,
   Users, Zap, TrendingUp, Settings, CreditCard, HelpCircle,
   MessageSquare, BookOpen, Target, Activity, Share2, Globe,
-  Sparkles, LogOut, ChevronLeft, ChevronRight, User,
+  Sparkles, LogOut, ChevronLeft, ChevronRight, User, BookmarkPlus,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -82,6 +82,7 @@ export default function AppSidebar() {
       title: "Create",
       items: [
         { label: "Create Post", href: "/create", icon: FileText },
+        { label: "Drafts", href: "/drafts", icon: BookmarkPlus },
         { label: "Caption Generator", href: "/captions", icon: MessageSquare },
         { label: "Hashtag Research", href: "/hashtags", icon: Hash },
         { label: "Templates", href: "/templates", icon: BookOpen },
