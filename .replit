@@ -1,4 +1,4 @@
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "postgresql-16"]
 
 [agent]
 expertMode = true
@@ -44,6 +44,7 @@ NODE_ENV = "production"
 
 [nix]
 packages = ["gh"]
+channel = "stable-25_05"
 
 [postMerge]
 path = "scripts/post-merge.sh"

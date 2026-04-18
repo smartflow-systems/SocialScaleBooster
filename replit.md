@@ -10,6 +10,10 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (April 2026)
 
+✓ **PostgreSQL Database Connected**: Switched from in-memory MemStorage to Drizzle ORM + Neon PostgreSQL. All tables migrated (users, clients, social_accounts, bots, bot_templates, analytics). DATABASE_URL whitespace sanitized in `server/db.ts`. Bot templates seeded via `server/seed.ts`. Users and data now persist across server restarts.
+
+
+
 ✓ **SmartFlow Systems Landing Page**: Full rebuild as digital agency landing page — Hero (dot-grid animation, gradient headline, stats), Ticker marquee, Services 3×2 grid with modals, Work portfolio with alternating cards + tags, About with floating stat cards, Process with → arrows, Contact form, single-row footer. Gold (#FFD700) / dark (#0D0D0D) brand, Inter font.
 
 ✓ **Auth System**: AuthProvider (`client/src/lib/auth-context.tsx`) wrapping the app — login/logout with JWT token stored in localStorage, user object persisted. Auth guard on all `/dashboard` and app routes → redirects to `/login` if unauthenticated.
@@ -78,15 +82,17 @@ The application follows a modern full-stack architecture with the following key 
 
 ## Key Components
 
-### Database Schema (Drizzle ORM)
+### Database Schema (Drizzle ORM - Neon PostgreSQL)
 - **Users Table**: Authentication, premium status, Stripe integration, bot count tracking
+- **Clients Table**: Multi-tenant client management with revenue tracking
+- **Social Accounts Table**: Connected social media accounts with encrypted credentials
 - **Bots Table**: Bot configurations, platform associations, performance metrics
 - **Bot Templates Table**: Marketplace templates with pricing and ratings
 - **Analytics Table**: Revenue tracking, engagement metrics, performance data
 
 ### Authentication & Authorization
-- Currently using mock user system (userId: 1)
-- Prepared for Stripe integration with customer and subscription tracking
+- JWT-based authentication with real user accounts persisted in PostgreSQL
+- Register/login routes write and read from the Neon database
 - Premium vs free tier limitations (3 bots for free users)
 
 ### Bot Management System

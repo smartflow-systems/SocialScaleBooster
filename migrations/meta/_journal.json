@@ -8,6 +8,13 @@
       "when": 1769224202190,
       "tag": "0000_grey_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776464476256,
+      "tag": "0001_strong_wither",
+      "breakpoints": true
     }
   ]
 }
