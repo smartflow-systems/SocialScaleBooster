@@ -1,10 +1,9 @@
 import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/ui/navigation";
 import SpaceBackground from "@/components/SpaceBackground";
 import { useLocation } from "wouter";
-import { GlassCard, GoldButton, GhostButton, FadeInUp } from "@/components/sfs";
+import { GlassCard, GoldButton, GhostButton, FadeInUp, SfsSection, SfsContainer } from "@/components/sfs";
 import {
   Monitor, Bot, TrendingUp, ArrowRight, X, Check,
   Clock, Users, Star, Zap, Globe, BarChart3,
@@ -258,10 +257,10 @@ function ServiceModal({ service, onClose }: { service: typeof services[0]; onClo
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full md:max-w-2xl bg-[#111] border border-[#FFD700]/20 rounded-t-3xl md:rounded-2xl overflow-y-auto max-h-[90vh] md:max-h-[85vh]">
-        <div className="sticky top-0 bg-[#111] border-b border-[#FFD700]/10 px-6 py-4 flex items-start justify-between">
+      <div className="relative w-full md:max-w-2xl bg-[var(--sf-surface)] border border-[var(--sf-gold)]/20 rounded-t-3xl md:rounded-2xl overflow-y-auto max-h-[90vh] md:max-h-[85vh]">
+        <div className="sticky top-0 bg-[var(--sf-surface)] border-b border-[var(--sf-gold)]/10 px-6 py-4 flex items-start justify-between">
           <div>
-            <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-1">{service.tagline}</p>
+            <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-1">{service.tagline}</p>
             <h2 className="text-xl font-bold text-white">{service.title}</h2>
           </div>
           <button onClick={onClose} className="text-neutral-400 hover:text-white ml-4 mt-1">
@@ -271,21 +270,21 @@ function ServiceModal({ service, onClose }: { service: typeof services[0]; onClo
         <div className="px-6 py-5 space-y-6">
           <p className="text-neutral-300 leading-relaxed">{service.summary}</p>
           <div>
-            <h3 className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">What's Included</h3>
+            <h3 className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-3">What's Included</h3>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {service.whatsIncluded.map((item) => (
                 <li key={item} className="flex items-start gap-2 text-sm text-neutral-300">
-                  <Check className="w-4 h-4 text-[#FFD700] flex-shrink-0 mt-0.5" /> {item}
+                  <Check className="w-4 h-4 text-[var(--sf-gold)] flex-shrink-0 mt-0.5" /> {item}
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <h3 className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">How It Works</h3>
+            <h3 className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-3">How It Works</h3>
             <ol className="space-y-3">
               {service.howItWorks.map((s, i) => (
                 <li key={s.step} className="flex gap-3 text-sm">
-                  <span className="text-[#FFD700] font-bold w-5 flex-shrink-0">{i + 1}.</span>
+                  <span className="text-[var(--sf-gold)] font-bold w-5 flex-shrink-0">{i + 1}.</span>
                   <span className="text-neutral-300"><span className="text-white font-medium">{s.step}:</span> {s.desc}</span>
                 </li>
               ))}
@@ -293,26 +292,25 @@ function ServiceModal({ service, onClose }: { service: typeof services[0]; onClo
           </div>
           <div className="flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-2 text-neutral-400">
-              <Clock className="w-4 h-4 text-[#FFD700]" />
+              <Clock className="w-4 h-4 text-[var(--sf-gold)]" />
               <span><span className="text-white font-medium">Delivery:</span> {service.delivery}</span>
             </div>
             <div className="flex items-center gap-2 text-neutral-400">
-              <Users className="w-4 h-4 text-[#FFD700]" />
+              <Users className="w-4 h-4 text-[var(--sf-gold)]" />
               <span><span className="text-white font-medium">Ideal for:</span> {service.idealFor}</span>
             </div>
           </div>
         </div>
-        <div className="sticky bottom-0 bg-[#111] border-t border-[#FFD700]/10 px-6 py-4 flex gap-3">
-          <Button onClick={handleGetStarted} className="flex-1 bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold">
+        <div className="sticky bottom-0 bg-[var(--sf-surface)] border-t border-[var(--sf-gold)]/10 px-6 py-4 flex gap-3">
+          <GoldButton onClick={handleGetStarted} className="flex-1">
             Get Started
-          </Button>
-          <Button
+          </GoldButton>
+          <GhostButton
             onClick={() => { onClose(); setLocation("/subscribe"); }}
-            variant="outline"
-            className="flex-1 border-[#FFD700]/40 text-[#FFD700] hover:bg-[#FFD700]/10"
+            className="flex-1"
           >
             View Pricing
-          </Button>
+          </GhostButton>
         </div>
       </div>
     </div>
@@ -340,19 +338,17 @@ export default function Landing() {
       <Navigation />
 
       {/* ── HERO ──────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 py-24 overflow-hidden">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#FFD700]/5 rounded-full blur-3xl pointer-events-none" />
+      <SfsSection className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 py-24 overflow-hidden">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[var(--sf-gold)]/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="relative z-10 max-w-5xl mx-auto">
-          <Badge className="mb-6 bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/30 text-xs font-semibold px-4 py-1.5 tracking-widest uppercase">
+        <SfsContainer className="relative z-10 max-w-5xl">
+          <Badge className="mb-6 bg-[var(--sf-gold)]/10 text-[var(--sf-gold)] border border-[var(--sf-gold)]/30 text-xs font-semibold px-4 py-1.5 tracking-widest uppercase">
             ✦ Now with AI Automation
           </Badge>
 
-          <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.05] mb-6 tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.05] mb-6 tracking-tight text-white">
             We Build Digital<br />
-            <span style={{ background: "linear-gradient(90deg, #FFD700 0%, #E6C200 60%, #FFD700 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              Businesses That Scale.
-            </span>
+            <span className="text-gold-gradient">Businesses That Scale.</span>
           </h1>
 
           <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -382,33 +378,33 @@ export default function Landing() {
               </div>
             ))}
           </FadeInUp>
-        </div>
-      </section>
+        </SfsContainer>
+      </SfsSection>
 
       {/* ── TICKER ────────────────────────────────────────────────── */}
-      <div className="border-y border-[#FFD700]/15 bg-[#0D0D0D] py-3 overflow-hidden">
+      <div className="border-y border-[var(--sf-gold)]/15 bg-[var(--sf-black)] py-3 overflow-hidden">
         <div className="sfs-ticker flex items-center whitespace-nowrap">
           {[...tickerItems, ...tickerItems].map((item, i) => (
             <span key={i} className="inline-flex items-center gap-4 px-6 text-sm text-neutral-400 font-medium">
-              <span className="text-[#FFD700]">✦</span>{item}
+              <span className="text-[var(--sf-gold)]">✦</span>{item}
             </span>
           ))}
         </div>
       </div>
 
       {/* ── PRODUCT DEMO ──────────────────────────────────────────── */}
-      <section id="platform" className="py-24 px-4 bg-[#0D0D0D] relative overflow-hidden">
+      <SfsSection id="platform" className="py-24 px-4 bg-[var(--sf-black)] relative overflow-hidden">
         {/* subtle background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-[#FFD700]/3 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-[var(--sf-gold)]/3 rounded-full blur-[120px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-12">
-            <span className="inline-flex items-center gap-2 text-[#FFD700] text-xs font-bold uppercase tracking-widest mb-4 bg-[#FFD700]/10 border border-[#FFD700]/20 px-4 py-1.5 rounded-full">
+            <span className="inline-flex items-center gap-2 text-[var(--sf-gold)] text-xs font-bold uppercase tracking-widest mb-4 bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/20 px-4 py-1.5 rounded-full">
               <Play className="w-3 h-3" /> Live Platform Demo
             </span>
             <h2 className="text-4xl md:text-5xl font-extrabold mb-4">
               Everything your business needs,<br />
-              <span style={{ background: "linear-gradient(90deg,#FFD700,#E6C200)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              <span style={{ background: "linear-gradient(90deg,var(--sf-gold),var(--sf-gold-2))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                 in one place.
               </span>
             </h2>
@@ -429,8 +425,8 @@ export default function Landing() {
                 onClick={() => setDemoTab(i)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                   demoTab === i
-                    ? "bg-[#FFD700] text-[#0D0D0D]"
-                    : "border border-white/10 text-neutral-400 hover:border-[#FFD700]/30 hover:text-white bg-white/3"
+                    ? "bg-[var(--sf-gold)] text-[var(--sf-black)]"
+                    : "border border-white/10 text-neutral-400 hover:border-[var(--sf-gold)]/30 hover:text-white bg-white/3"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -440,16 +436,16 @@ export default function Landing() {
           </div>
 
           {/* Demo panel */}
-          <div className="rounded-2xl border border-[#FFD700]/15 bg-[#0f0f0f] overflow-hidden shadow-[0_0_80px_rgba(255,215,0,0.06)]">
+          <GlassCard className="!bg-[var(--sf-surface-3)] !border-[var(--sf-gold)]/15 overflow-hidden shadow-[var(--sf-glow-gold-xl)] !p-0">
             {/* Browser chrome bar */}
-            <div className="flex items-center gap-2 px-5 py-3 bg-[#1a1a1a] border-b border-white/5">
+            <div className="flex items-center gap-2 px-5 py-3 bg-[var(--sf-surface-2)] border-b border-white/5">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-red-500/60" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
                 <div className="w-3 h-3 rounded-full bg-green-500/60" />
               </div>
               <div className="flex-1 mx-4">
-                <div className="bg-[#111] rounded-md px-3 py-1 text-xs text-neutral-500 font-mono w-64 mx-auto text-center">
+                <div className="bg-[var(--sf-surface)] rounded-md px-3 py-1 text-xs text-neutral-500 font-mono w-64 mx-auto text-center">
                   app.smartflowsystems.co.uk
                 </div>
               </div>
@@ -461,7 +457,7 @@ export default function Landing() {
               <div className="grid md:grid-cols-5 min-h-[520px]">
                 {/* Left sidebar */}
                 <div className="md:col-span-2 border-r border-white/5 p-6 flex flex-col gap-4">
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#FFD700] mb-2">Generate Content</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-[var(--sf-gold)] mb-2">Generate Content</p>
 
                   <div>
                     <label className="text-xs text-neutral-500 mb-1.5 block">Platform</label>
@@ -472,7 +468,7 @@ export default function Landing() {
                         { Icon: Linkedin, active: false },
                         { Icon: Facebook, active: false },
                       ].map(({ Icon, active }, i) => (
-                        <div key={i} className={`w-9 h-9 rounded-lg flex items-center justify-center border cursor-pointer ${active ? "border-[#FFD700]/60 bg-[#FFD700]/15 text-[#FFD700]" : "border-white/10 text-neutral-500"}`}>
+                        <div key={i} className={`w-9 h-9 rounded-lg flex items-center justify-center border cursor-pointer ${active ? "border-[var(--sf-gold)]/60 bg-[var(--sf-gold)]/15 text-[var(--sf-gold)]" : "border-white/10 text-neutral-500"}`}>
                           <Icon className="w-4 h-4" />
                         </div>
                       ))}
@@ -483,19 +479,19 @@ export default function Landing() {
                     <label className="text-xs text-neutral-500 mb-1.5 block">Tone</label>
                     <div className="flex flex-wrap gap-1.5">
                       {["Professional", "Casual", "Bold", "Inspiring"].map((t, i) => (
-                        <span key={t} className={`text-xs px-2.5 py-1 rounded-lg border cursor-pointer ${i === 0 ? "border-[#FFD700]/50 bg-[#FFD700]/10 text-[#FFD700]" : "border-white/8 text-neutral-500"}`}>{t}</span>
+                        <span key={t} className={`text-xs px-2.5 py-1 rounded-lg border cursor-pointer ${i === 0 ? "border-[var(--sf-gold)]/50 bg-[var(--sf-gold)]/10 text-[var(--sf-gold)]" : "border-white/8 text-neutral-500"}`}>{t}</span>
                       ))}
                     </div>
                   </div>
 
                   <div className="flex-1">
                     <label className="text-xs text-neutral-500 mb-1.5 block">Topic / Brief</label>
-                    <div className="bg-[#0D0D0D] border border-white/8 rounded-xl p-3 text-sm text-neutral-300 leading-relaxed min-h-[100px]">
+                    <div className="bg-[var(--sf-black)] border border-white/8 rounded-xl p-3 text-sm text-neutral-300 leading-relaxed min-h-[100px]">
                       Announcing our new AI automation service for SMEs — highlight time savings and ROI.
                     </div>
                   </div>
 
-                  <button className="w-full bg-[#FFD700] text-[#0D0D0D] font-bold py-3 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#E6C200] transition-colors">
+                  <button className="w-full bg-[var(--sf-gold)] text-[var(--sf-black)] font-bold py-3 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[var(--sf-gold-2)] transition-colors">
                     <Sparkles className="w-4 h-4" /> Generate with AI
                   </button>
                 </div>
@@ -503,8 +499,8 @@ export default function Landing() {
                 {/* Right — Generated output */}
                 <div className="md:col-span-3 p-6 flex flex-col gap-4">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-bold uppercase tracking-widest text-[#FFD700]">Generated Posts</p>
-                    <span className="text-xs text-neutral-500 bg-[#FFD700]/10 border border-[#FFD700]/20 px-2 py-0.5 rounded-full">3 variants</span>
+                    <p className="text-xs font-bold uppercase tracking-widest text-[var(--sf-gold)]">Generated Posts</p>
+                    <span className="text-xs text-neutral-500 bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/20 px-2 py-0.5 rounded-full">3 variants</span>
                   </div>
 
                   {[
@@ -524,16 +520,16 @@ export default function Landing() {
                       active: false,
                     },
                   ].map((post, i) => (
-                    <div key={i} className={`rounded-xl border p-4 cursor-pointer transition-all ${post.active ? "border-[#FFD700]/40 bg-[#FFD700]/5" : "border-white/5 bg-[#111] hover:border-[#FFD700]/20"}`}>
+                    <div key={i} className={`rounded-xl border p-4 cursor-pointer transition-all ${post.active ? "border-[var(--sf-gold)]/40 bg-[var(--sf-gold)]/5" : "border-white/5 bg-[var(--sf-surface)] hover:border-[var(--sf-gold)]/20"}`}>
                       <p className="text-sm text-neutral-200 leading-relaxed mb-3">{post.text}</p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full bg-[#FFD700]" />
-                          <span className="text-xs text-[#FFD700] font-semibold">Engagement Score: {post.score}</span>
+                          <div className="w-2 h-2 rounded-full bg-[var(--sf-gold)]" />
+                          <span className="text-xs text-[var(--sf-gold)] font-semibold">Engagement Score: {post.score}</span>
                         </div>
                         <div className="flex gap-2">
                           <button className="text-xs text-neutral-500 hover:text-white border border-white/8 px-2.5 py-1 rounded-lg transition-colors">Edit</button>
-                          <button className="text-xs bg-[#FFD700] text-[#0D0D0D] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1">
+                          <button className="text-xs bg-[var(--sf-gold)] text-[var(--sf-black)] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1">
                             <Send className="w-3 h-3" /> Schedule
                           </button>
                         </div>
@@ -549,7 +545,7 @@ export default function Landing() {
               <div className="grid md:grid-cols-5 min-h-[520px]">
                 {/* Queue sidebar */}
                 <div className="md:col-span-2 border-r border-white/5 p-6 flex flex-col gap-3">
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#FFD700] mb-2">Upcoming Queue</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-[var(--sf-gold)] mb-2">Upcoming Queue</p>
                   {[
                     { platform: Instagram, time: "Today, 9:00 AM", text: "🚀 Stop wasting hours on repetitive tasks...", status: "Scheduled" },
                     { platform: Twitter, time: "Today, 12:30 PM", text: "What if your CRM updated itself?...", status: "Scheduled" },
@@ -559,9 +555,9 @@ export default function Landing() {
                   ].map((post, i) => {
                     const PIcon = post.platform;
                     return (
-                      <div key={i} className="flex items-start gap-3 bg-[#111] rounded-xl p-3.5 border border-white/5 hover:border-[#FFD700]/20 transition-all cursor-pointer">
-                        <div className="w-8 h-8 rounded-lg bg-[#FFD700]/10 border border-[#FFD700]/20 flex items-center justify-center flex-shrink-0">
-                          <PIcon className="w-4 h-4 text-[#FFD700]" />
+                      <div key={i} className="flex items-start gap-3 bg-[var(--sf-surface)] rounded-xl p-3.5 border border-white/5 hover:border-[var(--sf-gold)]/20 transition-all cursor-pointer">
+                        <div className="w-8 h-8 rounded-lg bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/20 flex items-center justify-center flex-shrink-0">
+                          <PIcon className="w-4 h-4 text-[var(--sf-gold)]" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs text-neutral-500 mb-0.5">{post.time}</p>
@@ -577,7 +573,7 @@ export default function Landing() {
 
                 {/* Right — weekly calendar */}
                 <div className="md:col-span-3 p-6">
-                  <p className="text-xs font-bold uppercase tracking-widest text-[#FFD700] mb-4">This Week</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-[var(--sf-gold)] mb-4">This Week</p>
                   <div className="grid grid-cols-7 gap-1.5 mb-3">
                     {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
                       <div key={d} className="text-center text-[10px] font-semibold text-neutral-600 uppercase">{d}</div>
@@ -588,12 +584,12 @@ export default function Landing() {
                       const posts = [2, 0, 1, 2, 1, 0, 0][i];
                       const isToday = i === 0;
                       return (
-                        <div key={i} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-1 border cursor-pointer transition-all ${isToday ? "border-[#FFD700]/50 bg-[#FFD700]/10" : posts > 0 ? "border-white/10 bg-[#111] hover:border-[#FFD700]/25" : "border-white/5 bg-[#0a0a0a]"}`}>
-                          <span className={`text-sm font-bold ${isToday ? "text-[#FFD700]" : "text-neutral-300"}`}>{14 + i}</span>
+                        <div key={i} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-1 border cursor-pointer transition-all ${isToday ? "border-[var(--sf-gold)]/50 bg-[var(--sf-gold)]/10" : posts > 0 ? "border-white/10 bg-[var(--sf-surface)] hover:border-[var(--sf-gold)]/25" : "border-white/5 bg-[var(--sf-surface-deep)]"}`}>
+                          <span className={`text-sm font-bold ${isToday ? "text-[var(--sf-gold)]" : "text-neutral-300"}`}>{14 + i}</span>
                           {posts > 0 && (
                             <div className="flex gap-0.5">
                               {Array.from({ length: posts }, (_, j) => (
-                                <div key={j} className="w-1.5 h-1.5 rounded-full bg-[#FFD700]/70" />
+                                <div key={j} className="w-1.5 h-1.5 rounded-full bg-[var(--sf-gold)]/70" />
                               ))}
                             </div>
                           )}
@@ -609,8 +605,8 @@ export default function Landing() {
                       { label: "Reach this month", value: "24.3K", icon: Globe },
                       { label: "Best time to post", value: "9 AM", icon: Clock },
                     ].map(({ label, value, icon: Icon }) => (
-                      <div key={label} className="bg-[#111] border border-white/5 rounded-xl p-4">
-                        <Icon className="w-4 h-4 text-[#FFD700] mb-2" />
+                      <div key={label} className="bg-[var(--sf-surface)] border border-white/5 rounded-xl p-4">
+                        <Icon className="w-4 h-4 text-[var(--sf-gold)] mb-2" />
                         <p className="text-xl font-extrabold text-white">{value}</p>
                         <p className="text-xs text-neutral-500 mt-0.5">{label}</p>
                       </div>
@@ -630,10 +626,10 @@ export default function Landing() {
                     { label: "Tasks Due", value: "7", icon: Clock, change: "3 overdue" },
                     { label: "Avg. Satisfaction", value: "98%", icon: Star, change: "↑ from 96%" },
                   ].map(({ label, value, icon: Icon, change }) => (
-                    <div key={label} className="bg-[#111] border border-white/5 rounded-xl p-5 hover:border-[#FFD700]/20 transition-all">
+                    <div key={label} className="bg-[var(--sf-surface)] border border-white/5 rounded-xl p-5 hover:border-[var(--sf-gold)]/20 transition-all">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-xs text-neutral-500 uppercase tracking-widest">{label}</p>
-                        <Icon className="w-4 h-4 text-[#FFD700]" />
+                        <Icon className="w-4 h-4 text-[var(--sf-gold)]" />
                       </div>
                       <p className="text-2xl font-extrabold text-white mb-1">{value}</p>
                       <p className="text-xs text-neutral-600">{change}</p>
@@ -641,7 +637,7 @@ export default function Landing() {
                   ))}
                 </div>
 
-                <p className="text-xs font-bold uppercase tracking-widest text-[#FFD700] mb-4">Client Accounts</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-[var(--sf-gold)] mb-4">Client Accounts</p>
                 <div className="grid md:grid-cols-2 gap-3">
                   {[
                     { name: "NexaTrade Ltd", type: "App Development", status: "Active", spend: "£4,200/mo", health: "On Track", avatar: "NT" },
@@ -649,16 +645,16 @@ export default function Landing() {
                     { name: "PulseHealth", type: "AI Automation", status: "Active", spend: "£3,600/mo", health: "On Track", avatar: "PH" },
                     { name: "Crestline Finance", type: "Digital Marketing", status: "Onboarding", spend: "£1,500/mo", health: "New", avatar: "CF" },
                   ].map((client) => (
-                    <div key={client.name} className="flex items-center gap-4 bg-[#111] border border-white/5 rounded-xl p-4 hover:border-[#FFD700]/20 transition-all cursor-pointer">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700]/30 to-[#FFD700]/10 border border-[#FFD700]/20 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-bold text-[#FFD700]">{client.avatar}</span>
+                    <div key={client.name} className="flex items-center gap-4 bg-[var(--sf-surface)] border border-white/5 rounded-xl p-4 hover:border-[var(--sf-gold)]/20 transition-all cursor-pointer">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--sf-gold)]/30 to-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/20 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-[var(--sf-gold)]">{client.avatar}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-white truncate">{client.name}</p>
                         <p className="text-xs text-neutral-500 truncate">{client.type}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="text-sm font-bold text-[#FFD700]">{client.spend}</p>
+                        <p className="text-sm font-bold text-[var(--sf-gold)]">{client.spend}</p>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
                           client.health === "On Track" ? "bg-green-500/15 text-green-400 border border-green-500/20" :
                           client.health === "Attention" ? "bg-amber-500/15 text-amber-400 border border-amber-500/20" :
@@ -670,7 +666,7 @@ export default function Landing() {
                 </div>
               </div>
             )}
-          </div>
+          </GlassCard>
 
           {/* CTA below demo */}
           <div className="mt-10 text-center">
@@ -693,13 +689,13 @@ export default function Landing() {
             </div>
           </div>
         </div>
-      </section>
+      </SfsSection>
 
       {/* ── SERVICES ──────────────────────────────────────────────── */}
-      <section id="services" className="py-24 px-4 bg-[#0D0D0D]">
+      <SfsSection id="services" className="py-24 px-4 bg-[var(--sf-black)]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">What We Do</p>
+            <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-3">What We Do</p>
             <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Our Services</h2>
             <p className="text-neutral-400 max-w-xl mx-auto">Three core disciplines. One agency. Everything you need to build, automate, and grow.</p>
           </div>
@@ -710,28 +706,28 @@ export default function Landing() {
                 <button
                   key={svc.id}
                   onClick={() => setActiveModal(svc)}
-                  className={`group text-left rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(255,215,0,0.12)] focus:outline-none ${
+                  className={`glass-card group text-left p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--sf-glow-gold-md)] focus:outline-none ${
                     svc.featured
-                      ? "border-[#FFD700]/40 bg-gradient-to-br from-[#FFD700]/10 to-[#0D0D0D]"
-                      : "border-white/5 bg-[#111] hover:border-[#FFD700]/25"
+                      ? "!border-[var(--sf-gold)]/40 bg-gradient-to-br from-[var(--sf-gold)]/10 to-[var(--sf-black)]"
+                      : "hover:!border-[var(--sf-gold)]/25"
                   }`}
                 >
                   {svc.featured && (
-                    <span className="inline-block mb-3 text-[10px] font-bold uppercase tracking-widest text-[#0D0D0D] bg-[#FFD700] px-2.5 py-1 rounded-full">
+                    <span className="inline-block mb-3 text-[10px] font-bold uppercase tracking-widest text-[var(--sf-black)] bg-[var(--sf-gold)] px-2.5 py-1 rounded-full">
                       Most Popular
                     </span>
                   )}
-                  <Icon className="w-8 h-8 text-[#FFD700] mb-4" />
+                  <Icon className="w-8 h-8 text-[var(--sf-gold)] mb-4" />
                   <h3 className="text-lg font-bold mb-2">{svc.title}</h3>
                   <p className="text-sm text-neutral-400 leading-relaxed mb-4">{svc.summary}</p>
                   <ul className="space-y-1.5 mb-5">
                     {svc.bullets.map((b) => (
                       <li key={b} className="flex items-center gap-2 text-xs text-neutral-300">
-                        <span className="w-1 h-1 rounded-full bg-[#FFD700] flex-shrink-0" />{b}
+                        <span className="w-1 h-1 rounded-full bg-[var(--sf-gold)] flex-shrink-0" />{b}
                       </li>
                     ))}
                   </ul>
-                  <span className="inline-flex items-center text-[#FFD700] text-sm font-medium gap-1 group-hover:gap-2 transition-all">
+                  <span className="inline-flex items-center text-[var(--sf-gold)] text-sm font-medium gap-1 group-hover:gap-2 transition-all">
                     Learn more <ChevronRight className="w-4 h-4" />
                   </span>
                 </button>
@@ -739,27 +735,27 @@ export default function Landing() {
             })}
           </div>
         </div>
-      </section>
+      </SfsSection>
 
       {/* ── WORK ──────────────────────────────────────────────────── */}
-      <section id="work" className="py-24 px-4 bg-[#0a0a0a]">
+      <SfsSection id="work" className="py-24 px-4 bg-[var(--sf-surface-deep)]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">Case Studies</p>
+            <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-3">Case Studies</p>
             <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Our Work</h2>
             <p className="text-neutral-400 max-w-xl mx-auto">Real projects. Real results. Delivered on time, every time.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {portfolio.map((p, i) => (
-              <div
+              <GlassCard
                 key={i}
-                className={`group rounded-2xl border p-7 hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,215,0,0.08)] flex flex-col ${
+                className={`group p-7 hover:-translate-y-1 transition-all duration-300 hover:shadow-[var(--sf-glow-gold-sm)] flex flex-col ${
                   p.dark
-                    ? "border-white/5 bg-[#0f0f0f] hover:border-[#FFD700]/25"
-                    : "border-[#FFD700]/20 bg-[#1a1a14] hover:border-[#FFD700]/40"
+                    ? "hover:!border-[var(--sf-gold)]/25"
+                    : "!border-[var(--sf-gold)]/20 hover:!border-[var(--sf-gold)]/40"
                 }`}
               >
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#FFD700] bg-[#FFD700]/10 border border-[#FFD700]/20 px-2.5 py-1 rounded-full self-start">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--sf-gold)] bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/20 px-2.5 py-1 rounded-full self-start">
                   {p.category}
                 </span>
                 <h3 className="text-xl font-bold mt-4 mb-2">{p.title}</h3>
@@ -770,31 +766,31 @@ export default function Landing() {
                   ))}
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-[#FFD700]">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[var(--sf-gold)]">
                     <Zap className="w-4 h-4" />{p.result}
                   </div>
                   <button
                     onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-                    className="text-xs text-neutral-500 hover:text-[#FFD700] flex items-center gap-1 transition-colors"
+                    className="text-xs text-neutral-500 hover:text-[var(--sf-gold)] flex items-center gap-1 transition-colors"
                   >
                     View Case Study <ExternalLink className="w-3 h-3" />
                   </button>
                 </div>
-              </div>
+              </GlassCard>
             ))}
           </div>
         </div>
-      </section>
+      </SfsSection>
 
       {/* ── ABOUT ─────────────────────────────────────────────────── */}
-      <section id="about" className="py-24 px-4 bg-[#0D0D0D]">
+      <SfsSection id="about" className="py-24 px-4 bg-[var(--sf-black)]">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-14 items-center">
             {/* Left */}
             <div>
-              <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-4">Who We Are</p>
+              <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-4">Who We Are</p>
               <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-                A team obsessed with<br /><span className="text-[#FFD700]">your results.</span>
+                A team obsessed with<br /><span className="text-[var(--sf-gold)]">your results.</span>
               </h2>
               <p className="text-neutral-400 leading-relaxed mb-5">
                 SmartFlow Systems gives ambitious businesses access to the digital expertise typically reserved for large corporations — combining strategy, technology, and creativity under one roof.
@@ -806,7 +802,7 @@ export default function Landing() {
               {/* 4 pillar pills */}
               <div className="flex flex-wrap gap-2 mb-8">
                 {pillars.map(({ icon: Icon, label }) => (
-                  <span key={label} className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#FFD700] bg-[#FFD700]/10 border border-[#FFD700]/20 px-3 py-1.5 rounded-full">
+                  <span key={label} className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--sf-gold)] bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/20 px-3 py-1.5 rounded-full">
                     <Icon className="w-3 h-3" />{label}
                   </span>
                 ))}
@@ -822,31 +818,31 @@ export default function Landing() {
 
             {/* Right — 3 overlapping floating stat cards + glow */}
             <div className="relative h-72 md:h-80">
-              <div className="absolute inset-8 bg-[#FFD700]/8 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute inset-8 bg-[var(--sf-gold)]/8 rounded-full blur-3xl pointer-events-none" />
               {[
                 { value: "150+", label: "Projects Delivered", Icon: Code, pos: "top-0 left-0 w-48" },
                 { value: "98%", label: "Client Satisfaction", Icon: Star, pos: "top-8 right-0 w-48" },
                 { value: "£8M+", label: "Revenue Generated", Icon: TrendingUp, pos: "bottom-0 left-1/2 -translate-x-1/2 w-52" },
               ].map(({ value, label, Icon, pos }) => (
-                <div
+                <GlassCard
                   key={label}
-                  className={`absolute ${pos} bg-[#111] border border-[#FFD700]/20 rounded-2xl p-5 shadow-[0_0_30px_rgba(255,215,0,0.08)] hover:shadow-[0_0_40px_rgba(255,215,0,0.15)] transition-all`}
+                  className={`absolute ${pos} !border-[var(--sf-gold)]/20 p-5 shadow-[var(--sf-glow-gold-sm)] hover:shadow-[var(--sf-glow-gold-lg)] transition-all`}
                 >
-                  <Icon className="w-4 h-4 text-[#FFD700] mb-2" />
-                  <p className="text-2xl font-extrabold text-[#FFD700]">{value}</p>
+                  <Icon className="w-4 h-4 text-[var(--sf-gold)] mb-2" />
+                  <p className="text-2xl font-extrabold text-[var(--sf-gold)]">{value}</p>
                   <p className="text-xs text-neutral-500 mt-0.5">{label}</p>
-                </div>
+                </GlassCard>
               ))}
             </div>
           </div>
         </div>
-      </section>
+      </SfsSection>
 
       {/* ── PROCESS ───────────────────────────────────────────────── */}
-      <section className="py-24 px-4 bg-[#0a0a0a]">
+      <SfsSection className="py-24 px-4 bg-[var(--sf-surface-deep)]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">How We Work</p>
+            <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-3">How We Work</p>
             <h2 className="text-4xl md:text-5xl font-extrabold mb-4">Our Process</h2>
             <p className="text-neutral-400 max-w-xl mx-auto">Simple, transparent, and built around you.</p>
           </div>
@@ -855,13 +851,13 @@ export default function Landing() {
           <div className="hidden lg:flex items-start gap-0">
             {steps.map((step, i) => (
               <div key={step.n} className="flex items-start flex-1">
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-7 flex-1 hover:border-[#FFD700]/25 transition-all hover:shadow-[0_0_30px_rgba(255,215,0,0.08)]">
-                  <span className="text-3xl font-extrabold text-[#FFD700]/25 block mb-3">{step.n}</span>
+                <GlassCard className="p-7 flex-1 hover:!border-[var(--sf-gold)]/25 transition-all hover:shadow-[var(--sf-glow-gold-sm)]">
+                  <span className="text-3xl font-extrabold text-[var(--sf-gold)]/25 block mb-3">{step.n}</span>
                   <h3 className="text-base font-bold mb-2">{step.title}</h3>
                   <p className="text-xs text-neutral-400 leading-relaxed">{step.desc}</p>
-                </div>
+                </GlassCard>
                 {i < steps.length - 1 && (
-                  <div className="flex items-center px-2 pt-10 flex-shrink-0 text-[#FFD700]/40 text-2xl font-bold select-none">→</div>
+                  <div className="flex items-center px-2 pt-10 flex-shrink-0 text-[var(--sf-gold)]/40 text-2xl font-bold select-none">→</div>
                 )}
               </div>
             ))}
@@ -871,28 +867,28 @@ export default function Landing() {
           <div className="lg:hidden flex flex-col items-center gap-0">
             {steps.map((step, i) => (
               <div key={step.n} className="flex flex-col items-center w-full max-w-md">
-                <div className="bg-[#111] border border-white/5 rounded-2xl p-7 w-full hover:border-[#FFD700]/25 transition-all">
-                  <span className="text-3xl font-extrabold text-[#FFD700]/25 block mb-3">{step.n}</span>
+                <GlassCard className="p-7 w-full hover:!border-[var(--sf-gold)]/25 transition-all">
+                  <span className="text-3xl font-extrabold text-[var(--sf-gold)]/25 block mb-3">{step.n}</span>
                   <h3 className="text-base font-bold mb-2">{step.title}</h3>
                   <p className="text-xs text-neutral-400 leading-relaxed">{step.desc}</p>
-                </div>
+                </GlassCard>
                 {i < steps.length - 1 && (
-                  <div className="py-1 text-[#FFD700]/40 text-2xl font-bold select-none">↓</div>
+                  <div className="py-1 text-[var(--sf-gold)]/40 text-2xl font-bold select-none">↓</div>
                 )}
               </div>
             ))}
           </div>
         </div>
-      </section>
+      </SfsSection>
 
       {/* ── CONTACT ───────────────────────────────────────────────── */}
-      <section id="contact" className="py-24 px-4 bg-[#0D0D0D]">
+      <SfsSection id="contact" className="py-24 px-4 bg-[var(--sf-black)]">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-14 items-start">
             <div>
-              <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-4">Get In Touch</p>
+              <p className="text-[var(--sf-gold)] text-xs font-semibold uppercase tracking-widest mb-4">Get In Touch</p>
               <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-                Ready to build<br /><span className="text-[#FFD700]">something great?</span>
+                Ready to build<br /><span className="text-[var(--sf-gold)]">something great?</span>
               </h2>
               <p className="text-neutral-400 leading-relaxed mb-10">
                 Tell us about your project and we'll get back to you within one business day. No sales pressure — just an honest conversation.
@@ -904,8 +900,8 @@ export default function Landing() {
                   { Icon: MapPin, label: "Based in", value: "London, United Kingdom" },
                 ].map(({ Icon, label, value }) => (
                   <div key={label} className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/20 flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-4 h-4 text-[#FFD700]" />
+                    <div className="w-10 h-10 rounded-xl bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/20 flex items-center justify-center flex-shrink-0">
+                      <Icon className="w-4 h-4 text-[var(--sf-gold)]" />
                     </div>
                     <div>
                       <p className="text-xs text-neutral-500 uppercase tracking-widest">{label}</p>
@@ -916,11 +912,11 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="bg-[#111] border border-white/5 rounded-2xl p-8">
+            <GlassCard className="!bg-[var(--sf-surface)] !border-white/5 p-8">
               {formSent ? (
                 <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-                  <div className="w-14 h-14 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 flex items-center justify-center mb-4">
-                    <Check className="w-7 h-7 text-[#FFD700]" />
+                  <div className="w-14 h-14 rounded-full bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/30 flex items-center justify-center mb-4">
+                    <Check className="w-7 h-7 text-[var(--sf-gold)]" />
                   </div>
                   <h3 className="text-xl font-bold mb-2">Message Sent!</h3>
                   <p className="text-neutral-400 text-sm">We'll be in touch within one business day.</p>
@@ -933,7 +929,7 @@ export default function Landing() {
                       type="text"
                       required
                       placeholder="Your full name"
-                      className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
+                      className="w-full bg-[var(--sf-black)] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--sf-gold)]/50 transition-colors"
                     />
                   </div>
                   <div>
@@ -942,7 +938,7 @@ export default function Landing() {
                       type="email"
                       required
                       placeholder="you@company.com"
-                      className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
+                      className="w-full bg-[var(--sf-black)] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--sf-gold)]/50 transition-colors"
                     />
                   </div>
                   <div>
@@ -951,7 +947,7 @@ export default function Landing() {
                       required
                       rows={5}
                       placeholder="Tell us about your project..."
-                      className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors resize-none"
+                      className="w-full bg-[var(--sf-black)] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--sf-gold)]/50 transition-colors resize-none"
                     />
                   </div>
                   <GoldButton type="submit" className="w-full py-4 text-base">
@@ -959,16 +955,16 @@ export default function Landing() {
                   </GoldButton>
                 </form>
               )}
-            </div>
+            </GlassCard>
           </div>
         </div>
-      </section>
+      </SfsSection>
 
       {/* ── FOOTER ────────────────────────────────────────────────── */}
-      <footer className="border-t border-white/5 bg-[#0a0a0a] py-6 px-4">
+      <footer className="border-t border-white/5 bg-[var(--sf-surface-deep)] py-6 px-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            <p className="font-bold text-[#FFD700]">SmartFlow Systems</p>
+            <p className="font-bold text-[var(--sf-gold)]">SmartFlow Systems</p>
             <p className="text-neutral-600 text-xs hidden sm:block">·</p>
             <p className="text-neutral-600 text-xs">© {new Date().getFullYear()} SmartFlow Systems Ltd. All rights reserved.</p>
           </div>
@@ -979,11 +975,11 @@ export default function Landing() {
               { label: "About", id: "about" },
               { label: "Contact", id: "contact" },
             ].map(({ label, id }) => (
-              <button key={label} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })} className="hover:text-[#FFD700] transition-colors">
+              <button key={label} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })} className="hover:text-[var(--sf-gold)] transition-colors">
                 {label}
               </button>
             ))}
-            <a href="/subscribe" className="hover:text-[#FFD700] transition-colors">Pricing</a>
+            <a href="/subscribe" className="hover:text-[var(--sf-gold)] transition-colors">Pricing</a>
           </div>
         </div>
       </footer>
@@ -994,7 +990,7 @@ export default function Landing() {
       {/* ── ANIMATIONS ────────────────────────────────────────────── */}
       <style>{`
         .sfs-dot-grid {
-          background-image: radial-gradient(circle, #FFD700 1px, transparent 1px);
+          background-image: radial-gradient(circle, var(--sf-gold) 1px, transparent 1px);
           background-size: 32px 32px;
           animation: sfs-dot-drift 20s linear infinite;
         }
