@@ -8,6 +8,8 @@ import {
   Monitor, Bot, TrendingUp, ArrowRight, X, Check,
   Clock, Users, Star, Zap, Globe, BarChart3,
   Mail, Phone, MapPin, ChevronRight, Code, ExternalLink,
+  Sparkles, CalendarDays, LayoutDashboard, Send, ImageIcon,
+  Instagram, Twitter, Linkedin, Facebook, Play,
 } from "lucide-react";
 
 /* ─── SERVICES ──────────────────────────────────────────────────── */
@@ -319,6 +321,7 @@ function ServiceModal({ service, onClose }: { service: typeof services[0]; onClo
 /* ─── MAIN ───────────────────────────────────────────────────────── */
 export default function Landing() {
   const [activeModal, setActiveModal] = useState<typeof services[0] | null>(null);
+  const [demoTab, setDemoTab] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
   const [formSent, setFormSent] = useState(false);
 
@@ -391,6 +394,306 @@ export default function Landing() {
           ))}
         </div>
       </div>
+
+      {/* ── PRODUCT DEMO ──────────────────────────────────────────── */}
+      <section id="platform" className="py-24 px-4 bg-[#0D0D0D] relative overflow-hidden">
+        {/* subtle background glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-[#FFD700]/3 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 text-[#FFD700] text-xs font-bold uppercase tracking-widest mb-4 bg-[#FFD700]/10 border border-[#FFD700]/20 px-4 py-1.5 rounded-full">
+              <Play className="w-3 h-3" /> Live Platform Demo
+            </span>
+            <h2 className="text-4xl md:text-5xl font-extrabold mb-4">
+              Everything your business needs,<br />
+              <span style={{ background: "linear-gradient(90deg,#FFD700,#E6C200)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                in one place.
+              </span>
+            </h2>
+            <p className="text-neutral-400 max-w-2xl mx-auto text-lg">
+              SmartFlow gives your team AI-powered content creation, automated social scheduling, and a full agency CRM — all under one dashboard.
+            </p>
+          </div>
+
+          {/* Tab selector */}
+          <div className="flex items-center justify-center gap-2 mb-10 flex-wrap">
+            {[
+              { icon: Sparkles, label: "AI Content Studio" },
+              { icon: CalendarDays, label: "Social Scheduler" },
+              { icon: LayoutDashboard, label: "Agency Dashboard" },
+            ].map(({ icon: Icon, label }, i) => (
+              <button
+                key={label}
+                onClick={() => setDemoTab(i)}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                  demoTab === i
+                    ? "bg-[#FFD700] text-[#0D0D0D]"
+                    : "border border-white/10 text-neutral-400 hover:border-[#FFD700]/30 hover:text-white bg-white/3"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Demo panel */}
+          <div className="rounded-2xl border border-[#FFD700]/15 bg-[#0f0f0f] overflow-hidden shadow-[0_0_80px_rgba(255,215,0,0.06)]">
+            {/* Browser chrome bar */}
+            <div className="flex items-center gap-2 px-5 py-3 bg-[#1a1a1a] border-b border-white/5">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500/60" />
+                <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
+                <div className="w-3 h-3 rounded-full bg-green-500/60" />
+              </div>
+              <div className="flex-1 mx-4">
+                <div className="bg-[#111] rounded-md px-3 py-1 text-xs text-neutral-500 font-mono w-64 mx-auto text-center">
+                  app.smartflowsystems.co.uk
+                </div>
+              </div>
+              <div className="w-16" />
+            </div>
+
+            {/* Tab 0 — AI Content Studio */}
+            {demoTab === 0 && (
+              <div className="grid md:grid-cols-5 min-h-[520px]">
+                {/* Left sidebar */}
+                <div className="md:col-span-2 border-r border-white/5 p-6 flex flex-col gap-4">
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#FFD700] mb-2">Generate Content</p>
+
+                  <div>
+                    <label className="text-xs text-neutral-500 mb-1.5 block">Platform</label>
+                    <div className="flex gap-2">
+                      {[
+                        { Icon: Instagram, active: true },
+                        { Icon: Twitter, active: false },
+                        { Icon: Linkedin, active: false },
+                        { Icon: Facebook, active: false },
+                      ].map(({ Icon, active }, i) => (
+                        <div key={i} className={`w-9 h-9 rounded-lg flex items-center justify-center border cursor-pointer ${active ? "border-[#FFD700]/60 bg-[#FFD700]/15 text-[#FFD700]" : "border-white/10 text-neutral-500"}`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-neutral-500 mb-1.5 block">Tone</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {["Professional", "Casual", "Bold", "Inspiring"].map((t, i) => (
+                        <span key={t} className={`text-xs px-2.5 py-1 rounded-lg border cursor-pointer ${i === 0 ? "border-[#FFD700]/50 bg-[#FFD700]/10 text-[#FFD700]" : "border-white/8 text-neutral-500"}`}>{t}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex-1">
+                    <label className="text-xs text-neutral-500 mb-1.5 block">Topic / Brief</label>
+                    <div className="bg-[#0D0D0D] border border-white/8 rounded-xl p-3 text-sm text-neutral-300 leading-relaxed min-h-[100px]">
+                      Announcing our new AI automation service for SMEs — highlight time savings and ROI.
+                    </div>
+                  </div>
+
+                  <button className="w-full bg-[#FFD700] text-[#0D0D0D] font-bold py-3 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#E6C200] transition-colors">
+                    <Sparkles className="w-4 h-4" /> Generate with AI
+                  </button>
+                </div>
+
+                {/* Right — Generated output */}
+                <div className="md:col-span-3 p-6 flex flex-col gap-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-bold uppercase tracking-widest text-[#FFD700]">Generated Posts</p>
+                    <span className="text-xs text-neutral-500 bg-[#FFD700]/10 border border-[#FFD700]/20 px-2 py-0.5 rounded-full">3 variants</span>
+                  </div>
+
+                  {[
+                    {
+                      text: "🚀 Stop wasting hours on repetitive tasks. Our AI automation cuts manual work by 80% — so your team focuses on growth, not admin. Book a free discovery call today. #AIAutomation #SME #Productivity",
+                      score: 94,
+                      active: true,
+                    },
+                    {
+                      text: "What if your CRM updated itself? Our AI automation handles lead routing, follow-ups, and reporting — automatically. Clients save an average of 15 hours per week. Let's talk. 💡",
+                      score: 88,
+                      active: false,
+                    },
+                    {
+                      text: "The businesses winning in 2025 aren't working harder — they're working smarter. We help SMEs deploy AI that actually saves money and drives revenue. Results guaranteed. 📈",
+                      score: 91,
+                      active: false,
+                    },
+                  ].map((post, i) => (
+                    <div key={i} className={`rounded-xl border p-4 cursor-pointer transition-all ${post.active ? "border-[#FFD700]/40 bg-[#FFD700]/5" : "border-white/5 bg-[#111] hover:border-[#FFD700]/20"}`}>
+                      <p className="text-sm text-neutral-200 leading-relaxed mb-3">{post.text}</p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full bg-[#FFD700]" />
+                          <span className="text-xs text-[#FFD700] font-semibold">Engagement Score: {post.score}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button className="text-xs text-neutral-500 hover:text-white border border-white/8 px-2.5 py-1 rounded-lg transition-colors">Edit</button>
+                          <button className="text-xs bg-[#FFD700] text-[#0D0D0D] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1">
+                            <Send className="w-3 h-3" /> Schedule
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tab 1 — Social Scheduler */}
+            {demoTab === 1 && (
+              <div className="grid md:grid-cols-5 min-h-[520px]">
+                {/* Queue sidebar */}
+                <div className="md:col-span-2 border-r border-white/5 p-6 flex flex-col gap-3">
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#FFD700] mb-2">Upcoming Queue</p>
+                  {[
+                    { platform: Instagram, time: "Today, 9:00 AM", text: "🚀 Stop wasting hours on repetitive tasks...", status: "Scheduled" },
+                    { platform: Twitter, time: "Today, 12:30 PM", text: "What if your CRM updated itself?...", status: "Scheduled" },
+                    { platform: Linkedin, time: "Tomorrow, 8:00 AM", text: "The businesses winning in 2025...", status: "Draft" },
+                    { platform: Facebook, time: "Wed, 10:00 AM", text: "Introducing our AI automation suite...", status: "Scheduled" },
+                    { platform: Instagram, time: "Thu, 2:00 PM", text: "Client spotlight: AutoFlow CRM saves...", status: "Scheduled" },
+                  ].map((post, i) => {
+                    const PIcon = post.platform;
+                    return (
+                      <div key={i} className="flex items-start gap-3 bg-[#111] rounded-xl p-3.5 border border-white/5 hover:border-[#FFD700]/20 transition-all cursor-pointer">
+                        <div className="w-8 h-8 rounded-lg bg-[#FFD700]/10 border border-[#FFD700]/20 flex items-center justify-center flex-shrink-0">
+                          <PIcon className="w-4 h-4 text-[#FFD700]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-neutral-500 mb-0.5">{post.time}</p>
+                          <p className="text-xs text-neutral-300 truncate">{post.text}</p>
+                        </div>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${post.status === "Scheduled" ? "bg-green-500/15 text-green-400 border border-green-500/20" : "bg-neutral-700/40 text-neutral-500 border border-white/8"}`}>
+                          {post.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Right — weekly calendar */}
+                <div className="md:col-span-3 p-6">
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#FFD700] mb-4">This Week</p>
+                  <div className="grid grid-cols-7 gap-1.5 mb-3">
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
+                      <div key={d} className="text-center text-[10px] font-semibold text-neutral-600 uppercase">{d}</div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {Array.from({ length: 7 }, (_, i) => {
+                      const posts = [2, 0, 1, 2, 1, 0, 0][i];
+                      const isToday = i === 0;
+                      return (
+                        <div key={i} className={`aspect-square rounded-xl flex flex-col items-center justify-center gap-1 border cursor-pointer transition-all ${isToday ? "border-[#FFD700]/50 bg-[#FFD700]/10" : posts > 0 ? "border-white/10 bg-[#111] hover:border-[#FFD700]/25" : "border-white/5 bg-[#0a0a0a]"}`}>
+                          <span className={`text-sm font-bold ${isToday ? "text-[#FFD700]" : "text-neutral-300"}`}>{14 + i}</span>
+                          {posts > 0 && (
+                            <div className="flex gap-0.5">
+                              {Array.from({ length: posts }, (_, j) => (
+                                <div key={j} className="w-1.5 h-1.5 rounded-full bg-[#FFD700]/70" />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-2 gap-4">
+                    {[
+                      { label: "Posts this week", value: "6", icon: Send },
+                      { label: "Avg. engagement", value: "4.8%", icon: TrendingUp },
+                      { label: "Reach this month", value: "24.3K", icon: Globe },
+                      { label: "Best time to post", value: "9 AM", icon: Clock },
+                    ].map(({ label, value, icon: Icon }) => (
+                      <div key={label} className="bg-[#111] border border-white/5 rounded-xl p-4">
+                        <Icon className="w-4 h-4 text-[#FFD700] mb-2" />
+                        <p className="text-xl font-extrabold text-white">{value}</p>
+                        <p className="text-xs text-neutral-500 mt-0.5">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab 2 — Agency Dashboard */}
+            {demoTab === 2 && (
+              <div className="p-6 min-h-[520px]">
+                <div className="grid md:grid-cols-4 gap-4 mb-6">
+                  {[
+                    { label: "Active Clients", value: "14", icon: Users, change: "+2 this month" },
+                    { label: "MRR", value: "£18,400", icon: TrendingUp, change: "+12% vs last month" },
+                    { label: "Tasks Due", value: "7", icon: Clock, change: "3 overdue" },
+                    { label: "Avg. Satisfaction", value: "98%", icon: Star, change: "↑ from 96%" },
+                  ].map(({ label, value, icon: Icon, change }) => (
+                    <div key={label} className="bg-[#111] border border-white/5 rounded-xl p-5 hover:border-[#FFD700]/20 transition-all">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-xs text-neutral-500 uppercase tracking-widest">{label}</p>
+                        <Icon className="w-4 h-4 text-[#FFD700]" />
+                      </div>
+                      <p className="text-2xl font-extrabold text-white mb-1">{value}</p>
+                      <p className="text-xs text-neutral-600">{change}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-xs font-bold uppercase tracking-widest text-[#FFD700] mb-4">Client Accounts</p>
+                <div className="grid md:grid-cols-2 gap-3">
+                  {[
+                    { name: "NexaTrade Ltd", type: "App Development", status: "Active", spend: "£4,200/mo", health: "On Track", avatar: "NT" },
+                    { name: "VerdantShop", type: "E-Commerce + Marketing", status: "Active", spend: "£2,800/mo", health: "Attention", avatar: "VS" },
+                    { name: "PulseHealth", type: "AI Automation", status: "Active", spend: "£3,600/mo", health: "On Track", avatar: "PH" },
+                    { name: "Crestline Finance", type: "Digital Marketing", status: "Onboarding", spend: "£1,500/mo", health: "New", avatar: "CF" },
+                  ].map((client) => (
+                    <div key={client.name} className="flex items-center gap-4 bg-[#111] border border-white/5 rounded-xl p-4 hover:border-[#FFD700]/20 transition-all cursor-pointer">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FFD700]/30 to-[#FFD700]/10 border border-[#FFD700]/20 flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs font-bold text-[#FFD700]">{client.avatar}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">{client.name}</p>
+                        <p className="text-xs text-neutral-500 truncate">{client.type}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-sm font-bold text-[#FFD700]">{client.spend}</p>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                          client.health === "On Track" ? "bg-green-500/15 text-green-400 border border-green-500/20" :
+                          client.health === "Attention" ? "bg-amber-500/15 text-amber-400 border border-amber-500/20" :
+                          "bg-blue-500/15 text-blue-400 border border-blue-500/20"
+                        }`}>{client.health}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* CTA below demo */}
+          <div className="mt-10 text-center">
+            <p className="text-neutral-400 mb-5 text-lg">Ready to see this running for your business?</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Button
+                onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
+                className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-8 py-4 h-auto text-base"
+              >
+                Book a Free Demo <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 px-8 py-4 h-auto text-base"
+                onClick={() => {
+                  window.location.href = "/auth";
+                }}
+              >
+                Start Free Trial
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── SERVICES ──────────────────────────────────────────────── */}
       <section id="services" className="py-24 px-4 bg-[#0D0D0D]">
