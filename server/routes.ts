@@ -1227,6 +1227,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/scheduled-posts/:id/retry", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user!.id;
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+      const updated = await storage.retryScheduledPost(id, userId);
+      if (!updated) return res.status(404).json({ message: "Post not found, not owned by you, or not in failed state" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Scheduled posts count (for sidebar badge)
   app.get("/api/scheduled-posts/count", authenticateToken, async (req: AuthRequest, res) => {
     try {

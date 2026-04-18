@@ -61,6 +61,8 @@ export interface IStorage {
   getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]>;
   getDueScheduledPosts(): Promise<ScheduledPost[]>;
   markScheduledPostPublished(id: number): Promise<void>;
+  markScheduledPostFailed(id: number): Promise<void>;
+  retryScheduledPost(id: number, userId: number): Promise<ScheduledPost | undefined>;
   createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost>;
   updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined>;
   deleteScheduledPost(id: number, userId: number): Promise<boolean>;
@@ -364,6 +366,22 @@ export class DatabaseStorage implements IStorage {
       .update(scheduledPosts)
       .set({ status: "published" })
       .where(eq(scheduledPosts.id, id));
+  }
+
+  async markScheduledPostFailed(id: number): Promise<void> {
+    await db
+      .update(scheduledPosts)
+      .set({ status: "failed" })
+      .where(eq(scheduledPosts.id, id));
+  }
+
+  async retryScheduledPost(id: number, userId: number): Promise<ScheduledPost | undefined> {
+    const [updated] = await db
+      .update(scheduledPosts)
+      .set({ status: "scheduled" })
+      .where(and(eq(scheduledPosts.id, id), eq(scheduledPosts.userId, userId), eq(scheduledPosts.status, "failed")))
+      .returning();
+    return updated || undefined;
   }
 
   async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {
@@ -948,6 +966,21 @@ export class MemStorage implements IStorage {
     if (post) {
       this.scheduledPosts.set(id, { ...post, status: "published" });
     }
+  }
+
+  async markScheduledPostFailed(id: number): Promise<void> {
+    const post = this.scheduledPosts.get(id);
+    if (post) {
+      this.scheduledPosts.set(id, { ...post, status: "failed" });
+    }
+  }
+
+  async retryScheduledPost(id: number, userId: number): Promise<ScheduledPost | undefined> {
+    const post = this.scheduledPosts.get(id);
+    if (!post || post.userId !== userId || post.status !== "failed") return undefined;
+    const updated = { ...post, status: "scheduled" as const };
+    this.scheduledPosts.set(id, updated);
+    return updated;
   }
 
   async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {

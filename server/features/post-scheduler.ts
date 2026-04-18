@@ -11,21 +11,35 @@ async function publishDuePosts(): Promise<void> {
     log(`[scheduler] Found ${duePosts.length} post(s) due for publishing`);
 
     for (const post of duePosts) {
+      let published = false;
       try {
         await storage.markScheduledPostPublished(post.id);
+        published = true;
         log(`[scheduler] Published post ${post.id} (platform: ${post.platform}, user: ${post.userId})`);
-
-        const ws = getAnalyticsWS();
-        if (ws) {
-          ws.broadcastPostPublished({
-            id: post.id,
-            platform: post.platform,
-            content: post.content,
-            userId: post.userId,
-          });
-        }
       } catch (err) {
         log(`[scheduler] Failed to publish post ${post.id}: ${err}`);
+        try {
+          await storage.markScheduledPostFailed(post.id);
+          log(`[scheduler] Marked post ${post.id} as failed`);
+        } catch (failErr) {
+          log(`[scheduler] Could not mark post ${post.id} as failed: ${failErr}`);
+        }
+      }
+
+      if (published) {
+        try {
+          const ws = getAnalyticsWS();
+          if (ws) {
+            ws.broadcastPostPublished({
+              id: post.id,
+              platform: post.platform,
+              content: post.content,
+              userId: post.userId,
+            });
+          }
+        } catch (wsErr) {
+          log(`[scheduler] WebSocket broadcast failed for post ${post.id}: ${wsErr}`);
+        }
       }
     }
   } catch (err) {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, ChevronUp, ChevronDown, GripVertical, ArrowUpDown, CheckCircle2 } from "lucide-react";
+import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, ChevronUp, ChevronDown, GripVertical, ArrowUpDown, CheckCircle2, RotateCcw, AlertCircle } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -212,7 +212,9 @@ function SortablePostCard({
   onMovePost,
   onSetEditingPostId,
   onDelete,
+  onRetry,
   deletePending,
+  retryPending,
 }: {
   post: ScheduledPost;
   index: number;
@@ -222,7 +224,9 @@ function SortablePostCard({
   onMovePost: (index: number, direction: "up" | "down") => void;
   onSetEditingPostId: (id: number | null) => void;
   onDelete: (id: number) => void;
+  onRetry: (id: number) => void;
   deletePending: boolean;
+  retryPending: boolean;
 }) {
   const {
     attributes,
@@ -242,11 +246,13 @@ function SortablePostCard({
 
   const isEditing = editingPostId === post.id;
 
+  const isFailed = post.status === "failed";
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="border border-accent-gold/20 rounded-xl bg-rich-brown/10 overflow-hidden"
+      className={`border rounded-xl overflow-hidden ${isFailed ? "border-red-500/30 bg-red-500/5" : "border-accent-gold/20 bg-rich-brown/10"}`}
     >
       <div className="flex items-start gap-3 p-4">
         <div className="flex flex-col items-center gap-0.5 flex-shrink-0 mt-0.5">
@@ -290,18 +296,40 @@ function SortablePostCard({
               <Clock className="w-3 h-3" />
               {formatScheduledAt(post.scheduledAt)}
             </span>
-            <Badge
-              variant="outline"
-              className="text-xs capitalize border-0 px-2 py-0.5 bg-accent-gold/10 text-accent-gold"
-            >
-              {post.status}
-            </Badge>
+            {isFailed ? (
+              <Badge
+                variant="outline"
+                className="text-xs capitalize border-0 px-2 py-0.5 bg-red-500/10 text-red-400 flex items-center gap-1"
+              >
+                <AlertCircle className="w-3 h-3" />
+                Failed
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="text-xs capitalize border-0 px-2 py-0.5 bg-accent-gold/10 text-accent-gold"
+              >
+                {post.status}
+              </Badge>
+            )}
             <span className="text-xs text-neutral-gray capitalize">
               {platforms.find(p => p.value === post.platform)?.label ?? post.platform}
             </span>
           </div>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
+          {isFailed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onRetry(post.id)}
+              disabled={retryPending}
+              className="text-neutral-gray hover:text-blue-400 hover:bg-blue-400/10 flex-shrink-0"
+              title="Retry publishing"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -421,6 +449,18 @@ export default function Scheduler() {
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
       toast({ title: "Post removed", description: "The scheduled post has been deleted." });
+    },
+  });
+
+  const retryMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("POST", `/api/scheduled-posts/${id}/retry`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
+      toast({ title: "Post queued for retry", description: "The post has been reset to scheduled and will be published at its scheduled time." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not retry the post. Please try again.", variant: "destructive" });
     },
   });
 
@@ -694,7 +734,9 @@ export default function Scheduler() {
                           onMovePost={movePost}
                           onSetEditingPostId={setEditingPostId}
                           onDelete={(id) => deleteMutation.mutate(id)}
+                          onRetry={(id) => retryMutation.mutate(id)}
                           deletePending={deleteMutation.isPending}
+                          retryPending={retryMutation.isPending}
                         />
                       ))}
                     </div>
