@@ -1090,7 +1090,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user!.id;
       const posts = await storage.getScheduledPostsByUserId(userId);
       const upcoming = posts.filter(p => p.status === "scheduled" && new Date(p.scheduledAt) > new Date());
-      res.json({ count: upcoming.length });
+      const breakdown: Record<string, number> = {};
+      for (const post of upcoming) {
+        if (post.platform) {
+          breakdown[post.platform] = (breakdown[post.platform] || 0) + 1;
+        }
+      }
+      res.json({ count: upcoming.length, breakdown });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

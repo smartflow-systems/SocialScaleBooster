@@ -19,11 +19,12 @@ export default function AppSidebar() {
   const prevCountRef = useRef<number | null>(null);
   const { toast } = useToast();
 
-  const { data: countData } = useQuery<{ count: number }>({
+  const { data: countData } = useQuery<{ count: number; breakdown: Record<string, number> }>({
     queryKey: ["/api/scheduled-posts/count"],
     refetchInterval: 60_000,
   });
   const scheduledCount = countData?.count ?? 0;
+  const platformBreakdown = countData?.breakdown ?? {};
   const dataLoaded = countData !== undefined;
 
   useEffect(() => {
@@ -89,7 +90,7 @@ export default function AppSidebar() {
     {
       title: "Automate",
       items: [
-        { label: "Post Scheduler", href: "/scheduler", icon: Zap, badge: scheduledCount > 0 ? scheduledCount : undefined, pulse: badgePulse },
+        { label: "Post Scheduler", href: "/scheduler", icon: Zap, badge: scheduledCount > 0 ? scheduledCount : undefined, pulse: badgePulse, badgeBreakdown: scheduledCount > 0 ? platformBreakdown : undefined },
         { label: "Auto Engagement", href: "/auto-engage", icon: Bot },
         { label: "DM Automation", href: "/dm-automation", icon: MessageSquare },
         { label: "Connected Accounts", href: "/accounts", icon: Globe },
@@ -162,8 +163,12 @@ export default function AppSidebar() {
               </p>
             )}
             <div className="space-y-0.5 px-2">
-              {section.items.map(({ label, href, icon: Icon, badge, pulse }: any) => {
+              {section.items.map(({ label, href, icon: Icon, badge, pulse, badgeBreakdown }: any) => {
                 const active = isActive(href);
+                const breakdownEntries = badgeBreakdown ? Object.entries(badgeBreakdown) as [string, number][] : [];
+                const tooltipText = breakdownEntries.length > 0
+                  ? breakdownEntries.map(([p, c]) => `${p.charAt(0).toUpperCase() + p.slice(1)}: ${c}`).join(", ")
+                  : null;
                 return (
                   <Link key={href} href={href}>
                     <div
@@ -179,9 +184,7 @@ export default function AppSidebar() {
                       <div className="relative flex-shrink-0">
                         <Icon className="w-4 h-4" />
                         {badge !== undefined && collapsed && (
-                          <span className={cn(
-                            "absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#FFD700] text-[#0D0D0D] text-[8px] font-bold flex items-center justify-center",
-                          )}>
+                          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#FFD700] text-[#0D0D0D] text-[8px] font-bold flex items-center justify-center">
                             {badge > 9 ? "9+" : badge}
                             {pulse && (
                               <span className="absolute inset-0 rounded-full bg-[#FFD700] animate-ping opacity-75" />
@@ -193,14 +196,23 @@ export default function AppSidebar() {
                         <>
                           <span className="truncate flex-1">{label}</span>
                           {badge !== undefined && (
-                            <span className={cn(
-                              "relative ml-auto min-w-[20px] h-5 rounded-full bg-[#FFD700]/20 text-[#FFD700] text-[10px] font-bold flex items-center justify-center px-1.5",
-                            )}>
-                              {badge > 99 ? "99+" : badge}
-                              {pulse && (
-                                <span className="absolute inset-0 rounded-full bg-[#FFD700]/50 animate-ping" />
+                            <div className="relative group/badge ml-auto">
+                              <span className={cn(
+                                "relative min-w-[20px] h-5 rounded-full bg-[#FFD700]/20 text-[#FFD700] text-[10px] font-bold flex items-center justify-center px-1.5 cursor-default",
+                              )}>
+                                {badge > 99 ? "99+" : badge}
+                                {pulse && (
+                                  <span className="absolute inset-0 rounded-full bg-[#FFD700]/50 animate-ping" />
+                                )}
+                              </span>
+                              {tooltipText && (
+                                <div className="absolute right-0 bottom-full mb-1.5 z-50 pointer-events-none opacity-0 group-hover/badge:opacity-100 transition-opacity duration-150">
+                                  <div className="bg-[#1a1a1a] border border-[#FFD700]/20 rounded-md px-2.5 py-1.5 text-[10px] text-neutral-300 whitespace-nowrap shadow-lg">
+                                    {tooltipText}
+                                  </div>
+                                </div>
                               )}
-                            </span>
+                            </div>
                           )}
                         </>
                       )}
