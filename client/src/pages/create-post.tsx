@@ -19,6 +19,14 @@ const PLATFORMS = [
   { value: "linkedin", label: "LinkedIn" },
 ];
 
+const PLATFORM_CHAR_LIMITS: Record<string, number> = {
+  twitter: 280,
+  instagram: 2200,
+  tiktok: 2200,
+  linkedin: 3000,
+  facebook: 63206,
+};
+
 const TONES = [
   { value: "professional", label: "Professional" },
   { value: "friendly", label: "Friendly" },
@@ -49,6 +57,7 @@ export default function CreatePost() {
   const [showSchedule, setShowSchedule] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduling, setScheduling] = useState(false);
+  const [scheduleContent, setScheduleContent] = useState("");
 
   const { data: drafts = [], isLoading: draftsLoading } = useQuery<Draft[]>({
     queryKey: ["/api/drafts"],
@@ -141,7 +150,7 @@ export default function CreatePost() {
     try {
       await apiRequest("POST", "/api/scheduled-posts", {
         platform,
-        content: result,
+        content: scheduleContent,
         scheduledAt: scheduledAt.toISOString(),
         status: "scheduled",
       });
@@ -366,7 +375,7 @@ export default function CreatePost() {
                     Save Draft
                   </Button>
                   <Button
-                    onClick={() => setShowSchedule(true)}
+                    onClick={() => { setScheduleContent(result); setShowSchedule(true); }}
                     variant="outline"
                     className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
                   >
@@ -413,8 +422,20 @@ export default function CreatePost() {
               />
             </div>
 
-            <div className="bg-primary-black rounded-lg p-3 border border-accent-gold/10 mb-5 max-h-24 overflow-y-auto">
-              <p className="text-neutral-gray/80 text-xs line-clamp-4">{result}</p>
+            <div className="mb-5">
+              <label className="text-sm text-neutral-gray mb-2 block">Post Content</label>
+              <textarea
+                value={scheduleContent}
+                onChange={(e) => setScheduleContent(e.target.value)}
+                rows={5}
+                className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-3 py-2.5 text-white text-xs leading-relaxed resize-none focus:outline-none focus:border-accent-gold/50 placeholder:text-neutral-gray/40"
+                placeholder="Edit your post content here…"
+              />
+              <div className="flex justify-end mt-1">
+                <span className={`text-xs ${scheduleContent.length > (PLATFORM_CHAR_LIMITS[platform] ?? 3000) ? "text-red-400" : "text-neutral-gray/60"}`}>
+                  {scheduleContent.length} / {PLATFORM_CHAR_LIMITS[platform] ?? 3000}
+                </span>
+              </div>
             </div>
 
             <div className="flex gap-3">
