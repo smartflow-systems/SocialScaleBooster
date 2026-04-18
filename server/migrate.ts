@@ -8,14 +8,17 @@ import { join } from 'path';
  * Run database migrations on startup using Drizzle's migration runner.
  *
  * Strategy:
- * 1. Before running Drizzle's migrate, verify that every migration recorded
- *    in the tracking table has its tables actually present in the DB.
- *    If a record exists for a migration whose tables are missing (e.g. it was
- *    incorrectly pre-seeded), remove that record so Drizzle will apply it.
- * 2. If the tracking table is completely empty but the core schema is already
- *    in place (applied via drizzle-kit push), pre-seed only migrations whose
- *    tables are confirmed to exist — so Drizzle won't try to re-run them.
- * 3. Let Drizzle apply any remaining migrations normally.
+ * 1. Parse each migration's SQL to determine which tables it creates.
+ * 2. For any migration already recorded in the tracking table, verify its tables
+ *    actually exist. If they don't, remove the stale tracking record so Drizzle
+ *    will re-apply the migration.
+ * 3. If the tracking table is empty but the core schema is already present
+ *    (applied via drizzle-kit push), pre-seed only migrations whose tables are
+ *    all confirmed present in the database.
+ * 4. Let Drizzle apply any remaining (unrecorded) migrations normally.
+ *
+ * This approach is fully generic — it requires no per-migration hardcoding and
+ * will work correctly for any future migration added to the journal.
  */
 export async function runMigrations() {
   if (!process.env.DATABASE_URL) {
@@ -34,6 +37,8 @@ export async function runMigrations() {
       )
     `);
 
+    const migrationsDir = join(process.cwd(), 'migrations');
+
     // Helper: check if a table exists in the public schema
     const tableExists = async (tableName: string): Promise<boolean> => {
       const { rows } = await pool.query(
@@ -44,88 +49,87 @@ export async function runMigrations() {
       return rows.length > 0;
     };
 
-    // Helper: check if a column exists in a table
-    const columnExists = async (tableName: string, columnName: string): Promise<boolean> => {
-      const { rows } = await pool.query(
-        `SELECT 1 FROM information_schema.columns
-         WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2`,
-        [tableName, columnName]
-      );
-      return rows.length > 0;
+    // Helper: parse a migration SQL file and return all tables it creates
+    const getCreatedTables = (tag: string): string[] => {
+      try {
+        const sql = readFileSync(join(migrationsDir, `${tag}.sql`), 'utf-8');
+        const matches = [...sql.matchAll(/CREATE TABLE\s+(?:IF NOT EXISTS\s+)?"?(\w+)"?\s*\(/gi)];
+        return matches.map(m => m[1]);
+      } catch {
+        return [];
+      }
     };
 
-    // Migration 0002 creates scheduled_posts and drafts.
-    // If either table is missing, remove any tracking record for that migration
-    // so Drizzle will actually apply it.
-    const scheduledPostsExists = await tableExists('scheduled_posts');
-    const draftsExists = await tableExists('drafts');
+    // Helper: check if all tables created by a migration exist in the DB
+    const allTablesExist = async (tag: string): Promise<boolean> => {
+      const tables = getCreatedTables(tag);
+      if (tables.length === 0) return true; // no tables to check (e.g. pure ALTER migration)
+      for (const table of tables) {
+        if (!(await tableExists(table))) return false;
+      }
+      return true;
+    };
 
-    if (!scheduledPostsExists || !draftsExists) {
-      const journalPath = join(process.cwd(), 'migrations', 'meta', '_journal.json');
-      const journal = JSON.parse(readFileSync(journalPath, 'utf-8'));
-      const entry0002 = journal.entries.find((e: any) => e.tag === '0002_dusty_deathstrike');
+    // Read the journal
+    const journal = JSON.parse(
+      readFileSync(join(migrationsDir, 'meta', '_journal.json'), 'utf-8')
+    );
+    const entries: Array<{ idx: number; tag: string; when: number }> = journal.entries;
 
-      if (entry0002) {
-        await pool.query(
-          `DELETE FROM drizzle.__drizzle_migrations WHERE created_at = $1`,
-          [entry0002.when]
-        );
-        console.log('[db] removed stale tracking record for 0002_dusty_deathstrike — will apply migration');
+    // Get all currently tracked created_at timestamps
+    const { rows: trackedRows } = await pool.query(
+      `SELECT created_at FROM drizzle.__drizzle_migrations`
+    );
+    const trackedTimestamps = new Set(trackedRows.map((r: any) => Number(r.created_at)));
+
+    // Step 1: For tracked migrations whose tables are missing, remove the stale
+    // record so Drizzle will apply the migration properly.
+    for (const entry of entries) {
+      if (trackedTimestamps.has(entry.when)) {
+        const tablesOk = await allTablesExist(entry.tag);
+        if (!tablesOk) {
+          await pool.query(
+            `DELETE FROM drizzle.__drizzle_migrations WHERE created_at = $1`,
+            [entry.when]
+          );
+          trackedTimestamps.delete(entry.when);
+          console.log(`[db] removed stale tracking record for ${entry.tag} — will apply migration`);
+        }
       }
     }
 
-    // Check how many migrations are now recorded
+    // Step 2: If tracking table is now empty but core schema exists, this DB was
+    // bootstrapped via drizzle-kit push. Pre-seed only migrations whose tables
+    // are all confirmed present so Drizzle won't try to re-create them.
     const { rows: countRows } = await pool.query(
       `SELECT COUNT(*) as count FROM drizzle.__drizzle_migrations`
     );
     const recordedCount = Number(countRows[0].count);
 
-    if (recordedCount === 0) {
-      // Tracking table is empty — check if schema was already applied via drizzle-kit push
-      const usersExists = await tableExists('users');
-
-      if (usersExists) {
-        // Pre-seed only migrations whose tables/columns are confirmed present
-        const journalPath = join(process.cwd(), 'migrations', 'meta', '_journal.json');
-        const journal = JSON.parse(readFileSync(journalPath, 'utf-8'));
-
-        for (const entry of journal.entries) {
-          // Migration 0002: requires both scheduled_posts and drafts
-          if (entry.tag === '0002_dusty_deathstrike') {
-            const sp = await tableExists('scheduled_posts');
-            const dr = await tableExists('drafts');
-            if (!sp || !dr) {
-              console.log(`[db] skipping pre-seed for ${entry.tag} — tables missing, will apply migration`);
-              continue;
-            }
-          }
-
-          // Migration 0003: requires sort_order column in scheduled_posts
-          if (entry.tag === '0003_add_sort_order') {
-            const sortOrderExists = await columnExists('scheduled_posts', 'sort_order');
-            if (!sortOrderExists) {
-              console.log(`[db] skipping pre-seed for ${entry.tag} — column missing, will apply migration`);
-              continue;
-            }
-          }
-
+    if (recordedCount === 0 && (await tableExists('users'))) {
+      for (const entry of entries) {
+        const tablesOk = await allTablesExist(entry.tag);
+        if (tablesOk) {
           await pool.query(
             `INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES ($1, $2)
              ON CONFLICT DO NOTHING`,
             [`${entry.tag}_pre_seeded`, entry.when]
           );
           console.log(`[db] pre-seeded migration record: ${entry.tag}`);
+        } else {
+          console.log(`[db] skipping pre-seed for ${entry.tag} — tables missing, will apply migration`);
         }
       }
     }
 
-    // Ensure sort_order column exists in scheduled_posts (idempotent)
+    // Safety net for ALTER-only migrations: ensure sort_order column exists
+    // (idempotent — harmless if the column was already added by a migration)
     await pool.query(
       `ALTER TABLE "scheduled_posts" ADD COLUMN IF NOT EXISTS "sort_order" integer DEFAULT 0`
     );
     console.log('[db] sort_order column ensured on scheduled_posts');
 
-    // Run any genuinely new (unrecorded) migrations
+    // Step 3: Run any genuinely new (unrecorded) migrations
     const db = drizzle({ client: pool });
     await migrate(db, { migrationsFolder: './migrations' });
     console.log('[db] all migrations applied — database ready');
