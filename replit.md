@@ -8,6 +8,34 @@ SmartFlow AI is a premium no-code AI platform designed to automate e-commerce so
 
 Preferred communication style: Simple, everyday language.
 
+## SFS Design System
+
+The SmartFlow Systems (SFS) gold/black/glass theme lives in
+`public/sfs-complete-theme.css` (linked from `client/index.html`). All app
+code should reach for the typed React wrappers in
+`client/src/components/sfs/index.tsx` rather than raw class strings.
+
+Available wrappers (each forwards `className`, `children`, and standard HTML
+props; SFS classes are merged via the `cn` helper):
+
+| Wrapper          | Renders   | SFS class(es)            |
+|------------------|-----------|--------------------------|
+| `GlassCard`      | `<div>`   | `glass-card`             |
+| `SfsContainer`   | `<div>`   | `container`              |
+| `SfsSection`     | `<section>` | `section`              |
+| `GoldButton`     | `<button>`| `btn btn-gold`           |
+| `GhostButton`    | `<button>`| `btn btn-ghost`          |
+| `GoldHeading`    | `<h1>`–`<h6>` (via `level`, default `2`) | `text-gold-gradient` |
+| `GoldText`       | `<span>`  | `text-gold`              |
+| `FadeInUp`       | `<div>`   | `fade-in-up` + optional `stagger-1`…`stagger-6` (via `stagger` prop) |
+
+Color palette (do not override): `--sf-black #0D0D0D`, `--sf-brown #3B2F2F`,
+`--sf-gold #FFD700`, `--sf-gold-2 #E6C200`, `--sf-beige #F5F5DC`,
+`--sf-white #FFFFFF`, plus the `--sf-gold-grad` gradient.
+
+**Rule for future agents:** prefer the SFS wrappers over raw class strings,
+and never override the gold/black color tokens or other SFS CSS variables.
+
 ## Recent Updates (April 2026)
 
 ✓ **Admin Template Manager** (`/admin/templates`): Admin-only page for creating, editing, and deleting bot templates from the marketplace. Adds `isAdmin` boolean to `users` table and JWT payload. Admins claim access via a secret code (`ADMIN_SECRET` env var). Full CRUD: table view, create dialog, edit dialog, delete confirmation. `PUT /api/templates/:id` and `DELETE /api/templates/:id` routes protected by admin check. `POST /api/admin/claim` issues a fresh JWT with admin flag.
