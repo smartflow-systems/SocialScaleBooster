@@ -39,13 +39,7 @@ function MetaConnectButton() {
   const handleConnect = async () => {
     setConnecting(true);
     try {
-      const res = await fetch("/api/oauth/meta/connect", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message ?? "Failed to start OAuth");
-      }
+      const res = await apiRequest("GET", "/api/oauth/meta/connect");
       const { url } = await res.json();
       window.location.href = url;
     } catch (err: any) {
@@ -146,7 +140,6 @@ function AddAccountModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="space-y-4">
-          {/* Platform */}
           <div>
             <label className="text-xs text-neutral-gray uppercase tracking-wider mb-2 block">Platform</label>
             <div className="grid grid-cols-3 gap-2">
@@ -167,7 +160,6 @@ function AddAccountModal({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          {/* Account name */}
           <div>
             <label className="text-sm text-neutral-gray mb-1.5 block">Account Label *</label>
             <input
@@ -178,7 +170,6 @@ function AddAccountModal({ onClose }: { onClose: () => void }) {
             />
           </div>
 
-          {/* Handle */}
           <div>
             <label className="text-sm text-neutral-gray mb-1.5 flex items-center gap-1.5">
               <AtSign className="w-3.5 h-3.5" /> Username / Handle <span className="text-neutral-gray/50 text-xs">(optional)</span>
@@ -191,7 +182,6 @@ function AddAccountModal({ onClose }: { onClose: () => void }) {
             />
           </div>
 
-          {/* Credentials */}
           <div>
             <button
               onClick={() => setShowCreds((v) => !v)}
@@ -395,8 +385,7 @@ export default function Accounts() {
       });
       setLocation("/accounts");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setLocation, toast]);
 
   const byPlatform: Record<string, SafeAccount[]> = {};
   for (const acct of accounts) {
@@ -416,7 +405,6 @@ export default function Accounts() {
           </a>
         </Link>
 
-        {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-gradient-to-br from-accent-gold to-gold-trim rounded-xl flex items-center justify-center shadow-lg shadow-accent-gold/20">
@@ -441,7 +429,6 @@ export default function Accounts() {
           </Button>
         </div>
 
-        {/* Stats row */}
         {accounts.length > 0 && (
           <div className="grid grid-cols-3 gap-4 mb-8">
             {[
@@ -457,7 +444,6 @@ export default function Accounts() {
           </div>
         )}
 
-        {/* Quick-connect: Meta OAuth */}
         <div className="mb-6 border border-white/8 rounded-xl p-4 bg-white/[0.02]">
           <p className="text-xs text-neutral-500 uppercase tracking-wider mb-3 font-medium">One-click connect</p>
           <MetaConnectButton />
@@ -466,7 +452,6 @@ export default function Accounts() {
           </p>
         </div>
 
-        {/* Account list */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 text-accent-gold animate-spin" />
@@ -500,7 +485,6 @@ export default function Accounts() {
           </div>
         )}
 
-        {/* Platform tiles */}
         {accounts.length > 0 && (
           <div className="mt-10">
             <h2 className="text-white font-semibold mb-4">Add More Platforms</h2>
