@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { Bot, Eye, EyeOff, ArrowRight, CheckCircle2 } from "lucide-react";
+import { GlassCard, GoldButton, GoldHeading, SfsContainer } from "@/components/sfs";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -49,15 +49,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center px-4" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center px-4 py-10" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <SfsContainer className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
           <button onClick={() => setLocation("/")} className="inline-flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/30 flex items-center justify-center">
-              <Bot className="w-6 h-6 text-[#FFD700]" />
+            <div className="w-12 h-12 rounded-xl bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/30 flex items-center justify-center">
+              <Bot className="w-6 h-6 text-[var(--sf-gold)]" />
             </div>
-            <span className="text-xl font-bold text-[#FFD700]">SmartFlow Systems</span>
+            <GoldHeading level={1} className="text-xl">SmartFlow Systems</GoldHeading>
           </button>
           <p className="text-neutral-500 text-sm mt-2">
             {isLogin ? "Welcome back. Sign in to your account." : "Create your account and get started in minutes."}
@@ -65,16 +65,16 @@ export default function Login() {
         </div>
 
         {/* Card */}
-        <div className="bg-[#111] border border-white/8 rounded-2xl p-8">
+        <GlassCard className="p-8">
           {/* Tab toggle */}
-          <div className="flex bg-[#0D0D0D] rounded-xl p-1 mb-7">
+          <div className="flex bg-[var(--sf-black)] rounded-xl p-1 mb-7">
             {["Sign In", "Create Account"].map((label, i) => (
               <button
                 key={label}
                 onClick={() => { setIsLogin(i === 0); setError(""); }}
                 className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
                   (i === 0) === isLogin
-                    ? "bg-[#FFD700] text-[#0D0D0D]"
+                    ? "bg-[var(--sf-gold)] text-[var(--sf-black)]"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -95,7 +95,7 @@ export default function Login() {
                 placeholder="yourname"
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
-                className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
+                className="w-full bg-[var(--sf-black)] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--sf-gold)]/50 transition-colors"
               />
             </div>
 
@@ -111,7 +111,7 @@ export default function Login() {
                   placeholder="you@company.com"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
+                  className="w-full bg-[var(--sf-black)] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--sf-gold)]/50 transition-colors"
                 />
               </div>
             )}
@@ -128,7 +128,7 @@ export default function Login() {
                   placeholder="••••••••"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
+                  className="w-full bg-[var(--sf-black)] border border-white/10 rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--sf-gold)]/50 transition-colors"
                 />
                 <button
                   type="button"
@@ -146,35 +146,35 @@ export default function Login() {
               </div>
             )}
 
-            <Button
+            <GoldButton
               type="submit"
               disabled={loading}
-              className="w-full bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold py-3 h-auto text-base mt-2"
+              className="w-full py-3 text-base mt-2 disabled:opacity-60"
             >
               {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
               {!loading && <ArrowRight className="ml-2 w-4 h-4" />}
-            </Button>
+            </GoldButton>
           </form>
 
           {!isLogin && (
             <div className="mt-5 space-y-2">
               {["No credit card required", "Free to get started", "Cancel any time"].map((item) => (
                 <div key={item} className="flex items-center gap-2 text-xs text-neutral-500">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#FFD700]" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[var(--sf-gold)]" />
                   {item}
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </GlassCard>
 
         <p className="text-center text-xs text-neutral-600 mt-6">
           By continuing you agree to our{" "}
-          <span className="text-neutral-400 hover:text-[#FFD700] cursor-pointer transition-colors">Terms of Service</span>{" "}
+          <span className="text-neutral-400 hover:text-[var(--sf-gold)] cursor-pointer transition-colors">Terms of Service</span>{" "}
           and{" "}
-          <span className="text-neutral-400 hover:text-[#FFD700] cursor-pointer transition-colors">Privacy Policy</span>.
+          <span className="text-neutral-400 hover:text-[var(--sf-gold)] cursor-pointer transition-colors">Privacy Policy</span>.
         </p>
-      </div>
+      </SfsContainer>
     </div>
   );
 }

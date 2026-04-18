@@ -38,6 +38,8 @@ and never override the gold/black color tokens or other SFS CSS variables.
 
 ## Recent Updates (April 2026)
 
+✓ **SFS Retrofit — Marketing & Auth Pages (Task #80)**: Migrated `not-found.tsx`, `checkout.tsx`, `login.tsx`, `onboarding.tsx`, `subscribe.tsx` (full retrofits) and `landing.tsx` (focused CTA/heading swaps) to use the typed SFS wrappers from `@/components/sfs` (`GlassCard`, `GoldButton`, `GhostButton`, `GoldHeading`, `GoldText`, `SfsContainer`, `SfsSection`, `FadeInUp`). Replaced raw hex colors (`#FFD700`/`#0D0D0D`/`#E6C200`) with `var(--sf-gold)`/`var(--sf-black)`/`var(--sf-gold-2)` tokens in retrofitted markup. Demo panel inside landing left intact intentionally (preserves bespoke gradient/featured states). Code review: PASS.
+
 ✓ **Admin Template Manager** (`/admin/templates`): Admin-only page for creating, editing, and deleting bot templates from the marketplace. Adds `isAdmin` boolean to `users` table and JWT payload. Admins claim access via a secret code (`ADMIN_SECRET` env var). Full CRUD: table view, create dialog, edit dialog, delete confirmation. `PUT /api/templates/:id` and `DELETE /api/templates/:id` routes protected by admin check. `POST /api/admin/claim` issues a fresh JWT with admin flag.
 
 ✓ **Scheduled Posts Persisted to DB**: `scheduled_posts` table added to Drizzle schema. DatabaseStorage now uses DB for all scheduled post CRUD instead of in-memory Map. Migration 0002 auto-applies on startup.

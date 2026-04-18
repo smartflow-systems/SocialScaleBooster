@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/ui/navigation";
 import SpaceBackground from "@/components/SpaceBackground";
 import { useLocation } from "wouter";
+import { GlassCard, GoldButton, GhostButton, FadeInUp } from "@/components/sfs";
 import {
   Monitor, Bot, TrendingUp, ArrowRight, X, Check,
   Clock, Users, Star, Zap, Globe, BarChart3,
@@ -359,29 +360,28 @@ export default function Landing() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <Button
+            <GoldButton
               onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-              className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-8 py-4 text-base h-auto"
+              className="px-8 py-4 text-base"
             >
               Start a Project <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-            <Button
+            </GoldButton>
+            <GhostButton
               onClick={() => document.getElementById("work")?.scrollIntoView({ behavior: "smooth" })}
-              variant="outline"
-              className="border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 px-8 py-4 text-base h-auto"
+              className="px-8 py-4 text-base"
             >
               See Our Work
-            </Button>
+            </GhostButton>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+          <FadeInUp className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
             {heroStats.map((s) => (
               <div key={s.label} className="text-center">
-                <p className="text-3xl md:text-4xl font-extrabold text-[#FFD700]">{s.value}</p>
+                <p className="text-3xl md:text-4xl font-extrabold text-[var(--sf-gold)]">{s.value}</p>
                 <p className="text-xs text-neutral-500 mt-1 uppercase tracking-widest">{s.label}</p>
               </div>
             ))}
-          </div>
+          </FadeInUp>
         </div>
       </section>
 
@@ -676,21 +676,20 @@ export default function Landing() {
           <div className="mt-10 text-center">
             <p className="text-neutral-400 mb-5 text-lg">Ready to see this running for your business?</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
+              <GoldButton
                 onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-                className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-8 py-4 h-auto text-base"
+                className="px-8 py-4 text-base"
               >
                 Book a Free Demo <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="border-[#FFD700]/30 text-[#FFD700] hover:bg-[#FFD700]/10 px-8 py-4 h-auto text-base"
+              </GoldButton>
+              <GhostButton
+                className="px-8 py-4 text-base"
                 onClick={() => {
                   window.location.href = "/auth";
                 }}
               >
                 Start Free Trial
-              </Button>
+              </GhostButton>
             </div>
           </div>
         </div>
@@ -813,12 +812,12 @@ export default function Landing() {
                 ))}
               </div>
 
-              <Button
+              <GoldButton
                 onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-                className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold px-6"
+                className="px-6 py-3"
               >
                 Work With Us <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
+              </GoldButton>
             </div>
 
             {/* Right — 3 overlapping floating stat cards + glow */}
@@ -955,9 +954,9 @@ export default function Landing() {
                       className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors resize-none"
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold py-4 h-auto text-base">
+                  <GoldButton type="submit" className="w-full py-4 text-base">
                     Send Message <ArrowRight className="ml-2 w-4 h-4" />
-                  </Button>
+                  </GoldButton>
                 </form>
               )}
             </div>

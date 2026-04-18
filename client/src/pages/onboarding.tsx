@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import {
   Bot, Monitor, TrendingUp, Globe, BarChart3, Star,
   Users, CheckCircle2, ArrowRight, Sparkles, Building2, User,
 } from "lucide-react";
+import { GlassCard, GoldButton, GhostButton, GoldHeading, SfsContainer } from "@/components/sfs";
 
 const niches = [
   { id: "barber", label: "Barber / Salon", icon: "✂️" },
@@ -64,21 +64,21 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] flex flex-col items-center justify-center px-4 py-10" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <SfsContainer className="max-w-lg w-full">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/30 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-[#FFD700]" />
+            <div className="w-9 h-9 rounded-xl bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/30 flex items-center justify-center">
+              <Bot className="w-5 h-5 text-[var(--sf-gold)]" />
             </div>
-            <span className="text-lg font-bold text-[#FFD700]">SmartFlow Systems</span>
+            <GoldHeading level={1} className="text-lg">SmartFlow Systems</GoldHeading>
           </div>
-          <h2 className="text-2xl font-extrabold text-white mb-1">
+          <GoldHeading level={2} className="text-2xl mb-1">
             {step === 0 && "Let's set you up"}
             {step === 1 && "What's your industry?"}
             {step === 2 && "What do you want to do?"}
-          </h2>
+          </GoldHeading>
           <p className="text-sm text-neutral-500">
             Step {step + 1} of {STEPS.length} — {STEPS[step]}
           </p>
@@ -90,14 +90,14 @@ export default function Onboarding() {
             <div
               key={i}
               className={`flex-1 h-1 rounded-full transition-all duration-500 ${
-                i <= step ? "bg-[#FFD700]" : "bg-white/10"
+                i <= step ? "bg-[var(--sf-gold)]" : "bg-white/10"
               }`}
             />
           ))}
         </div>
 
         {/* Card */}
-        <div className="bg-[#111] border border-white/8 rounded-2xl p-7 mb-5">
+        <GlassCard className="p-7 mb-5">
 
           {/* Step 0 — Profile */}
           {step === 0 && (
@@ -111,7 +111,7 @@ export default function Onboarding() {
                   placeholder="e.g. The Golden Barbers"
                   value={form.businessName}
                   onChange={(e) => setForm({ ...form, businessName: e.target.value })}
-                  className="w-full bg-[#0D0D0D] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[#FFD700]/50 transition-colors"
+                  className="w-full bg-[var(--sf-black)] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--sf-gold)]/50 transition-colors"
                 />
               </div>
               <div>
@@ -128,11 +128,11 @@ export default function Onboarding() {
                       onClick={() => setForm({ ...form, accountType: id as "solo" | "agency" })}
                       className={`p-4 rounded-xl border text-left transition-all ${
                         form.accountType === id
-                          ? "border-[#FFD700]/60 bg-[#FFD700]/10"
-                          : "border-white/10 bg-[#0D0D0D] hover:border-[#FFD700]/30"
+                          ? "border-[var(--sf-gold)]/60 bg-[var(--sf-gold)]/10"
+                          : "border-white/10 bg-[var(--sf-black)] hover:border-[var(--sf-gold)]/30"
                       }`}
                     >
-                      <Icon className={`w-5 h-5 mb-2 ${form.accountType === id ? "text-[#FFD700]" : "text-neutral-400"}`} />
+                      <Icon className={`w-5 h-5 mb-2 ${form.accountType === id ? "text-[var(--sf-gold)]" : "text-neutral-400"}`} />
                       <p className={`text-sm font-semibold ${form.accountType === id ? "text-white" : "text-neutral-300"}`}>{label}</p>
                       <p className="text-xs text-neutral-500 mt-0.5">{desc}</p>
                     </button>
@@ -151,8 +151,8 @@ export default function Onboarding() {
                   onClick={() => setForm({ ...form, niche: n.id })}
                   className={`p-4 rounded-xl border text-left transition-all ${
                     form.niche === n.id
-                      ? "border-[#FFD700]/60 bg-[#FFD700]/10"
-                      : "border-white/10 bg-[#0D0D0D] hover:border-[#FFD700]/30"
+                      ? "border-[var(--sf-gold)]/60 bg-[var(--sf-gold)]/10"
+                      : "border-white/10 bg-[var(--sf-black)] hover:border-[var(--sf-gold)]/30"
                   }`}
                 >
                   <span className="text-2xl block mb-2">{n.icon}</span>
@@ -160,7 +160,7 @@ export default function Onboarding() {
                     {n.label}
                   </p>
                   {form.niche === n.id && (
-                    <CheckCircle2 className="w-4 h-4 text-[#FFD700] mt-1.5" />
+                    <CheckCircle2 className="w-4 h-4 text-[var(--sf-gold)] mt-1.5" />
                   )}
                 </button>
               ))}
@@ -179,52 +179,48 @@ export default function Onboarding() {
                     onClick={() => toggleGoal(id)}
                     className={`w-full p-4 rounded-xl border text-left flex items-center gap-4 transition-all ${
                       active
-                        ? "border-[#FFD700]/60 bg-[#FFD700]/10"
-                        : "border-white/10 bg-[#0D0D0D] hover:border-[#FFD700]/30"
+                        ? "border-[var(--sf-gold)]/60 bg-[var(--sf-gold)]/10"
+                        : "border-white/10 bg-[var(--sf-black)] hover:border-[var(--sf-gold)]/30"
                     }`}
                   >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${active ? "bg-[#FFD700]/20" : "bg-white/5"}`}>
-                      <Icon className={`w-5 h-5 ${active ? "text-[#FFD700]" : "text-neutral-400"}`} />
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${active ? "bg-[var(--sf-gold)]/20" : "bg-white/5"}`}>
+                      <Icon className={`w-5 h-5 ${active ? "text-[var(--sf-gold)]" : "text-neutral-400"}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm font-semibold ${active ? "text-white" : "text-neutral-300"}`}>{label}</p>
                       <p className="text-xs text-neutral-500">{desc}</p>
                     </div>
-                    {active && <CheckCircle2 className="w-5 h-5 text-[#FFD700] flex-shrink-0" />}
+                    {active && <CheckCircle2 className="w-5 h-5 text-[var(--sf-gold)] flex-shrink-0" />}
                   </button>
                 );
               })}
             </div>
           )}
-        </div>
+        </GlassCard>
 
         {/* Navigation */}
         <div className="flex gap-3">
           {step > 0 && (
-            <Button
-              onClick={() => setStep(step - 1)}
-              variant="outline"
-              className="border-white/15 text-neutral-400 hover:text-white hover:border-white/30 flex-1"
-            >
+            <GhostButton onClick={() => setStep(step - 1)} className="flex-1">
               Back
-            </Button>
+            </GhostButton>
           )}
           {step < STEPS.length - 1 ? (
-            <Button
+            <GoldButton
               onClick={() => setStep(step + 1)}
               disabled={!canNext()}
-              className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold flex-1 disabled:opacity-40"
+              className="flex-1 disabled:opacity-40"
             >
               Continue <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
+            </GoldButton>
           ) : (
-            <Button
+            <GoldButton
               onClick={handleFinish}
               disabled={!canNext()}
-              className="bg-[#FFD700] text-[#0D0D0D] hover:bg-[#E6C200] font-bold flex-1 disabled:opacity-40"
+              className="flex-1 disabled:opacity-40"
             >
               Go to Dashboard <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
+            </GoldButton>
           )}
         </div>
 
@@ -236,7 +232,7 @@ export default function Onboarding() {
             Skip for now →
           </button>
         )}
-      </div>
+      </SfsContainer>
     </div>
   );
 }
