@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/ui/navigation";
+import SpaceBackground from "@/components/SpaceBackground";
 import { useLocation } from "wouter";
 import {
   Monitor, Bot, TrendingUp, ArrowRight, X, Check,
@@ -329,7 +330,8 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-white overflow-x-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="min-h-screen text-white overflow-x-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <SpaceBackground />
       <Navigation />
 
       {/* ── HERO ──────────────────────────────────────────────────── */}
@@ -392,7 +394,7 @@ export default function Landing() {
       </div>
 
       {/* ── SERVICES ──────────────────────────────────────────────── */}
-      <section id="services" className="py-24 px-4">
+      <section id="services" className="py-24 px-4 bg-[#0D0D0D]">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-[#FFD700] text-xs font-semibold uppercase tracking-widest mb-3">What We Do</p>
@@ -483,7 +485,7 @@ export default function Landing() {
       </section>
 
       {/* ── ABOUT ─────────────────────────────────────────────────── */}
-      <section id="about" className="py-24 px-4">
+      <section id="about" className="py-24 px-4 bg-[#0D0D0D]">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-14 items-center">
             {/* Left */}
@@ -582,7 +584,7 @@ export default function Landing() {
       </section>
 
       {/* ── CONTACT ───────────────────────────────────────────────── */}
-      <section id="contact" className="py-24 px-4">
+      <section id="contact" className="py-24 px-4 bg-[#0D0D0D]">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-14 items-start">
             <div>
