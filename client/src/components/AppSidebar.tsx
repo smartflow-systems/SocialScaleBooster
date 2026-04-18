@@ -7,19 +7,57 @@ import {
   MessageSquare, BookOpen, Target, Activity, Share2, Globe,
   Sparkles, LogOut, ChevronLeft, ChevronRight, User,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AppSidebar() {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+  const [badgePulse, setBadgePulse] = useState(false);
+  const prevCountRef = useRef<number | null>(null);
+  const { toast } = useToast();
 
   const { data: countData } = useQuery<{ count: number }>({
     queryKey: ["/api/scheduled-posts/count"],
     refetchInterval: 60_000,
   });
   const scheduledCount = countData?.count ?? 0;
+  const dataLoaded = countData !== undefined;
+
+  useEffect(() => {
+    if (!dataLoaded) return;
+
+    if (prevCountRef.current === null) {
+      prevCountRef.current = scheduledCount;
+      return;
+    }
+
+    const prev = prevCountRef.current;
+    prevCountRef.current = scheduledCount;
+
+    if (scheduledCount === prev) return;
+
+    setBadgePulse(true);
+    const timer = setTimeout(() => setBadgePulse(false), 1200);
+
+    if (scheduledCount < prev) {
+      const diff = prev - scheduledCount;
+      toast({
+        title: "Post Published",
+        description: `${diff} scheduled post${diff > 1 ? "s were" : " was"} published. ${scheduledCount} remaining in queue.`,
+      });
+    } else {
+      const diff = scheduledCount - prev;
+      toast({
+        title: "New Scheduled Post",
+        description: `${diff} new post${diff > 1 ? "s" : ""} added to your schedule. ${scheduledCount} total queued.`,
+      });
+    }
+
+    return () => clearTimeout(timer);
+  }, [scheduledCount, dataLoaded]);
 
   const isActive = (href: string) =>
     href === "/dashboard" ? location === "/dashboard" : location.startsWith(href);
@@ -51,7 +89,7 @@ export default function AppSidebar() {
     {
       title: "Automate",
       items: [
-        { label: "Post Scheduler", href: "/scheduler", icon: Zap, badge: scheduledCount > 0 ? scheduledCount : undefined },
+        { label: "Post Scheduler", href: "/scheduler", icon: Zap, badge: scheduledCount > 0 ? scheduledCount : undefined, pulse: badgePulse },
         { label: "Auto Engagement", href: "/auto-engage", icon: Bot },
         { label: "DM Automation", href: "/dm-automation", icon: MessageSquare },
         { label: "Connected Accounts", href: "/accounts", icon: Globe },
@@ -124,7 +162,7 @@ export default function AppSidebar() {
               </p>
             )}
             <div className="space-y-0.5 px-2">
-              {section.items.map(({ label, href, icon: Icon, badge }: any) => {
+              {section.items.map(({ label, href, icon: Icon, badge, pulse }: any) => {
                 const active = isActive(href);
                 return (
                   <Link key={href} href={href}>
@@ -141,8 +179,13 @@ export default function AppSidebar() {
                       <div className="relative flex-shrink-0">
                         <Icon className="w-4 h-4" />
                         {badge !== undefined && collapsed && (
-                          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#FFD700] text-[#0D0D0D] text-[8px] font-bold flex items-center justify-center">
+                          <span className={cn(
+                            "absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#FFD700] text-[#0D0D0D] text-[8px] font-bold flex items-center justify-center",
+                          )}>
                             {badge > 9 ? "9+" : badge}
+                            {pulse && (
+                              <span className="absolute inset-0 rounded-full bg-[#FFD700] animate-ping opacity-75" />
+                            )}
                           </span>
                         )}
                       </div>
@@ -150,8 +193,13 @@ export default function AppSidebar() {
                         <>
                           <span className="truncate flex-1">{label}</span>
                           {badge !== undefined && (
-                            <span className="ml-auto min-w-[20px] h-5 rounded-full bg-[#FFD700]/20 text-[#FFD700] text-[10px] font-bold flex items-center justify-center px-1.5">
+                            <span className={cn(
+                              "relative ml-auto min-w-[20px] h-5 rounded-full bg-[#FFD700]/20 text-[#FFD700] text-[10px] font-bold flex items-center justify-center px-1.5",
+                            )}>
                               {badge > 99 ? "99+" : badge}
+                              {pulse && (
+                                <span className="absolute inset-0 rounded-full bg-[#FFD700]/50 animate-ping" />
+                              )}
                             </span>
                           )}
                         </>
