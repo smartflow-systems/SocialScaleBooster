@@ -12,6 +12,18 @@ import aiStudioRoutes from "./routes/ai-studio";
 import { buildAuthUrl, verifyStateToken, exchangeCodeForToken, getLongLivedToken, getUserInfo, saveMetaAccount } from "./oauth/meta";
 import { generatePost, generateCaption, generateHashtags } from "./services/openai";
 
+// Running count of posts generated via the public /api/boost endpoint
+let boostCount = 47_312;
+
+// Rate limiter for public boost endpoint - 5 per minute per IP
+const boostLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { error: "Too many requests. Try again in a minute." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Rate limiter for bot management operations (create, update, delete)
 // Limits to 20 requests per minute per IP to prevent abuse
 const botActionsLimiter = rateLimit({
@@ -52,6 +64,33 @@ if (process.env.STRIPE_SECRET_KEY) {
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
+  });
+
+  app.get("/api/boost/count", (_req, res) => {
+    res.json({ count: boostCount });
+  });
+
+  app.post("/api/boost", boostLimiter, async (req, res) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: "AI service not configured" });
+      }
+      const { niche, platform = "instagram", topic } = req.body;
+      if (!niche) {
+        return res.status(400).json({ error: "niche is required" });
+      }
+      const result = await generatePost({
+        topic: topic || `${niche} business social media post`,
+        platform: platform as any,
+        tone: "friendly",
+        industry: niche,
+        targetAudience: `${niche} customers`,
+      });
+      boostCount++;
+      res.json({ content: result.content, count: boostCount });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to generate content" });
+    }
   });
 
   // Register authentication routes

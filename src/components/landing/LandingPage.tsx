@@ -1,10 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckIcon, StarIcon } from '@heroicons/react/24/solid';
 import MobileMenu from '../common/MobileMenu';
 import '../../styles/brand.css';
 
+const NICHES = ['Barber Shop', 'Hair Salon', 'Nail Salon', 'Gym / Fitness', 'Restaurant'];
+const PLATFORMS = ['instagram', 'tiktok', 'facebook'] as const;
+
 const LandingPage: React.FC = () => {
+  const [demoNiche, setDemoNiche] = useState('Barber Shop');
+  const [demoPlatform, setDemoPlatform] = useState<typeof PLATFORMS[number]>('instagram');
+  const [demoContent, setDemoContent] = useState('');
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoCopied, setDemoCopied] = useState(false);
+  const [boostCount, setBoostCount] = useState<number | null>(null);
+  const [demoError, setDemoError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/boost/count')
+      .then(r => r.json())
+      .then(d => setBoostCount(d.count))
+      .catch(() => {});
+  }, []);
+
+  const handleBoost = async () => {
+    setDemoLoading(true);
+    setDemoError('');
+    setDemoContent('');
+    try {
+      const res = await fetch('/api/boost', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ niche: demoNiche, platform: demoPlatform }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to generate');
+      setDemoContent(data.content);
+      setBoostCount(data.count);
+    } catch (err: any) {
+      setDemoError(err.message);
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(demoContent);
+    setDemoCopied(true);
+    setTimeout(() => setDemoCopied(false), 2000);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sfs-background via-white to-sfs-gold-light">
       {/* Header */}
@@ -84,6 +129,91 @@ const LandingPage: React.FC = () => {
             <div className="text-center">
               <div className="text-3xl font-bold text-sfs-text mb-1">89%</div>
               <div className="text-sm text-sfs-text-muted">Customer Retention</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Live AI Demo */}
+      <section className="bg-sfs-surface py-16">
+        <div className="sfs-container">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="sfs-heading-2 mb-3">Try It Right Now — No Signup</h2>
+              <p className="sfs-text-lg text-sfs-text-light">
+                Pick your business type and platform. Watch the AI generate a ready-to-post caption in seconds.
+              </p>
+              {boostCount !== null && (
+                <div className="inline-flex items-center gap-2 bg-sfs-gold-light px-4 py-2 rounded-full mt-4">
+                  <span className="text-sfs-gold-dark font-semibold text-sm">
+                    ⚡ {boostCount.toLocaleString()} posts generated and counting
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="sfs-card shadow-lg">
+              <div className="sfs-card-body">
+                <div className="sfs-grid sfs-grid-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-sfs-text mb-2">Your Business</label>
+                    <select
+                      value={demoNiche}
+                      onChange={e => setDemoNiche(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sfs-text bg-white focus:outline-none focus:ring-2 focus:ring-sfs-gold"
+                    >
+                      {NICHES.map(n => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-sfs-text mb-2">Platform</label>
+                    <select
+                      value={demoPlatform}
+                      onChange={e => setDemoPlatform(e.target.value as typeof PLATFORMS[number])}
+                      className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sfs-text bg-white focus:outline-none focus:ring-2 focus:ring-sfs-gold capitalize"
+                    >
+                      {PLATFORMS.map(p => (
+                        <option key={p} value={p} className="capitalize">{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleBoost}
+                  disabled={demoLoading}
+                  className="sfs-btn sfs-btn-primary w-full mb-4 disabled:opacity-60"
+                >
+                  {demoLoading ? '⏳ Generating...' : '⚡ Generate Post'}
+                </button>
+
+                {demoError && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm mb-4">
+                    {demoError}
+                  </div>
+                )}
+
+                {demoContent && (
+                  <div className="relative">
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-sfs-text whitespace-pre-wrap leading-relaxed">
+                      {demoContent}
+                    </div>
+                    <button
+                      onClick={handleCopy}
+                      className="absolute top-3 right-3 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-medium text-sfs-text hover:bg-sfs-gold-light hover:border-sfs-gold transition-all"
+                    >
+                      {demoCopied ? '✅ Copied!' : '📋 Copy'}
+                    </button>
+                    <div className="mt-4 text-center">
+                      <Link to="/signup" className="sfs-btn sfs-btn-primary">
+                        Get Unlimited Posts — Start Free Trial
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
