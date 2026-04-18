@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, ChevronUp, ChevronDown } from "lucide-react";
+import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, ChevronUp, ChevronDown, GripVertical } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,23 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 const platforms = [
   { value: "instagram", label: "Instagram", icon: Instagram, color: "text-pink-400" },
@@ -185,11 +202,149 @@ function EditPostForm({
   );
 }
 
+function SortablePostCard({
+  post,
+  index,
+  total,
+  isReordering,
+  editingPostId,
+  onMovePost,
+  onSetEditingPostId,
+  onDelete,
+  deletePending,
+}: {
+  post: ScheduledPost;
+  index: number;
+  total: number;
+  isReordering: boolean;
+  editingPostId: number | null;
+  onMovePost: (index: number, direction: "up" | "down") => void;
+  onSetEditingPostId: (id: number | null) => void;
+  onDelete: (id: number) => void;
+  deletePending: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: post.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
+  const isPast = new Date(post.scheduledAt) < new Date();
+  const isEditing = editingPostId === post.id;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="border border-accent-gold/20 rounded-xl bg-rich-brown/10 overflow-hidden"
+    >
+      <div className="flex items-start gap-3 p-4">
+        <div className="flex flex-col items-center gap-0.5 flex-shrink-0 mt-0.5">
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-0.5 text-neutral-gray/50 hover:text-accent-gold transition-colors rounded"
+            title="Drag to reorder"
+            aria-label="Drag to reorder"
+          >
+            <GripVertical className="w-4 h-4" />
+          </button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onMovePost(index, "up")}
+            disabled={index === 0 || isReordering}
+            className="h-5 w-5 text-neutral-gray hover:text-accent-gold hover:bg-accent-gold/10 disabled:opacity-20"
+            title="Move up"
+          >
+            <ChevronUp className="w-3 h-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onMovePost(index, "down")}
+            disabled={index === total - 1 || isReordering}
+            className="h-5 w-5 text-neutral-gray hover:text-accent-gold hover:bg-accent-gold/10 disabled:opacity-20"
+            title="Move down"
+          >
+            <ChevronDown className="w-3 h-3" />
+          </Button>
+        </div>
+        <div className="w-9 h-9 rounded-lg bg-primary-black border border-accent-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <PlatformIcon platform={post.platform} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-sm line-clamp-2 mb-2">{post.content}</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="flex items-center gap-1 text-xs text-neutral-gray">
+              <Clock className="w-3 h-3" />
+              {formatScheduledAt(post.scheduledAt)}
+            </span>
+            <Badge
+              variant="outline"
+              className={`text-xs capitalize border-0 px-2 py-0.5 ${
+                isPast
+                  ? "bg-neutral-gray/20 text-neutral-gray"
+                  : "bg-accent-gold/10 text-accent-gold"
+              }`}
+            >
+              {isPast ? "past" : post.status}
+            </Badge>
+            <span className="text-xs text-neutral-gray capitalize">
+              {platforms.find(p => p.value === post.platform)?.label ?? post.platform}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onSetEditingPostId(isEditing ? null : post.id)}
+            className={`hover:bg-accent-gold/10 flex-shrink-0 ${isEditing ? "text-accent-gold" : "text-neutral-gray hover:text-accent-gold"}`}
+            title="Edit post"
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDelete(post.id)}
+            disabled={deletePending}
+            className="text-neutral-gray hover:text-red-400 hover:bg-red-400/10 flex-shrink-0"
+            title="Delete post"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {isEditing && (
+        <div className="px-4 pb-4">
+          <EditPostForm
+            post={post}
+            onCancel={() => onSetEditingPostId(null)}
+            onSaved={() => onSetEditingPostId(null)}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Scheduler() {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
-
 
   const { data: posts = [], isLoading } = useQuery<ScheduledPost[]>({
     queryKey: ["/api/scheduled-posts"],
@@ -249,6 +404,27 @@ export default function Scheduler() {
     if (targetIndex < 0 || targetIndex >= newPosts.length) return;
     [newPosts[index], newPosts[targetIndex]] = [newPosts[targetIndex], newPosts[index]];
     reorderMutation.mutate(newPosts.map(p => p.id));
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = posts.findIndex(p => p.id === active.id);
+    const newIndex = posts.findIndex(p => p.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(posts, oldIndex, newIndex);
+    reorderMutation.mutate(reordered.map(p => p.id));
   };
 
   return (
@@ -377,7 +553,7 @@ export default function Scheduler() {
               <span className="ml-2 text-sm font-normal text-neutral-gray">({posts.length} post{posts.length !== 1 ? "s" : ""})</span>
             </h2>
             {posts.length > 1 && (
-              <p className="text-xs text-neutral-gray">Use arrows to reorder</p>
+              <p className="text-xs text-neutral-gray">Drag or use arrows to reorder</p>
             )}
           </div>
 
@@ -393,97 +569,33 @@ export default function Scheduler() {
               <p className="text-neutral-gray">No posts scheduled yet. Click "Schedule Post" to add one.</p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {posts.map((post, index) => {
-                const isPast = new Date(post.scheduledAt) < new Date();
-                const isEditing = editingPostId === post.id;
-                const isReordering = reorderMutation.isPending;
-                return (
-                  <div key={post.id} className="border border-accent-gold/20 rounded-xl bg-rich-brown/10 overflow-hidden">
-                    <div className="flex items-start gap-3 p-4">
-                      <div className="flex flex-col gap-0.5 flex-shrink-0 mt-0.5">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => movePost(index, "up")}
-                          disabled={index === 0 || isReordering}
-                          className="h-6 w-6 text-neutral-gray hover:text-accent-gold hover:bg-accent-gold/10 disabled:opacity-20"
-                          title="Move up"
-                        >
-                          <ChevronUp className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => movePost(index, "down")}
-                          disabled={index === posts.length - 1 || isReordering}
-                          className="h-6 w-6 text-neutral-gray hover:text-accent-gold hover:bg-accent-gold/10 disabled:opacity-20"
-                          title="Move down"
-                        >
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
-                      <div className="w-9 h-9 rounded-lg bg-primary-black border border-accent-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <PlatformIcon platform={post.platform} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm line-clamp-2 mb-2">{post.content}</p>
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <span className="flex items-center gap-1 text-xs text-neutral-gray">
-                            <Clock className="w-3 h-3" />
-                            {formatScheduledAt(post.scheduledAt)}
-                          </span>
-                          <Badge
-                            variant="outline"
-                            className={`text-xs capitalize border-0 px-2 py-0.5 ${
-                              isPast
-                                ? "bg-neutral-gray/20 text-neutral-gray"
-                                : "bg-accent-gold/10 text-accent-gold"
-                            }`}
-                          >
-                            {isPast ? "past" : post.status}
-                          </Badge>
-                          <span className="text-xs text-neutral-gray capitalize">
-                            {platforms.find(p => p.value === post.platform)?.label ?? post.platform}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setEditingPostId(isEditing ? null : post.id)}
-                          className={`hover:bg-accent-gold/10 flex-shrink-0 ${isEditing ? "text-accent-gold" : "text-neutral-gray hover:text-accent-gold"}`}
-                          title="Edit post"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteMutation.mutate(post.id)}
-                          disabled={deleteMutation.isPending}
-                          className="text-neutral-gray hover:text-red-400 hover:bg-red-400/10 flex-shrink-0"
-                          title="Delete post"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {isEditing && (
-                      <div className="px-4 pb-4">
-                        <EditPostForm
-                          post={post}
-                          onCancel={() => setEditingPostId(null)}
-                          onSaved={() => setEditingPostId(null)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={posts.map(p => p.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-3">
+                  {posts.map((post, index) => (
+                    <SortablePostCard
+                      key={post.id}
+                      post={post}
+                      index={index}
+                      total={posts.length}
+                      isReordering={reorderMutation.isPending}
+                      editingPostId={editingPostId}
+                      onMovePost={movePost}
+                      onSetEditingPostId={setEditingPostId}
+                      onDelete={(id) => deleteMutation.mutate(id)}
+                      deletePending={deleteMutation.isPending}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
         </div>
       </div>
