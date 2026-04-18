@@ -339,48 +339,28 @@ export default function Landing() {
 
       {/* ── HERO ──────────────────────────────────────────────────── */}
       <SfsSection className="relative min-h-screen flex flex-col items-center justify-center text-center px-4 py-24 overflow-hidden">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[var(--sf-gold)]/5 rounded-full blur-3xl pointer-events-none" />
+        <SfsContainer className="relative z-10 max-w-4xl">
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 tracking-tight text-white">
+            Systems that sell while you sleep
+          </h1>
 
-        <SfsContainer className="relative z-10 max-w-5xl">
-          <Badge className="mb-6 bg-[var(--sf-gold)]/10 text-[var(--sf-gold)] border border-[var(--sf-gold)]/30 text-xs font-semibold px-4 py-1.5 tracking-widest uppercase">
-            ✦ Now with AI Automation
-          </Badge>
-
-          <GoldHeading level={1} className="text-5xl md:text-7xl font-extrabold leading-[1.05] mb-6 tracking-tight">
-            <span className="text-plain-white">We Build Digital</span><br />
-            Businesses That Scale.
-          </GoldHeading>
-
-          <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            SmartFlow Systems is a full-service digital agency delivering world-class apps, AI automation, and marketing — all under one roof.
+          <p className="text-base md:text-lg text-neutral-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+            AI social bots, one-click booking, conversion-ready shops, and slick websites — all prebuilt, branded, and fast.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <GoldButton
-              onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
-              className="px-8 py-4 text-base"
+              onClick={() => document.getElementById("services")?.scrollIntoView({ behavior: "smooth" })}
+              className="px-8 py-4 text-base rounded-full"
             >
-              Start a Project <ArrowRight className="ml-2 w-4 h-4" />
+              See the 30 Systems
             </GoldButton>
             <GhostButton
-              onClick={() => document.getElementById("work")?.scrollIntoView({ behavior: "smooth" })}
-              className="px-8 py-4 text-base"
+              onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+              className="px-8 py-4 text-base rounded-full"
             >
-              See Our Work
+              Pricing
             </GhostButton>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-            {heroStats.map((s, i) => (
-              <FadeInUp
-                key={s.label}
-                stagger={(Math.min(i + 1, 4) as 1 | 2 | 3 | 4)}
-                className="text-center"
-              >
-                <p className="text-3xl md:text-4xl font-extrabold text-[var(--sf-gold)]">{s.value}</p>
-                <p className="text-xs text-neutral-500 mt-1 uppercase tracking-widest">{s.label}</p>
-              </FadeInUp>
-            ))}
           </div>
         </SfsContainer>
       </SfsSection>
