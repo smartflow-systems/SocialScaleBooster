@@ -44,7 +44,7 @@ app.use((req, res, next) => {
   try {
     await runMigrations();
   } catch (err: any) {
-    console.error('[db] startup: database unavailable, falling back to in-memory storage:', err.message);
+    console.error('[db] startup: database migration failed — the app will continue but data may not persist:', err.message);
   }
   try {
     await seedBotTemplates();
