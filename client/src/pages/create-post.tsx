@@ -55,6 +55,8 @@ export default function CreatePost() {
   const [showDrafts, setShowDrafts] = useState(false);
   const [editingDraftId, setEditingDraftId] = useState<number | null>(null);
   const [autoLoadedDraftId, setAutoLoadedDraftId] = useState<number | null>(null);
+  const [renamingDraftId, setRenamingDraftId] = useState<number | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   // Schedule modal state
   const [showSchedule, setShowSchedule] = useState(false);
@@ -138,6 +140,38 @@ export default function CreatePost() {
       toast({ title: "Failed to update draft", description: err.message, variant: "destructive" });
     },
   });
+
+  const renameDraftMutation = useMutation({
+    mutationFn: async ({ id, topic }: { id: number; topic: string }) => {
+      const res = await apiRequest("PUT", `/api/drafts/${id}`, { topic });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/drafts"] });
+      setRenamingDraftId(null);
+      setRenameValue("");
+      toast({ title: "Draft renamed" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to rename draft", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const handleRename = (draft: Draft) => {
+    setRenamingDraftId(draft.id);
+    setRenameValue(draft.topic);
+  };
+
+  const commitRename = (id: number) => {
+    const trimmed = renameValue.trim();
+    if (!trimmed) return;
+    renameDraftMutation.mutate({ id, topic: trimmed });
+  };
+
+  const cancelRename = () => {
+    setRenamingDraftId(null);
+    setRenameValue("");
+  };
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -301,7 +335,46 @@ export default function CreatePost() {
             {drafts.map((draft) => (
               <div key={draft.id} className="flex items-start gap-3 bg-primary-black rounded-lg p-3 border border-accent-gold/10">
                 <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium truncate">{draft.topic}</p>
+                  {renamingDraftId === draft.id ? (
+                    <div className="flex items-center gap-1 mb-1">
+                      <input
+                        autoFocus
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") commitRename(draft.id);
+                          if (e.key === "Escape") cancelRename();
+                        }}
+                        className="flex-1 bg-rich-brown/30 border border-accent-gold/40 rounded px-2 py-0.5 text-white text-sm focus:outline-none focus:border-accent-gold/70"
+                      />
+                      <button
+                        onClick={() => commitRename(draft.id)}
+                        disabled={renameDraftMutation.isPending || !renameValue.trim()}
+                        className="text-xs text-accent-gold hover:text-gold-trim disabled:opacity-50 transition-colors"
+                        title="Save"
+                      >
+                        {renameDraftMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span className="font-medium">Save</span>}
+                      </button>
+                      <button
+                        onClick={cancelRename}
+                        className="text-neutral-gray hover:text-white transition-colors"
+                        title="Cancel"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1 group">
+                      <p className="text-white text-sm font-medium truncate">{draft.topic}</p>
+                      <button
+                        onClick={() => handleRename(draft)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-neutral-gray hover:text-accent-gold ml-1 shrink-0"
+                        title="Rename draft"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )}
                   <p className="text-neutral-gray text-xs mt-0.5">
                     {draft.platform} · {draft.tone} · {new Date(draft.createdAt!).toLocaleDateString()}
                   </p>
