@@ -130,8 +130,8 @@ function AppRoutes() {
 
   return (
     <div className="relative flex min-h-screen bg-[#0D0D0D]">
-      {/* Animated SFS circuit background */}
-      <SFSCircuitBackground />
+      {/* Animated SFS circuit background — only on authenticated app pages */}
+      {user && isAppPath(location) && <SFSCircuitBackground />}
       {/* Sidebar only for authenticated app pages */}
       {user && isAppPath(location) && <AppSidebar />}
       {/* Global post-published notification listener */}
