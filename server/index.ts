@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { runMigrations } from "./migrate";
+import { seedBotTemplates } from "./seed";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -40,6 +41,7 @@ app.use((req, res, next) => {
 
 (async () => {
   await runMigrations();
+  await seedBotTemplates();
 
   const server = await registerRoutes(app);
 

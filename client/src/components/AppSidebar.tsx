@@ -8,67 +8,18 @@ import {
   Sparkles, LogOut, ChevronLeft, ChevronRight, User,
 } from "lucide-react";
 import { useState } from "react";
-
-const sections = [
-  {
-    title: "Main",
-    items: [
-      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      { label: "AI Studio", href: "/ai-studio", icon: Sparkles },
-      { label: "Content Calendar", href: "/calendar", icon: Calendar },
-      { label: "Analytics", href: "/analytics", icon: Activity },
-    ],
-  },
-  {
-    title: "Create",
-    items: [
-      { label: "Create Post", href: "/create", icon: FileText },
-      { label: "Caption Generator", href: "/captions", icon: MessageSquare },
-      { label: "Hashtag Research", href: "/hashtags", icon: Hash },
-      { label: "Templates", href: "/templates", icon: BookOpen },
-    ],
-  },
-  {
-    title: "Automate",
-    items: [
-      { label: "Post Scheduler", href: "/scheduler", icon: Zap },
-      { label: "Auto Engagement", href: "/auto-engage", icon: Bot },
-      { label: "DM Automation", href: "/dm-automation", icon: MessageSquare },
-      { label: "Connected Accounts", href: "/accounts", icon: Globe },
-    ],
-  },
-  {
-    title: "Grow",
-    items: [
-      { label: "Competitor Tracker", href: "/competitors", icon: Target },
-      { label: "Trending Topics", href: "/trends", icon: TrendingUp },
-      { label: "Audience Builder", href: "/audience", icon: Users },
-      { label: "Performance Score", href: "/performance", icon: BarChart3 },
-    ],
-  },
-  {
-    title: "Account",
-    items: [
-      { label: "Clients", href: "/clients", icon: Users },
-      { label: "Marketplace", href: "/marketplace", icon: Share2 },
-      { label: "Subscription", href: "/subscribe", icon: CreditCard },
-      { label: "Settings", href: "/settings", icon: Settings },
-    ],
-  },
-  {
-    title: "Support",
-    items: [
-      { label: "Help Center", href: "/help", icon: HelpCircle },
-      { label: "Tutorials", href: "/tutorials", icon: BookOpen },
-      { label: "Contact Support", href: "/support", icon: MessageSquare },
-    ],
-  },
-];
+import { useQuery } from "@tanstack/react-query";
 
 export default function AppSidebar() {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
+
+  const { data: countData } = useQuery<{ count: number }>({
+    queryKey: ["/api/scheduled-posts/count"],
+    refetchInterval: 60_000,
+  });
+  const scheduledCount = countData?.count ?? 0;
 
   const isActive = (href: string) =>
     href === "/dashboard" ? location === "/dashboard" : location.startsWith(href);
@@ -77,6 +28,62 @@ export default function AppSidebar() {
     logout();
     setLocation("/login");
   };
+
+  const sections = [
+    {
+      title: "Main",
+      items: [
+        { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { label: "AI Studio", href: "/ai-studio", icon: Sparkles },
+        { label: "Content Calendar", href: "/calendar", icon: Calendar },
+        { label: "Analytics", href: "/analytics", icon: Activity },
+      ],
+    },
+    {
+      title: "Create",
+      items: [
+        { label: "Create Post", href: "/create", icon: FileText },
+        { label: "Caption Generator", href: "/captions", icon: MessageSquare },
+        { label: "Hashtag Research", href: "/hashtags", icon: Hash },
+        { label: "Templates", href: "/templates", icon: BookOpen },
+      ],
+    },
+    {
+      title: "Automate",
+      items: [
+        { label: "Post Scheduler", href: "/scheduler", icon: Zap, badge: scheduledCount > 0 ? scheduledCount : undefined },
+        { label: "Auto Engagement", href: "/auto-engage", icon: Bot },
+        { label: "DM Automation", href: "/dm-automation", icon: MessageSquare },
+        { label: "Connected Accounts", href: "/accounts", icon: Globe },
+      ],
+    },
+    {
+      title: "Grow",
+      items: [
+        { label: "Competitor Tracker", href: "/competitors", icon: Target },
+        { label: "Trending Topics", href: "/trends", icon: TrendingUp },
+        { label: "Audience Builder", href: "/audience", icon: Users },
+        { label: "Performance Score", href: "/performance", icon: BarChart3 },
+      ],
+    },
+    {
+      title: "Account",
+      items: [
+        { label: "Clients", href: "/clients", icon: Users },
+        { label: "Marketplace", href: "/marketplace", icon: Share2 },
+        { label: "Subscription", href: "/subscribe", icon: CreditCard },
+        { label: "Settings", href: "/settings", icon: Settings },
+      ],
+    },
+    {
+      title: "Support",
+      items: [
+        { label: "Help Center", href: "/help", icon: HelpCircle },
+        { label: "Tutorials", href: "/tutorials", icon: BookOpen },
+        { label: "Contact Support", href: "/support", icon: MessageSquare },
+      ],
+    },
+  ];
 
   return (
     <div
@@ -117,7 +124,7 @@ export default function AppSidebar() {
               </p>
             )}
             <div className="space-y-0.5 px-2">
-              {section.items.map(({ label, href, icon: Icon }) => {
+              {section.items.map(({ label, href, icon: Icon, badge }: any) => {
                 const active = isActive(href);
                 return (
                   <Link key={href} href={href}>
@@ -131,8 +138,24 @@ export default function AppSidebar() {
                           : "text-neutral-400 hover:text-white hover:bg-white/5"
                       )}
                     >
-                      <Icon className="w-4 h-4 flex-shrink-0" />
-                      {!collapsed && <span className="truncate">{label}</span>}
+                      <div className="relative flex-shrink-0">
+                        <Icon className="w-4 h-4" />
+                        {badge !== undefined && collapsed && (
+                          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#FFD700] text-[#0D0D0D] text-[8px] font-bold flex items-center justify-center">
+                            {badge > 9 ? "9+" : badge}
+                          </span>
+                        )}
+                      </div>
+                      {!collapsed && (
+                        <>
+                          <span className="truncate flex-1">{label}</span>
+                          {badge !== undefined && (
+                            <span className="ml-auto min-w-[20px] h-5 rounded-full bg-[#FFD700]/20 text-[#FFD700] text-[10px] font-bold flex items-center justify-center px-1.5">
+                              {badge > 99 ? "99+" : badge}
+                            </span>
+                          )}
+                        </>
+                      )}
                     </div>
                   </Link>
                 );

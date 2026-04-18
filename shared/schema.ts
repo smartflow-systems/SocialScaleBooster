@@ -120,26 +120,43 @@ export const insertAnalyticsSchema = createInsertSchema(analytics).omit({
   date: true,
 });
 
-// Scheduled Posts (in-memory only, no DB table needed)
-export const insertScheduledPostSchema = z.object({
-  userId: z.number(),
-  platform: z.string().min(1, "Platform is required"),
-  content: z.string().min(1, "Content is required"),
-  scheduledAt: z.string().min(1, "Scheduled time is required"),
-  status: z.string().default("scheduled"),
+// Scheduled Posts — persisted to DB
+export const scheduledPosts = pgTable("scheduled_posts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  platform: text("platform").notNull(),
+  content: text("content").notNull(),
+  scheduledAt: text("scheduled_at").notNull(),
+  status: text("status").default("scheduled"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertScheduledPostSchema = createInsertSchema(scheduledPosts).omit({
+  id: true,
+  createdAt: true,
 });
 
 export type InsertScheduledPost = z.infer<typeof insertScheduledPostSchema>;
+export type ScheduledPost = typeof scheduledPosts.$inferSelect;
 
-export type ScheduledPost = {
-  id: number;
-  userId: number;
-  platform: string;
-  content: string;
-  scheduledAt: string;
-  status: string;
-  createdAt: Date;
-};
+// Drafts — persisted to DB
+export const drafts = pgTable("drafts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  topic: text("topic").notNull(),
+  content: text("content").notNull(),
+  platform: text("platform").notNull(),
+  tone: text("tone").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertDraftSchema = createInsertSchema(drafts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertDraft = z.infer<typeof insertDraftSchema>;
+export type Draft = typeof drafts.$inferSelect;
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;

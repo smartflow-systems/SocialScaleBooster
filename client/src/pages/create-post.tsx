@@ -1,8 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "wouter";
-import { FileText, ArrowLeft, Send, Copy, Loader2, Sparkles, BookmarkPlus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  FileText, ArrowLeft, Send, Copy, Loader2, Sparkles,
+  BookmarkPlus, Trash2, ChevronDown, ChevronUp, CalendarClock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import type { Draft } from "@shared/schema";
 
 const PLATFORMS = [
   { value: "instagram", label: "Instagram" },
@@ -25,29 +31,6 @@ const INDUSTRIES = [
   "Finance", "Education", "Entertainment", "Other"
 ];
 
-interface Draft {
-  id: string;
-  content: string;
-  platform: string;
-  tone: string;
-  topic: string;
-  savedAt: string;
-}
-
-const DRAFTS_KEY = "create_post_drafts";
-
-function loadDrafts(): Draft[] {
-  try {
-    return JSON.parse(localStorage.getItem(DRAFTS_KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function saveDrafts(drafts: Draft[]) {
-  localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
-}
-
 export default function CreatePost() {
   const { toast } = useToast();
   const [topic, setTopic] = useState("");
@@ -58,12 +41,45 @@ export default function CreatePost() {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const [tokensUsed, setTokensUsed] = useState(0);
-  const [drafts, setDrafts] = useState<Draft[]>([]);
   const [showDrafts, setShowDrafts] = useState(false);
 
-  useEffect(() => {
-    setDrafts(loadDrafts());
-  }, []);
+  // Schedule modal state
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState("");
+  const [scheduling, setScheduling] = useState(false);
+
+  const { data: drafts = [], isLoading: draftsLoading } = useQuery<Draft[]>({
+    queryKey: ["/api/drafts"],
+  });
+
+  const saveDraftMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/drafts", {
+        topic,
+        content: result,
+        platform,
+        tone,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/drafts"] });
+      toast({ title: "Saved to drafts!" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to save draft", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const deleteDraftMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/drafts/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/drafts"] });
+      toast({ title: "Draft deleted" });
+    },
+  });
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -100,28 +116,6 @@ export default function CreatePost() {
     toast({ title: "Copied to clipboard!" });
   };
 
-  const saveToDrafts = () => {
-    const draft: Draft = {
-      id: Date.now().toString(),
-      content: result,
-      platform,
-      tone,
-      topic,
-      savedAt: new Date().toLocaleString(),
-    };
-    const updated = [draft, ...drafts];
-    setDrafts(updated);
-    saveDrafts(updated);
-    toast({ title: "Saved to drafts!" });
-  };
-
-  const deleteDraft = (id: string) => {
-    const updated = drafts.filter((d) => d.id !== id);
-    setDrafts(updated);
-    saveDrafts(updated);
-    toast({ title: "Draft deleted" });
-  };
-
   const loadDraft = (draft: Draft) => {
     setResult(draft.content);
     setPlatform(draft.platform);
@@ -131,7 +125,39 @@ export default function CreatePost() {
     toast({ title: "Draft loaded" });
   };
 
+  const handleSchedule = async () => {
+    if (!scheduleDate) {
+      toast({ title: "Please pick a date and time", variant: "destructive" });
+      return;
+    }
+    const scheduledAt = new Date(scheduleDate);
+    if (scheduledAt <= new Date()) {
+      toast({ title: "Please pick a future date and time", variant: "destructive" });
+      return;
+    }
+    setScheduling(true);
+    try {
+      await apiRequest("POST", "/api/scheduled-posts", {
+        platform,
+        content: result,
+        scheduledAt: scheduledAt.toISOString(),
+        status: "scheduled",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
+      setShowSchedule(false);
+      setScheduleDate("");
+      toast({ title: "Post scheduled!", description: `Scheduled for ${scheduledAt.toLocaleString()}` });
+    } catch (err: any) {
+      toast({ title: "Failed to schedule", description: err.message, variant: "destructive" });
+    } finally {
+      setScheduling(false);
+    }
+  };
+
   const platformLabel = PLATFORMS.find((p) => p.value === platform)?.label ?? platform;
+
+  const minDateTime = new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16);
 
   return (
     <div className="min-h-screen bg-primary-black">
@@ -174,7 +200,7 @@ export default function CreatePost() {
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-medium truncate">{draft.topic}</p>
                   <p className="text-neutral-gray text-xs mt-0.5">
-                    {draft.platform} · {draft.tone} · {draft.savedAt}
+                    {draft.platform} · {draft.tone} · {new Date(draft.createdAt!).toLocaleDateString()}
                   </p>
                   <p className="text-neutral-gray/70 text-xs mt-1 line-clamp-2">{draft.content}</p>
                 </div>
@@ -186,7 +212,8 @@ export default function CreatePost() {
                     Load
                   </button>
                   <button
-                    onClick={() => deleteDraft(draft.id)}
+                    onClick={() => deleteDraftMutation.mutate(draft.id)}
+                    disabled={deleteDraftMutation.isPending}
                     className="text-neutral-gray hover:text-red-400 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -302,21 +329,36 @@ export default function CreatePost() {
                 <div className="flex-1 bg-primary-black rounded-lg p-4 border border-accent-gold/10">
                   <p className="text-white whitespace-pre-wrap leading-relaxed text-sm">{result}</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={copyToClipboard}
+                      className="flex-1 bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold hover:opacity-90"
+                    >
+                      <Copy className="w-4 h-4 mr-2" />
+                      Copy Post
+                    </Button>
+                    <Button
+                      onClick={() => saveDraftMutation.mutate()}
+                      disabled={saveDraftMutation.isPending}
+                      variant="outline"
+                      className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim"
+                    >
+                      {saveDraftMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <BookmarkPlus className="w-4 h-4 mr-2" />
+                      )}
+                      Save Draft
+                    </Button>
+                  </div>
                   <Button
-                    onClick={copyToClipboard}
-                    className="flex-1 bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold hover:opacity-90"
-                  >
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Post
-                  </Button>
-                  <Button
-                    onClick={saveToDrafts}
+                    onClick={() => setShowSchedule(true)}
                     variant="outline"
-                    className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim"
+                    className="w-full border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim"
                   >
-                    <BookmarkPlus className="w-4 h-4 mr-2" />
-                    Save to Drafts
+                    <CalendarClock className="w-4 h-4 mr-2" />
+                    Schedule Post
                   </Button>
                 </div>
               </div>
@@ -332,6 +374,55 @@ export default function CreatePost() {
           </div>
         </div>
       </div>
+
+      {/* Schedule modal */}
+      {showSchedule && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-accent-gold/20 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-lg bg-accent-gold/10 border border-accent-gold/30 flex items-center justify-center">
+                <CalendarClock className="w-4 h-4 text-accent-gold" />
+              </div>
+              <div>
+                <h2 className="text-white font-semibold">Schedule Post</h2>
+                <p className="text-xs text-neutral-gray">{platformLabel}</p>
+              </div>
+            </div>
+
+            <div className="mb-5">
+              <label className="text-sm text-neutral-gray mb-2 block">Date &amp; Time</label>
+              <input
+                type="datetime-local"
+                value={scheduleDate}
+                min={minDateTime}
+                onChange={(e) => setScheduleDate(e.target.value)}
+                className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent-gold/50 [color-scheme:dark]"
+              />
+            </div>
+
+            <div className="bg-primary-black rounded-lg p-3 border border-accent-gold/10 mb-5 max-h-24 overflow-y-auto">
+              <p className="text-neutral-gray/80 text-xs line-clamp-4">{result}</p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                onClick={() => { setShowSchedule(false); setScheduleDate(""); }}
+                variant="outline"
+                className="flex-1 border-white/10 text-neutral-gray hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSchedule}
+                disabled={scheduling || !scheduleDate}
+                className="flex-1 bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold hover:opacity-90 disabled:opacity-50"
+              >
+                {scheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : "Schedule"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -15,6 +15,13 @@
       "when": 1776464476256,
       "tag": "0001_strong_wither",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776473224242,
+      "tag": "0002_dusty_deathstrike",
+      "breakpoints": true
     }
   ]
 }

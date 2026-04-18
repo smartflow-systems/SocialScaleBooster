@@ -10,7 +10,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (April 2026)
 
-✓ **PostgreSQL Database Connected**: Switched from in-memory MemStorage to Drizzle ORM + Neon PostgreSQL. All tables migrated (users, clients, social_accounts, bots, bot_templates, analytics). DATABASE_URL whitespace sanitized in `server/db.ts`. Bot templates seeded via `server/seed.ts`. Users and data now persist across server restarts.
+✓ **Scheduled Posts Persisted to DB**: `scheduled_posts` table added to Drizzle schema. DatabaseStorage now uses DB for all scheduled post CRUD instead of in-memory Map. Migration 0002 auto-applies on startup.
+
+✓ **Server-Side Drafts**: `drafts` DB table + full CRUD API (`GET/POST/DELETE /api/drafts`). Create Post page now saves/loads drafts from the server instead of localStorage — persists across devices and sessions.
+
+✓ **Schedule from Create Post**: "Schedule Post" button on the Create Post output panel opens a modal with a datetime picker. Validates future datetime, creates a scheduled post via API, and invalidates the sidebar badge count.
+
+✓ **Sidebar Schedule Badge**: Post Scheduler nav item shows a live count badge of upcoming scheduled posts. Refreshes every 60 seconds via `GET /api/scheduled-posts/count`.
+
+✓ **Bot Template Seed**: `server/seed.ts` exports `seedBotTemplates()` called on startup — inserts 6 default templates (Instagram Growth, Twitter Engagement, LinkedIn Lead Gen, TikTok Trend Rider, Facebook Community, Agency Suite) if no templates exist in DB.
+
+✓ **PostgreSQL Database Connected**: Switched from in-memory MemStorage to Drizzle ORM + Neon PostgreSQL. All tables migrated (users, clients, social_accounts, bots, bot_templates, analytics). DATABASE_URL whitespace sanitized in `server/db.ts`. Users and data now persist across server restarts.
 
 
 

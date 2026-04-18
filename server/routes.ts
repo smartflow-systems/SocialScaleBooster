@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import rateLimit from "express-rate-limit";
 import { AnalyticsWebSocketServer } from "./websocket";
 import { storage } from "./storage";
-import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema, insertScheduledPostSchema } from "@shared/schema";
+import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema, insertScheduledPostSchema, insertDraftSchema } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
@@ -1042,6 +1042,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
       const deleted = await storage.deleteScheduledPost(id, userId);
       if (!deleted) return res.status(404).json({ message: "Post not found or not owned by you" });
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Scheduled posts count (for sidebar badge)
+  app.get("/api/scheduled-posts/count", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const posts = await storage.getScheduledPostsByUserId(userId);
+      const upcoming = posts.filter(p => p.status === "scheduled" && new Date(p.scheduledAt) > new Date());
+      res.json({ count: upcoming.length });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Draft routes
+  app.get("/api/drafts", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const userDrafts = await storage.getDraftsByUserId(userId);
+      res.json(userDrafts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/drafts", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const parsed = insertDraftSchema.safeParse({ ...req.body, userId });
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
+      }
+      const draft = await storage.createDraft(parsed.data);
+      res.status(201).json(draft);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/drafts/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user!.id;
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+      const deleted = await storage.deleteDraft(id, userId);
+      if (!deleted) return res.status(404).json({ message: "Draft not found" });
       res.status(204).send();
     } catch (error: any) {
       res.status(500).json({ message: error.message });

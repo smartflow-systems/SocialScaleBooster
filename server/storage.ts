@@ -1,5 +1,5 @@
-import { users, bots, botTemplates, analytics, clients, socialAccounts, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics, type Client, type InsertClient, type SocialAccount, type InsertSocialAccount, type ScheduledPost, type InsertScheduledPost } from "@shared/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { users, bots, botTemplates, analytics, clients, socialAccounts, scheduledPosts, drafts, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics, type Client, type InsertClient, type SocialAccount, type InsertSocialAccount, type ScheduledPost, type InsertScheduledPost, type Draft, type InsertDraft } from "@shared/schema";
+import { eq, and, sql, desc } from "drizzle-orm";
 import { db } from "./db";
 
 export interface IStorage {
@@ -58,6 +58,11 @@ export interface IStorage {
   getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]>;
   createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost>;
   deleteScheduledPost(id: number, userId: number): Promise<boolean>;
+
+  // Draft methods
+  getDraftsByUserId(userId: number): Promise<Draft[]>;
+  createDraft(draft: InsertDraft): Promise<Draft>;
+  deleteDraft(id: number, userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -316,25 +321,37 @@ export class DatabaseStorage implements IStorage {
     return result[0] || { avgEngagement: 0, totalPosts: 0 };
   }
 
-  // Scheduled Post methods (in-memory even for DB storage since no migration needed)
-  private scheduledPostsMap: Map<number, ScheduledPost> = new Map();
-  private currentScheduledPostId: number = 1;
-
+  // Scheduled Post methods — DB-backed
   async getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]> {
-    return Array.from(this.scheduledPostsMap.values()).filter(post => post.userId === userId);
+    return await db.select().from(scheduledPosts).where(eq(scheduledPosts.userId, userId)).orderBy(desc(scheduledPosts.createdAt));
   }
 
   async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {
-    const id = this.currentScheduledPostId++;
-    const newPost: ScheduledPost = { ...post, id, status: post.status || "scheduled", createdAt: new Date() };
-    this.scheduledPostsMap.set(id, newPost);
-    return newPost;
+    const [created] = await db.insert(scheduledPosts).values(post).returning();
+    return created;
   }
 
   async deleteScheduledPost(id: number, userId: number): Promise<boolean> {
-    const post = this.scheduledPostsMap.get(id);
-    if (!post || post.userId !== userId) return false;
-    this.scheduledPostsMap.delete(id);
+    const [post] = await db.select().from(scheduledPosts).where(and(eq(scheduledPosts.id, id), eq(scheduledPosts.userId, userId)));
+    if (!post) return false;
+    await db.delete(scheduledPosts).where(eq(scheduledPosts.id, id));
+    return true;
+  }
+
+  // Draft methods — DB-backed
+  async getDraftsByUserId(userId: number): Promise<Draft[]> {
+    return await db.select().from(drafts).where(eq(drafts.userId, userId)).orderBy(desc(drafts.createdAt));
+  }
+
+  async createDraft(draft: InsertDraft): Promise<Draft> {
+    const [created] = await db.insert(drafts).values(draft).returning();
+    return created;
+  }
+
+  async deleteDraft(id: number, userId: number): Promise<boolean> {
+    const [draft] = await db.select().from(drafts).where(and(eq(drafts.id, id), eq(drafts.userId, userId)));
+    if (!draft) return false;
+    await db.delete(drafts).where(eq(drafts.id, id));
     return true;
   }
 }
@@ -839,6 +856,28 @@ export class MemStorage implements IStorage {
     const post = this.scheduledPosts.get(id);
     if (!post || post.userId !== userId) return false;
     this.scheduledPosts.delete(id);
+    return true;
+  }
+
+  // Draft methods (in-memory)
+  private draftsMap: Map<number, Draft> = new Map();
+  private currentDraftId: number = 1;
+
+  async getDraftsByUserId(userId: number): Promise<Draft[]> {
+    return Array.from(this.draftsMap.values()).filter(d => d.userId === userId);
+  }
+
+  async createDraft(draft: InsertDraft): Promise<Draft> {
+    const id = this.currentDraftId++;
+    const newDraft: Draft = { ...draft, id, createdAt: new Date() };
+    this.draftsMap.set(id, newDraft);
+    return newDraft;
+  }
+
+  async deleteDraft(id: number, userId: number): Promise<boolean> {
+    const draft = this.draftsMap.get(id);
+    if (!draft || draft.userId !== userId) return false;
+    this.draftsMap.delete(id);
     return true;
   }
 }
