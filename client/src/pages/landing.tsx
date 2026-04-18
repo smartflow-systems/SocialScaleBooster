@@ -333,8 +333,9 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen text-white overflow-x-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
-      <SpaceBackground />
+    <>
+    <SpaceBackground />
+    <div className="relative z-[1] min-h-screen text-white overflow-x-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
       <Navigation />
 
       {/* ── HERO ──────────────────────────────────────────────────── */}
@@ -1012,5 +1013,6 @@ export default function Landing() {
         }
       `}</style>
     </div>
+    </>
   );
 }
