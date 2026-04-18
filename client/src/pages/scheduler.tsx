@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "wouter";
+import { useState, useEffect, useRef } from "react";
+import { Link, useSearch } from "wouter";
 import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, ChevronUp, ChevronDown, GripVertical, ArrowUpDown, CheckCircle2, RotateCcw, AlertCircle } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -209,6 +209,7 @@ function SortablePostCard({
   total,
   isReordering,
   editingPostId,
+  isHighlighted,
   onMovePost,
   onSetEditingPostId,
   onDelete,
@@ -221,6 +222,7 @@ function SortablePostCard({
   total: number;
   isReordering: boolean;
   editingPostId: number | null;
+  isHighlighted: boolean;
   onMovePost: (index: number, direction: "up" | "down") => void;
   onSetEditingPostId: (id: number | null) => void;
   onDelete: (id: number) => void;
@@ -252,7 +254,8 @@ function SortablePostCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`border rounded-xl overflow-hidden ${isFailed ? "border-red-500/30 bg-red-500/5" : "border-accent-gold/20 bg-rich-brown/10"}`}
+      data-post-id={post.id}
+      className={`border rounded-xl overflow-hidden ${isFailed ? "border-red-500/30 bg-red-500/5" : "border-accent-gold/20 bg-rich-brown/10"} ${isHighlighted ? "post-highlight" : ""}`}
     >
       <div className="flex items-start gap-3 p-4">
         <div className="flex flex-col items-center gap-0.5 flex-shrink-0 mt-0.5">
@@ -412,9 +415,30 @@ export default function Scheduler() {
   const [showForm, setShowForm] = useState(false);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
 
+  const searchStr = useSearch();
+  const highlightId = (() => {
+    const params = new URLSearchParams(searchStr);
+    const val = params.get("highlight");
+    return val ? Number(val) : null;
+  })();
+
+  const [activeHighlightId, setActiveHighlightId] = useState<number | null>(null);
+  const scrolledRef = useRef(false);
+
   const { data: posts = [], isLoading } = useQuery<ScheduledPost[]>({
     queryKey: ["/api/scheduled-posts"],
   });
+
+  useEffect(() => {
+    if (!highlightId || isLoading || scrolledRef.current) return;
+    const el = document.querySelector(`[data-post-id="${highlightId}"]`);
+    if (!el) return;
+    scrolledRef.current = true;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setActiveHighlightId(highlightId);
+    const timer = setTimeout(() => setActiveHighlightId(null), 2400);
+    return () => clearTimeout(timer);
+  }, [highlightId, isLoading, posts]);
 
   const upcomingPosts = posts.filter(p => p.status === "scheduled" || p.status === "failed");
   const publishedPosts = posts.filter(p => p.status === "published")
@@ -731,6 +755,7 @@ export default function Scheduler() {
                           total={upcomingPosts.length}
                           isReordering={reorderMutation.isPending}
                           editingPostId={editingPostId}
+                          isHighlighted={activeHighlightId === post.id}
                           onMovePost={movePost}
                           onSetEditingPostId={setEditingPostId}
                           onDelete={(id) => deleteMutation.mutate(id)}

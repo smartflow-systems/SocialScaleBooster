@@ -210,12 +210,14 @@ export default function CreatePost() {
     }
     setScheduling(true);
     try {
-      await apiRequest("POST", "/api/scheduled-posts", {
+      const res = await apiRequest("POST", "/api/scheduled-posts", {
         platform,
         content: scheduleContent,
         scheduledAt: scheduledAt.toISOString(),
         status: "scheduled",
       });
+      const newPost = await res.json();
+      const newPostId: number | undefined = newPost?.id;
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
       setShowSchedule(false);
@@ -224,7 +226,7 @@ export default function CreatePost() {
         title: "Post scheduled!",
         description: `Scheduled for ${scheduledAt.toLocaleString()}.`,
         action: (
-          <ToastAction altText="View Schedule" onClick={() => navigate("/scheduler")}>
+          <ToastAction altText="View Schedule" onClick={() => navigate(newPostId ? `/scheduler?highlight=${newPostId}` : "/scheduler")}>
             View Schedule
           </ToastAction>
         ),
