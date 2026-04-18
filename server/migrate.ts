@@ -1,6 +1,8 @@
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { migrate } from 'drizzle-orm/neon-serverless/migrator';
+import { getTableName } from 'drizzle-orm';
 import { pool } from './db';
+import { allTables } from '../shared/schema';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -139,8 +141,49 @@ export async function runMigrations() {
     const db = drizzle({ client: pool });
     await migrate(db, { migrationsFolder: './migrations' });
     console.log('[db] all migrations applied — database ready');
+
+    // Step 4: Health check — verify every table defined in the schema exists
+    await verifyDatabaseHealth();
   } catch (err: any) {
     console.error('[db] migration failed:', err.message);
     throw err;
   }
+}
+
+/**
+ * Confirms that every table defined in shared/schema.ts (via the exported
+ * `allTables` array) exists in the public schema. Adding a new pgTable to
+ * shared/schema.ts and including it in `allTables` is the only maintenance
+ * required — this function never needs to be changed directly.
+ *
+ * Logs a clear error listing missing tables and exits the process with a
+ * non-zero code if any are absent. Skips silently in in-memory mode.
+ */
+export async function verifyDatabaseHealth(): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    return; // in-memory mode — nothing to check
+  }
+
+  const expectedTableNames = allTables.map(getTableName);
+  const missing: string[] = [];
+
+  for (const tableName of expectedTableNames) {
+    const { rows } = await pool.query(
+      `SELECT 1 FROM information_schema.tables
+       WHERE table_schema = 'public' AND table_name = $1`,
+      [tableName]
+    );
+    if (rows.length === 0) {
+      missing.push(tableName);
+    }
+  }
+
+  if (missing.length > 0) {
+    console.error(
+      `[db] HEALTH CHECK FAILED — the following tables are missing from the database: ${missing.join(', ')}`
+    );
+    process.exit(1);
+  }
+
+  console.log('[db] health check passed — all expected tables are present');
 }

@@ -160,6 +160,19 @@ export const insertDraftSchema = createInsertSchema(drafts).omit({
 export type InsertDraft = z.infer<typeof insertDraftSchema>;
 export type Draft = typeof drafts.$inferSelect;
 
+// All pgTable objects — used by the startup health check to verify every
+// table exists in the database without maintaining a separate manual list.
+export const allTables = [
+  users,
+  clients,
+  socialAccounts,
+  bots,
+  botTemplates,
+  analytics,
+  scheduledPosts,
+  drafts,
+] as const;
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
