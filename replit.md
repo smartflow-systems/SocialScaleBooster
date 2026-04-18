@@ -22,7 +22,9 @@ Preferred communication style: Simple, everyday language.
 
 ✓ **Bot Template Seed**: `server/seed.ts` exports `seedBotTemplates()` called on startup — inserts 6 default templates (Instagram Growth, Twitter Engagement, LinkedIn Lead Gen, TikTok Trend Rider, Facebook Community, Agency Suite) if no templates exist in DB.
 
-✓ **PostgreSQL Database Connected**: Switched from in-memory MemStorage to Drizzle ORM + Neon PostgreSQL. All tables migrated (users, clients, social_accounts, bots, bot_templates, analytics). DATABASE_URL whitespace sanitized in `server/db.ts`. Users and data now persist across server restarts.
+✓ **PostgreSQL Database Connected**: Switched from in-memory MemStorage to Drizzle ORM + Neon PostgreSQL. All tables migrated (users, clients, social_accounts, bots, bot_templates, analytics). Users and data now persist across server restarts.
+
+**Note:** `DATABASE_URL` must be a clean, valid PostgreSQL connection string with no embedded spaces or newlines. Set it in the Replit Secrets panel as a single unbroken line (e.g. `postgresql://user:pass@host/db?sslmode=require`).
 
 
 

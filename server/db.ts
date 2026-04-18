@@ -10,7 +10,6 @@ if (!process.env.DATABASE_URL) {
   console.warn("⚠️  DATABASE_URL not set - using in-memory storage for development");
 }
 
-// Strip any whitespace/newlines from the URL that may have been introduced during configuration
-const connectionString = (process.env.DATABASE_URL || "postgresql://localhost:5432/dev").replace(/\s+/g, '');
+const connectionString = process.env.DATABASE_URL || "postgresql://localhost:5432/dev";
 export const pool = new Pool({ connectionString });
 export const db = drizzle({ client: pool, schema });
