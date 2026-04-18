@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Switch, Route, useLocation, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -7,6 +8,65 @@ import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { NotificationPrefsProvider } from "@/hooks/use-notification-prefs";
 import AppSidebar from "@/components/AppSidebar";
 import { usePostPublishedNotifications } from "@/hooks/usePostPublishedNotifications";
+
+declare global {
+  interface Window {
+    initSFSCircuitFlow?: () => (() => void) | null;
+    __sfsCircuitCleanup?: (() => void) | null;
+  }
+}
+
+function SFSCircuitBackground() {
+  useEffect(() => {
+    let cleanup: (() => void) | null = null;
+    let cancelled = false;
+
+    const start = () => {
+      if (cancelled) return;
+      if (typeof window.initSFSCircuitFlow === "function") {
+        const result = window.initSFSCircuitFlow();
+        if (typeof result === "function") cleanup = result;
+        return;
+      }
+      const existing = document.querySelector<HTMLScriptElement>(
+        'script[data-sfs-circuit="true"]'
+      );
+      if (existing) {
+        existing.addEventListener("load", start, { once: true });
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "/sfs-circuit-flow.js";
+      script.async = true;
+      script.dataset.sfsCircuit = "true";
+      script.addEventListener("load", start, { once: true });
+      document.body.appendChild(script);
+    };
+
+    start();
+
+    return () => {
+      cancelled = true;
+      if (cleanup) cleanup();
+    };
+  }, []);
+
+  return (
+    <canvas
+      id="circuit-canvas"
+      aria-hidden="true"
+      style={{
+        position: "fixed",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        zIndex: 0,
+        opacity: 0.4,
+        pointerEvents: "none",
+      }}
+    />
+  );
+}
 
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
@@ -69,13 +129,15 @@ function AppRoutes() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0D0D0D]">
+    <div className="relative flex min-h-screen bg-[#0D0D0D]">
+      {/* Animated SFS circuit background */}
+      <SFSCircuitBackground />
       {/* Sidebar only for authenticated app pages */}
       {user && isAppPath(location) && <AppSidebar />}
       {/* Global post-published notification listener */}
       {user && token && <PostPublishedNotifier userId={user.id} token={token} />}
 
-      <div className="flex-1 min-w-0 overflow-x-hidden">
+      <div className="relative z-[1] flex-1 min-w-0 overflow-x-hidden">
         <Toaster />
         <Switch>
           {/* Public pages */}
