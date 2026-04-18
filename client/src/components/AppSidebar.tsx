@@ -193,7 +193,7 @@ export default function AppSidebar() {
             <div className="space-y-0.5 px-2">
               {section.items.map(({ label, href, icon: Icon, badge, pulse, badgeBreakdown }: any) => {
                 const active = isActive(href);
-                const breakdownEntries = badgeBreakdown ? Object.entries(badgeBreakdown) as [string, number][] : [];
+                const breakdownEntries = badgeBreakdown ? (Object.entries(badgeBreakdown) as [string, number][]).sort((a, b) => b[1] - a[1]) : [];
                 const tooltipText = breakdownEntries.length > 0
                   ? breakdownEntries.map(([p, c]) => `${p.charAt(0).toUpperCase() + p.slice(1)}: ${c}`).join(", ")
                   : null;
