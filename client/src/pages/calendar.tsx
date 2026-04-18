@@ -98,12 +98,10 @@ export default function ContentCalendar() {
   return (
     <div className="min-h-screen bg-primary-black">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <Link href="/dashboard">
-          <a className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Dashboard</span>
-          </a>
-        </Link>
+          </Link>
 
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div className="flex items-center gap-4">
@@ -131,11 +129,9 @@ export default function ContentCalendar() {
                 Week
               </button>
             </div>
-            <Link href="/scheduler">
-              <a className="px-3 py-2 text-sm font-medium rounded-lg bg-accent-gold/10 text-accent-gold border border-accent-gold/30 hover:bg-accent-gold/20 transition-colors">
+            <Link href="/scheduler" className="px-3 py-2 text-sm font-medium rounded-lg bg-accent-gold/10 text-accent-gold border border-accent-gold/30 hover:bg-accent-gold/20 transition-colors">
                 + Schedule
-              </a>
-            </Link>
+              </Link>
           </div>
         </div>
 
@@ -265,9 +261,7 @@ export default function ContentCalendar() {
         {!isLoading && posts.length === 0 && (
           <p className="text-center text-neutral-gray text-sm mt-6">
             No scheduled posts yet.{" "}
-            <Link href="/scheduler">
-              <a className="text-accent-gold hover:underline">Schedule your first post</a>
-            </Link>
+            <Link href="/scheduler" className="text-accent-gold hover:underline">Schedule your first post</Link>
           </p>
         )}
       </div>

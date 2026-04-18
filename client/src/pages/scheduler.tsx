@@ -263,12 +263,10 @@ export default function Scheduler() {
   return (
     <div className="min-h-screen bg-primary-black">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Link href="/dashboard">
-          <a className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Dashboard</span>
-          </a>
-        </Link>
+          </Link>
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">

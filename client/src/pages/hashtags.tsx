@@ -60,12 +60,10 @@ export default function Hashtags() {
   return (
     <div className="min-h-screen bg-primary-black">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <Link href="/dashboard">
-          <a className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Dashboard</span>
-          </a>
-        </Link>
+          </Link>
 
         <div className="flex items-center gap-4 mb-8">
           <div className="w-12 h-12 bg-gradient-to-br from-accent-gold to-gold-trim rounded-xl flex items-center justify-center shadow-lg shadow-accent-gold/20">
