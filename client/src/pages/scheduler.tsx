@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, ChevronUp, ChevronDown, GripVertical } from "lucide-react";
+import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, ChevronUp, ChevronDown, GripVertical, ArrowUpDown } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -394,6 +394,26 @@ export default function Scheduler() {
     },
   });
 
+  const sortByDateMutation = useMutation({
+    mutationFn: (orderedIds: number[]) =>
+      apiRequest("PATCH", "/api/scheduled-posts/reorder", { orderedIds }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+      toast({ title: "Queue sorted", description: "Posts have been reset to chronological order." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to sort posts. Please try again.", variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+    },
+  });
+
+  const resetToChronological = () => {
+    const sorted = [...posts].sort(
+      (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+    );
+    sortByDateMutation.mutate(sorted.map(p => p.id));
+  };
+
   const onSubmit = (data: FormData) => {
     createMutation.mutate(data);
   };
@@ -553,7 +573,20 @@ export default function Scheduler() {
               <span className="ml-2 text-sm font-normal text-neutral-gray">({posts.length} post{posts.length !== 1 ? "s" : ""})</span>
             </h2>
             {posts.length > 1 && (
-              <p className="text-xs text-neutral-gray">Drag or use arrows to reorder</p>
+              <div className="flex items-center gap-3">
+                <p className="text-xs text-neutral-gray">Drag or use arrows to reorder</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetToChronological}
+                  disabled={sortByDateMutation.isPending || reorderMutation.isPending}
+                  className="border-accent-gold/30 text-neutral-gray hover:text-accent-gold hover:border-accent-gold/60 hover:bg-accent-gold/5 gap-1.5 text-xs h-7 px-3"
+                  title="Reset to chronological order"
+                >
+                  <ArrowUpDown className="w-3 h-3" />
+                  Sort by date
+                </Button>
+              </div>
             )}
           </div>
 
