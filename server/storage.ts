@@ -57,6 +57,7 @@ export interface IStorage {
   // Scheduled Post methods
   getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]>;
   createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost>;
+  updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined>;
   deleteScheduledPost(id: number, userId: number): Promise<boolean>;
 
   // Draft methods
@@ -329,6 +330,14 @@ export class DatabaseStorage implements IStorage {
   async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {
     const [created] = await db.insert(scheduledPosts).values(post).returning();
     return created;
+  }
+
+  async updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined> {
+    const post = this.scheduledPostsMap.get(id);
+    if (!post || post.userId !== userId) return undefined;
+    const updatedPost = { ...post, ...updates };
+    this.scheduledPostsMap.set(id, updatedPost);
+    return updatedPost;
   }
 
   async deleteScheduledPost(id: number, userId: number): Promise<boolean> {
@@ -850,6 +859,14 @@ export class MemStorage implements IStorage {
     const newPost: ScheduledPost = { ...post, id, status: post.status || "scheduled", createdAt: new Date() };
     this.scheduledPosts.set(id, newPost);
     return newPost;
+  }
+
+  async updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined> {
+    const post = this.scheduledPosts.get(id);
+    if (!post || post.userId !== userId) return undefined;
+    const updatedPost = { ...post, ...updates };
+    this.scheduledPosts.set(id, updatedPost);
+    return updatedPost;
   }
 
   async deleteScheduledPost(id: number, userId: number): Promise<boolean> {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music } from "lucide-react";
+import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -43,9 +43,143 @@ function formatScheduledAt(dateStr: string) {
   return d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 }
 
+function toDatetimeLocalValue(dateStr: string) {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function EditPostForm({
+  post,
+  onCancel,
+  onSaved,
+}: {
+  post: ScheduledPost;
+  onCancel: () => void;
+  onSaved: () => void;
+}) {
+  const { toast } = useToast();
+
+  const editForm = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      platform: post.platform,
+      content: post.content,
+      scheduledAt: toDatetimeLocalValue(post.scheduledAt),
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: FormData) => apiRequest("PATCH", `/api/scheduled-posts/${post.id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+      toast({ title: "Post updated", description: "Your scheduled post has been updated." });
+      onSaved();
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update post. Please try again.", variant: "destructive" });
+    },
+  });
+
+  return (
+    <div className="border border-accent-gold/40 rounded-xl p-5 bg-rich-brown/20 mt-2">
+      <h3 className="text-sm font-semibold text-white mb-4">Edit Scheduled Post</h3>
+      <Form {...editForm}>
+        <form onSubmit={editForm.handleSubmit(data => updateMutation.mutate(data))} className="space-y-4">
+          <FormField
+            control={editForm.control}
+            name="platform"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-neutral-gray">Platform</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="bg-primary-black border-accent-gold/20 text-white">
+                      <SelectValue placeholder="Select platform" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="bg-primary-black border-accent-gold/20">
+                    {platforms.map(p => (
+                      <SelectItem key={p.value} value={p.value} className="text-white focus:bg-rich-brown/40">
+                        <div className="flex items-center gap-2">
+                          <p.icon className={`w-4 h-4 ${p.color}`} />
+                          {p.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={editForm.control}
+            name="content"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-neutral-gray">Post Content</FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    placeholder="Write your post content here..."
+                    className="bg-primary-black border-accent-gold/20 text-white placeholder:text-neutral-gray/50 min-h-[100px] resize-none"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={editForm.control}
+            name="scheduledAt"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-neutral-gray">Schedule Date & Time</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="datetime-local"
+                    className="bg-primary-black border-accent-gold/20 text-white"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex gap-3 pt-1">
+            <Button
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="bg-accent-gold hover:bg-gold-trim text-primary-black font-semibold gap-2"
+            >
+              <Check className="w-4 h-4" />
+              {updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="border-accent-gold/30 text-neutral-gray hover:text-white hover:bg-rich-brown/30 gap-2"
+            >
+              <X className="w-4 h-4" />
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+}
+
 export default function Scheduler() {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
+  const [editingPostId, setEditingPostId] = useState<number | null>(null);
 
   const { data: posts = [], isLoading } = useQuery<ScheduledPost[]>({
     queryKey: ["/api/scheduled-posts"],
@@ -110,7 +244,7 @@ export default function Scheduler() {
             </div>
           </div>
           <Button
-            onClick={() => setShowForm(v => !v)}
+            onClick={() => { setShowForm(v => !v); setEditingPostId(null); }}
             className="bg-accent-gold hover:bg-gold-trim text-primary-black font-semibold gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -231,42 +365,67 @@ export default function Scheduler() {
             <div className="space-y-3">
               {sortedPosts.map(post => {
                 const isPast = new Date(post.scheduledAt) < new Date();
+                const isEditing = editingPostId === post.id;
                 return (
-                  <div key={post.id} className="border border-accent-gold/20 rounded-xl p-4 bg-rich-brown/10 flex items-start gap-4">
-                    <div className="w-9 h-9 rounded-lg bg-primary-black border border-accent-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <PlatformIcon platform={post.platform} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm line-clamp-2 mb-2">{post.content}</p>
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="flex items-center gap-1 text-xs text-neutral-gray">
-                          <Clock className="w-3 h-3" />
-                          {formatScheduledAt(post.scheduledAt)}
-                        </span>
-                        <Badge
-                          variant="outline"
-                          className={`text-xs capitalize border-0 px-2 py-0.5 ${
-                            isPast
-                              ? "bg-neutral-gray/20 text-neutral-gray"
-                              : "bg-accent-gold/10 text-accent-gold"
-                          }`}
+                  <div key={post.id} className="border border-accent-gold/20 rounded-xl bg-rich-brown/10 overflow-hidden">
+                    <div className="flex items-start gap-4 p-4">
+                      <div className="w-9 h-9 rounded-lg bg-primary-black border border-accent-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <PlatformIcon platform={post.platform} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm line-clamp-2 mb-2">{post.content}</p>
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="flex items-center gap-1 text-xs text-neutral-gray">
+                            <Clock className="w-3 h-3" />
+                            {formatScheduledAt(post.scheduledAt)}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs capitalize border-0 px-2 py-0.5 ${
+                              isPast
+                                ? "bg-neutral-gray/20 text-neutral-gray"
+                                : "bg-accent-gold/10 text-accent-gold"
+                            }`}
+                          >
+                            {isPast ? "past" : post.status}
+                          </Badge>
+                          <span className="text-xs text-neutral-gray capitalize">
+                            {platforms.find(p => p.value === post.platform)?.label ?? post.platform}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEditingPostId(isEditing ? null : post.id)}
+                          className={`hover:bg-accent-gold/10 flex-shrink-0 ${isEditing ? "text-accent-gold" : "text-neutral-gray hover:text-accent-gold"}`}
+                          title="Edit post"
                         >
-                          {isPast ? "past" : post.status}
-                        </Badge>
-                        <span className="text-xs text-neutral-gray capitalize">
-                          {platforms.find(p => p.value === post.platform)?.label ?? post.platform}
-                        </span>
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteMutation.mutate(post.id)}
+                          disabled={deleteMutation.isPending}
+                          className="text-neutral-gray hover:text-red-400 hover:bg-red-400/10 flex-shrink-0"
+                          title="Delete post"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteMutation.mutate(post.id)}
-                      disabled={deleteMutation.isPending}
-                      className="text-neutral-gray hover:text-red-400 hover:bg-red-400/10 flex-shrink-0"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+
+                    {isEditing && (
+                      <div className="px-4 pb-4">
+                        <EditPostForm
+                          post={post}
+                          onCancel={() => setEditingPostId(null)}
+                          onSaved={() => setEditingPostId(null)}
+                        />
+                      </div>
+                    )}
                   </div>
                 );
               })}
