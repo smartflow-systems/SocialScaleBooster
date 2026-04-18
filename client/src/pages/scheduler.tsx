@@ -388,7 +388,7 @@ export default function Scheduler() {
     queryKey: ["/api/scheduled-posts"],
   });
 
-  const upcomingPosts = posts.filter(p => p.status !== "published");
+  const upcomingPosts = posts.filter(p => p.status === "scheduled" || p.status === "failed");
   const publishedPosts = posts.filter(p => p.status === "published")
     .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
 

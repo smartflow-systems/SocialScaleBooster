@@ -1014,5 +1014,12 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use MemStorage in development when DATABASE_URL is not set
-export const storage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemStorage();
+// Use DatabaseStorage when any database credentials are configured.
+// This mirrors the connection-string logic in server/db.ts: either DATABASE_URL
+// or the individual PG* variables (PGHOST + PGUSER + PGPASSWORD + PGDATABASE)
+// are sufficient to attempt a connection.
+const hasDatabaseConfig =
+  !!process.env.DATABASE_URL ||
+  !!(process.env.PGHOST && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE);
+
+export const storage = hasDatabaseConfig ? new DatabaseStorage() : new MemStorage();
