@@ -8,6 +8,10 @@ import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { NotificationPrefsProvider } from "@/hooks/use-notification-prefs";
 import AppSidebar from "@/components/AppSidebar";
 import { usePostPublishedNotifications } from "@/hooks/usePostPublishedNotifications";
+// Sanity import: ensures the SFS primitives module is in the build graph
+// (no real pages are retrofitted yet — that ships in tasks #80–#83).
+import { GlassCard as _SfsGlassCardSmoke } from "@/components/sfs";
+void _SfsGlassCardSmoke;
 
 declare global {
   interface Window {
