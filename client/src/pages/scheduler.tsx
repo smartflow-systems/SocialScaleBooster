@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check } from "lucide-react";
+import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, AlertTriangle } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,6 +50,10 @@ function toDatetimeLocalValue(dateStr: string) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function nowDatetimeLocalValue() {
+  return toDatetimeLocalValue(new Date().toISOString());
+}
+
 function EditPostForm({
   post,
   onCancel,
@@ -69,6 +73,9 @@ function EditPostForm({
       scheduledAt: toDatetimeLocalValue(post.scheduledAt),
     },
   });
+
+  const editScheduledAt = editForm.watch("scheduledAt");
+  const editIsPast = editScheduledAt ? new Date(editScheduledAt) < new Date() : false;
 
   const updateMutation = useMutation({
     mutationFn: (data: FormData) => apiRequest("PATCH", `/api/scheduled-posts/${post.id}`, data),
@@ -145,8 +152,15 @@ function EditPostForm({
                     {...field}
                     type="datetime-local"
                     className="bg-primary-black border-accent-gold/20 text-white"
+                    min={nowDatetimeLocalValue()}
                   />
                 </FormControl>
+                {editIsPast && (
+                  <div className="flex items-center gap-2 mt-1.5 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
+                    <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>This time is in the past. The post will not be published automatically.</span>
+                  </div>
+                )}
                 <FormMessage />
               </FormItem>
             )}
@@ -182,6 +196,7 @@ export default function Scheduler() {
   const [showForm, setShowForm] = useState(false);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
 
+
   const { data: posts = [], isLoading } = useQuery<ScheduledPost[]>({
     queryKey: ["/api/scheduled-posts"],
   });
@@ -194,6 +209,9 @@ export default function Scheduler() {
       scheduledAt: "",
     },
   });
+
+  const createScheduledAt = form.watch("scheduledAt");
+  const createIsPast = createScheduledAt ? new Date(createScheduledAt) < new Date() : false;
 
   const createMutation = useMutation({
     mutationFn: (data: FormData) => apiRequest("POST", "/api/scheduled-posts", data),
@@ -317,9 +335,15 @@ export default function Scheduler() {
                           {...field}
                           type="datetime-local"
                           className="bg-primary-black border-accent-gold/20 text-white"
-                          min={new Date().toISOString().slice(0, 16)}
+                          min={nowDatetimeLocalValue()}
                         />
                       </FormControl>
+                      {createIsPast && (
+                        <div className="flex items-center gap-2 mt-1.5 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-xs">
+                          <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span>This time is in the past. The post will not be published automatically.</span>
+                        </div>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
