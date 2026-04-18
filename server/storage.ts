@@ -59,6 +59,7 @@ export interface IStorage {
   createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost>;
   updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined>;
   deleteScheduledPost(id: number, userId: number): Promise<boolean>;
+  reorderScheduledPosts(userId: number, orderedIds: number[]): Promise<void>;
 
   // Draft methods
   getDraftsByUserId(userId: number): Promise<Draft[]>;
@@ -324,11 +325,13 @@ export class DatabaseStorage implements IStorage {
 
   // Scheduled Post methods — DB-backed
   async getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]> {
-    return await db.select().from(scheduledPosts).where(eq(scheduledPosts.userId, userId)).orderBy(desc(scheduledPosts.createdAt));
+    return await db.select().from(scheduledPosts).where(eq(scheduledPosts.userId, userId)).orderBy(scheduledPosts.sortOrder, scheduledPosts.createdAt);
   }
 
   async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {
-    const [created] = await db.insert(scheduledPosts).values(post).returning();
+    const existing = await db.select({ sortOrder: scheduledPosts.sortOrder }).from(scheduledPosts).where(eq(scheduledPosts.userId, post.userId));
+    const maxOrder = existing.reduce((max, p) => Math.max(max, p.sortOrder ?? 0), -1);
+    const [created] = await db.insert(scheduledPosts).values({ ...post, sortOrder: maxOrder + 1 }).returning();
     return created;
   }
 
@@ -346,6 +349,15 @@ export class DatabaseStorage implements IStorage {
     if (!post) return false;
     await db.delete(scheduledPosts).where(eq(scheduledPosts.id, id));
     return true;
+  }
+
+  async reorderScheduledPosts(userId: number, orderedIds: number[]): Promise<void> {
+    for (let i = 0; i < orderedIds.length; i++) {
+      await db
+        .update(scheduledPosts)
+        .set({ sortOrder: i })
+        .where(and(eq(scheduledPosts.id, orderedIds[i]), eq(scheduledPosts.userId, userId)));
+    }
   }
 
   // Draft methods — DB-backed
@@ -852,12 +864,16 @@ export class MemStorage implements IStorage {
 
   // Scheduled Post methods
   async getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]> {
-    return Array.from(this.scheduledPosts.values()).filter(post => post.userId === userId);
+    return Array.from(this.scheduledPosts.values())
+      .filter(post => post.userId === userId)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   }
 
   async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {
     const id = this.currentScheduledPostId++;
-    const newPost: ScheduledPost = { ...post, id, status: post.status || "scheduled", createdAt: new Date() };
+    const userPosts = Array.from(this.scheduledPosts.values()).filter(p => p.userId === post.userId);
+    const maxOrder = userPosts.reduce((max, p) => Math.max(max, p.sortOrder ?? 0), -1);
+    const newPost: ScheduledPost = { ...post, id, status: post.status || "scheduled", sortOrder: maxOrder + 1, createdAt: new Date() };
     this.scheduledPosts.set(id, newPost);
     return newPost;
   }
@@ -875,6 +891,15 @@ export class MemStorage implements IStorage {
     if (!post || post.userId !== userId) return false;
     this.scheduledPosts.delete(id);
     return true;
+  }
+
+  async reorderScheduledPosts(userId: number, orderedIds: number[]): Promise<void> {
+    for (let i = 0; i < orderedIds.length; i++) {
+      const post = this.scheduledPosts.get(orderedIds[i]);
+      if (post && post.userId === userId) {
+        this.scheduledPosts.set(orderedIds[i], { ...post, sortOrder: i });
+      }
+    }
   }
 
   // Draft methods (in-memory)

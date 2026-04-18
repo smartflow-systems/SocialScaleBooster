@@ -44,6 +44,16 @@ export async function runMigrations() {
       return rows.length > 0;
     };
 
+    // Helper: check if a column exists in a table
+    const columnExists = async (tableName: string, columnName: string): Promise<boolean> => {
+      const { rows } = await pool.query(
+        `SELECT 1 FROM information_schema.columns
+         WHERE table_schema = 'public' AND table_name = $1 AND column_name = $2`,
+        [tableName, columnName]
+      );
+      return rows.length > 0;
+    };
+
     // Migration 0002 creates scheduled_posts and drafts.
     // If either table is missing, remove any tracking record for that migration
     // so Drizzle will actually apply it.
@@ -75,18 +85,26 @@ export async function runMigrations() {
       const usersExists = await tableExists('users');
 
       if (usersExists) {
-        // Pre-seed only migrations whose tables are confirmed present
+        // Pre-seed only migrations whose tables/columns are confirmed present
         const journalPath = join(process.cwd(), 'migrations', 'meta', '_journal.json');
         const journal = JSON.parse(readFileSync(journalPath, 'utf-8'));
 
         for (const entry of journal.entries) {
-          // Only pre-seed if the tables for this migration exist
           // Migration 0002: requires both scheduled_posts and drafts
           if (entry.tag === '0002_dusty_deathstrike') {
             const sp = await tableExists('scheduled_posts');
             const dr = await tableExists('drafts');
             if (!sp || !dr) {
               console.log(`[db] skipping pre-seed for ${entry.tag} — tables missing, will apply migration`);
+              continue;
+            }
+          }
+
+          // Migration 0003: requires sort_order column in scheduled_posts
+          if (entry.tag === '0003_add_sort_order') {
+            const sortOrderExists = await columnExists('scheduled_posts', 'sort_order');
+            if (!sortOrderExists) {
+              console.log(`[db] skipping pre-seed for ${entry.tag} — column missing, will apply migration`);
               continue;
             }
           }
@@ -100,6 +118,12 @@ export async function runMigrations() {
         }
       }
     }
+
+    // Ensure sort_order column exists in scheduled_posts (idempotent)
+    await pool.query(
+      `ALTER TABLE "scheduled_posts" ADD COLUMN IF NOT EXISTS "sort_order" integer DEFAULT 0`
+    );
+    console.log('[db] sort_order column ensured on scheduled_posts');
 
     // Run any genuinely new (unrecorded) migrations
     const db = drizzle({ client: pool });

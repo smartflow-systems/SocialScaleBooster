@@ -1035,6 +1035,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/scheduled-posts/reorder", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { orderedIds } = req.body;
+      if (!Array.isArray(orderedIds) || orderedIds.some(id => typeof id !== "number")) {
+        return res.status(400).json({ message: "orderedIds must be an array of numbers" });
+      }
+      await storage.reorderScheduledPosts(userId, orderedIds);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   const patchScheduledPostSchema = insertScheduledPostSchema.pick({ platform: true, content: true, scheduledAt: true }).partial();
 
   app.patch("/api/scheduled-posts/:id", authenticateToken, async (req: AuthRequest, res) => {

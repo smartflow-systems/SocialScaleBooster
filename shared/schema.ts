@@ -128,6 +128,7 @@ export const scheduledPosts = pgTable("scheduled_posts", {
   content: text("content").notNull(),
   scheduledAt: text("scheduled_at").notNull(),
   status: text("status").default("scheduled"),
+  sortOrder: integer("sort_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, AlertTriangle } from "lucide-react";
+import { Calendar, ArrowLeft, Plus, Trash2, Clock, Instagram, Twitter, Facebook, Youtube, Music, Pencil, X, Check, AlertTriangle, ChevronUp, ChevronDown } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +23,7 @@ const platforms = [
   { value: "tiktok", label: "TikTok", icon: Music, color: "text-cyan-400" },
 ];
 
-const formSchema = insertScheduledPostSchema.omit({ userId: true, status: true }).extend({
+const formSchema = insertScheduledPostSchema.omit({ userId: true, status: true, sortOrder: true }).extend({
   scheduledAt: z.string().min(1, "Please select a date and time"),
   content: z.string().min(1, "Content is required").max(2200, "Content is too long"),
   platform: z.string().min(1, "Please select a platform"),
@@ -236,13 +236,29 @@ export default function Scheduler() {
     },
   });
 
+  const reorderMutation = useMutation({
+    mutationFn: (orderedIds: number[]) =>
+      apiRequest("PATCH", "/api/scheduled-posts/reorder", { orderedIds }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to reorder posts. Please try again.", variant: "destructive" });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+    },
+  });
+
   const onSubmit = (data: FormData) => {
     createMutation.mutate(data);
   };
 
-  const sortedPosts = [...posts].sort(
-    (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
-  );
+  const movePost = (index: number, direction: "up" | "down") => {
+    const newPosts = [...posts];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= newPosts.length) return;
+    [newPosts[index], newPosts[targetIndex]] = [newPosts[targetIndex], newPosts[index]];
+    reorderMutation.mutate(newPosts.map(p => p.id));
+  };
 
   return (
     <div className="min-h-screen bg-primary-black">
@@ -372,10 +388,15 @@ export default function Scheduler() {
         )}
 
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">
-            Scheduled Queue
-            <span className="ml-2 text-sm font-normal text-neutral-gray">({posts.length} post{posts.length !== 1 ? "s" : ""})</span>
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">
+              Scheduled Queue
+              <span className="ml-2 text-sm font-normal text-neutral-gray">({posts.length} post{posts.length !== 1 ? "s" : ""})</span>
+            </h2>
+            {posts.length > 1 && (
+              <p className="text-xs text-neutral-gray">Use arrows to reorder</p>
+            )}
+          </div>
 
           {isLoading ? (
             <div className="space-y-3">
@@ -383,19 +404,42 @@ export default function Scheduler() {
                 <div key={i} className="border border-accent-gold/10 rounded-xl p-4 bg-rich-brown/10 animate-pulse h-24" />
               ))}
             </div>
-          ) : sortedPosts.length === 0 ? (
+          ) : posts.length === 0 ? (
             <div className="border border-accent-gold/20 rounded-xl p-10 bg-rich-brown/10 text-center">
               <Clock className="w-12 h-12 text-accent-gold/30 mx-auto mb-3" />
               <p className="text-neutral-gray">No posts scheduled yet. Click "Schedule Post" to add one.</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {sortedPosts.map(post => {
+              {posts.map((post, index) => {
                 const isPast = new Date(post.scheduledAt) < new Date();
                 const isEditing = editingPostId === post.id;
+                const isReordering = reorderMutation.isPending;
                 return (
                   <div key={post.id} className="border border-accent-gold/20 rounded-xl bg-rich-brown/10 overflow-hidden">
-                    <div className="flex items-start gap-4 p-4">
+                    <div className="flex items-start gap-3 p-4">
+                      <div className="flex flex-col gap-0.5 flex-shrink-0 mt-0.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => movePost(index, "up")}
+                          disabled={index === 0 || isReordering}
+                          className="h-6 w-6 text-neutral-gray hover:text-accent-gold hover:bg-accent-gold/10 disabled:opacity-20"
+                          title="Move up"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => movePost(index, "down")}
+                          disabled={index === posts.length - 1 || isReordering}
+                          className="h-6 w-6 text-neutral-gray hover:text-accent-gold hover:bg-accent-gold/10 disabled:opacity-20"
+                          title="Move down"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
                       <div className="w-9 h-9 rounded-lg bg-primary-black border border-accent-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <PlatformIcon platform={post.platform} />
                       </div>
