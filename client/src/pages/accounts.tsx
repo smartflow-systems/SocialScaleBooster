@@ -40,7 +40,7 @@ function MetaConnectButton() {
     setConnecting(true);
     try {
       const res = await fetch("/api/oauth/meta/connect", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        headers: { Authorization: `Bearer ${localStorage.getItem("sfs_token")}` },
       });
       if (!res.ok) {
         const err = await res.json();
