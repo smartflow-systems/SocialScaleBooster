@@ -4,6 +4,7 @@ import { Calendar, ArrowLeft, ChevronLeft, ChevronRight, Instagram, Twitter, Fac
 import { useQuery } from "@tanstack/react-query";
 import { type ScheduledPost } from "@shared/schema";
 import { Button } from "@/components/ui/button";
+import { GlassCard, GoldHeading, SfsContainer } from "@/components/sfs";
 
 const platforms = [
   { value: "instagram", label: "Instagram", icon: Instagram, color: "bg-pink-500/20 text-pink-400 border-pink-400/30" },
@@ -14,7 +15,7 @@ const platforms = [
 ];
 
 function getPlatformStyle(platform: string) {
-  return platforms.find(p => p.value === platform)?.color ?? "bg-accent-gold/10 text-accent-gold border-accent-gold/30";
+  return platforms.find(p => p.value === platform)?.color ?? "bg-[var(--sf-gold)]/10 text-[var(--sf-gold)] border-[var(--sf-gold)]/30";
 }
 
 function PlatformIcon({ platform }: { platform: string }) {
@@ -96,52 +97,52 @@ export default function ContentCalendar() {
   const weekLabel = `${weekDays[0].toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${weekDays[6].toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
 
   return (
-    <div className="min-h-screen bg-primary-black">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
-          </Link>
+    <div className="min-h-screen bg-[var(--sf-black)] text-white">
+      <SfsContainer className="max-w-5xl mx-auto px-4 py-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-[var(--sf-gold)] hover:text-[var(--sf-gold-2)] transition-colors mb-8">
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Dashboard</span>
+        </Link>
 
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-accent-gold to-gold-trim rounded-xl flex items-center justify-center shadow-lg shadow-accent-gold/20">
-              <Calendar className="w-6 h-6 text-primary-black" />
+            <div className="w-12 h-12 bg-gradient-to-br from-[var(--sf-gold)] to-[var(--sf-gold-2)] rounded-xl flex items-center justify-center shadow-[var(--sf-glow-gold-sm)]">
+              <Calendar className="w-6 h-6 text-[var(--sf-black)]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Content Calendar</h1>
-              <p className="text-neutral-gray text-sm">View your scheduled posts at a glance</p>
+              <GoldHeading level={1} className="text-2xl font-bold">Content Calendar</GoldHeading>
+              <p className="text-neutral-400 text-sm">View your scheduled posts at a glance</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex rounded-lg border border-accent-gold/20 overflow-hidden">
+            <div className="flex rounded-lg border border-[var(--sf-gold)]/20 overflow-hidden">
               <button
                 onClick={() => setView("month")}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${view === "month" ? "bg-accent-gold text-primary-black" : "text-neutral-gray hover:text-white hover:bg-rich-brown/30"}`}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${view === "month" ? "bg-[var(--sf-gold)] text-[var(--sf-black)]" : "text-neutral-400 hover:text-white hover:bg-white/5"}`}
               >
                 Month
               </button>
               <button
                 onClick={() => setView("week")}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${view === "week" ? "bg-accent-gold text-primary-black" : "text-neutral-gray hover:text-white hover:bg-rich-brown/30"}`}
+                className={`px-4 py-2 text-sm font-medium transition-colors ${view === "week" ? "bg-[var(--sf-gold)] text-[var(--sf-black)]" : "text-neutral-400 hover:text-white hover:bg-white/5"}`}
               >
                 Week
               </button>
             </div>
-            <Link href="/scheduler" className="px-3 py-2 text-sm font-medium rounded-lg bg-accent-gold/10 text-accent-gold border border-accent-gold/30 hover:bg-accent-gold/20 transition-colors">
-                + Schedule
-              </Link>
+            <Link href="/scheduler" className="px-3 py-2 text-sm font-medium rounded-lg bg-[var(--sf-gold)]/10 text-[var(--sf-gold)] border border-[var(--sf-gold)]/30 hover:bg-[var(--sf-gold)]/20 transition-colors">
+              + Schedule
+            </Link>
           </div>
         </div>
 
-        <div className="border border-accent-gold/20 rounded-xl bg-rich-brown/10 overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-accent-gold/10">
+        <GlassCard className="overflow-hidden p-0">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--sf-gold)]/10">
             <Button
               variant="ghost"
               size="icon"
               onClick={view === "month" ? prevMonth : prevWeek}
-              className="text-neutral-gray hover:text-white hover:bg-rich-brown/30"
+              className="text-neutral-400 hover:text-white hover:bg-white/5"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
@@ -152,7 +153,7 @@ export default function ContentCalendar() {
               variant="ghost"
               size="icon"
               onClick={view === "month" ? nextMonth : nextWeek}
-              className="text-neutral-gray hover:text-white hover:bg-rich-brown/30"
+              className="text-neutral-400 hover:text-white hover:bg-white/5"
             >
               <ChevronRight className="w-5 h-5" />
             </Button>
@@ -160,9 +161,9 @@ export default function ContentCalendar() {
 
           {view === "month" ? (
             <>
-              <div className="grid grid-cols-7 border-b border-accent-gold/10">
+              <div className="grid grid-cols-7 border-b border-[var(--sf-gold)]/10">
                 {DAY_NAMES.map(d => (
-                  <div key={d} className="py-2 text-center text-xs font-medium text-neutral-gray uppercase tracking-wider">
+                  <div key={d} className="py-2 text-center text-xs font-medium text-neutral-400 uppercase tracking-wider">
                     {d}
                   </div>
                 ))}
@@ -174,14 +175,14 @@ export default function ContentCalendar() {
                   return (
                     <div
                       key={idx}
-                      className={`min-h-[90px] p-2 border-b border-r border-accent-gold/10 last:border-r-0 ${
-                        !day ? "bg-transparent" : isToday ? "bg-accent-gold/5" : ""
+                      className={`min-h-[90px] p-2 border-b border-r border-[var(--sf-gold)]/10 last:border-r-0 ${
+                        !day ? "bg-transparent" : isToday ? "bg-[var(--sf-gold)]/5" : ""
                       } ${idx % 7 === 6 ? "border-r-0" : ""}`}
                     >
                       {day && (
                         <>
                           <div className={`text-xs font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full ${
-                            isToday ? "bg-accent-gold text-primary-black" : "text-neutral-gray"
+                            isToday ? "bg-[var(--sf-gold)] text-[var(--sf-black)]" : "text-neutral-400"
                           }`}>
                             {day.getDate()}
                           </div>
@@ -198,7 +199,7 @@ export default function ContentCalendar() {
                                 </div>
                               ))}
                               {dayPosts.length > 3 && (
-                                <div className="text-xs text-neutral-gray pl-1">+{dayPosts.length - 3} more</div>
+                                <div className="text-xs text-neutral-400 pl-1">+{dayPosts.length - 3} more</div>
                               )}
                             </div>
                           )}
@@ -211,14 +212,14 @@ export default function ContentCalendar() {
             </>
           ) : (
             <>
-              <div className="grid grid-cols-7 border-b border-accent-gold/10">
+              <div className="grid grid-cols-7 border-b border-[var(--sf-gold)]/10">
                 {weekDays.map((day, i) => {
                   const isToday = isSameDay(day, today);
                   return (
-                    <div key={i} className="py-3 text-center border-r border-accent-gold/10 last:border-r-0">
-                      <div className="text-xs text-neutral-gray uppercase tracking-wider mb-1">{DAY_NAMES[day.getDay()]}</div>
+                    <div key={i} className="py-3 text-center border-r border-[var(--sf-gold)]/10 last:border-r-0">
+                      <div className="text-xs text-neutral-400 uppercase tracking-wider mb-1">{DAY_NAMES[day.getDay()]}</div>
                       <div className={`text-sm font-semibold w-8 h-8 rounded-full flex items-center justify-center mx-auto ${
-                        isToday ? "bg-accent-gold text-primary-black" : "text-white"
+                        isToday ? "bg-[var(--sf-gold)] text-[var(--sf-black)]" : "text-white"
                       }`}>
                         {day.getDate()}
                       </div>
@@ -230,7 +231,7 @@ export default function ContentCalendar() {
                 {weekDays.map((day, i) => {
                   const dayPosts = getPostsForDay(day);
                   return (
-                    <div key={i} className="p-2 border-r border-accent-gold/10 last:border-r-0 space-y-1.5">
+                    <div key={i} className="p-2 border-r border-[var(--sf-gold)]/10 last:border-r-0 space-y-1.5">
                       {isLoading ? null : dayPosts.map(post => (
                         <div
                           key={post.id}
@@ -256,15 +257,15 @@ export default function ContentCalendar() {
               </div>
             </>
           )}
-        </div>
+        </GlassCard>
 
         {!isLoading && posts.length === 0 && (
-          <p className="text-center text-neutral-gray text-sm mt-6">
+          <p className="text-center text-neutral-400 text-sm mt-6">
             No scheduled posts yet.{" "}
-            <Link href="/scheduler" className="text-accent-gold hover:underline">Schedule your first post</Link>
+            <Link href="/scheduler" className="text-[var(--sf-gold)] hover:underline">Schedule your first post</Link>
           </p>
         )}
-      </div>
+      </SfsContainer>
     </div>
   );
 }

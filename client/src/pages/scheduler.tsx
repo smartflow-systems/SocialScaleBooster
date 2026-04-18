@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GlassCard, GoldHeading, SfsContainer } from "@/components/sfs";
 import {
   DndContext,
   closestCenter,
@@ -109,7 +110,7 @@ function EditPostForm({
   });
 
   return (
-    <div className="border border-accent-gold/40 rounded-xl p-5 bg-rich-brown/20 mt-2">
+    <GlassCard className="p-5 mt-2 !border-[var(--sf-gold)]/40">
       <h3 className="text-sm font-semibold text-white mb-4">Edit Scheduled Post</h3>
       <Form {...editForm}>
         <form onSubmit={editForm.handleSubmit(data => updateMutation.mutate(data))} className="space-y-4">
@@ -118,16 +119,16 @@ function EditPostForm({
             name="platform"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-neutral-gray">Platform</FormLabel>
+                <FormLabel className="text-neutral-400">Platform</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className="bg-primary-black border-accent-gold/20 text-white">
+                    <SelectTrigger className="bg-[var(--sf-black)] border-[var(--sf-gold)]/20 text-white">
                       <SelectValue placeholder="Select platform" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-primary-black border-accent-gold/20">
+                  <SelectContent className="bg-[var(--sf-black)] border-[var(--sf-gold)]/20">
                     {platforms.map(p => (
-                      <SelectItem key={p.value} value={p.value} className="text-white focus:bg-rich-brown/40">
+                      <SelectItem key={p.value} value={p.value} className="text-white focus:bg-white/5">
                         <div className="flex items-center gap-2">
                           <p.icon className={`w-4 h-4 ${p.color}`} />
                           {p.label}
@@ -146,12 +147,12 @@ function EditPostForm({
             name="content"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-neutral-gray">Post Content</FormLabel>
+                <FormLabel className="text-neutral-400">Post Content</FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
                     placeholder="Write your post content here..."
-                    className="bg-primary-black border-accent-gold/20 text-white placeholder:text-neutral-gray/50 min-h-[100px] resize-none"
+                    className="bg-[var(--sf-black)] border-[var(--sf-gold)]/20 text-white placeholder:text-neutral-400/50 min-h-[100px] resize-none"
                   />
                 </FormControl>
                 <FormMessage />
@@ -164,12 +165,12 @@ function EditPostForm({
             name="scheduledAt"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-neutral-gray">Schedule Date & Time</FormLabel>
+                <FormLabel className="text-neutral-400">Schedule Date & Time</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     type="datetime-local"
-                    className="bg-primary-black border-accent-gold/20 text-white"
+                    className="bg-[var(--sf-black)] border-[var(--sf-gold)]/20 text-white"
                     min={nowDatetimeLocalValue()}
                   />
                 </FormControl>
@@ -182,7 +183,7 @@ function EditPostForm({
             <Button
               type="submit"
               disabled={updateMutation.isPending}
-              className="bg-accent-gold hover:bg-gold-trim text-primary-black font-semibold gap-2"
+              className="bg-[var(--sf-gold)] hover:bg-[var(--sf-gold-2)] text-[var(--sf-black)] font-semibold gap-2"
             >
               <Check className="w-4 h-4" />
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
@@ -191,7 +192,7 @@ function EditPostForm({
               type="button"
               variant="outline"
               onClick={onCancel}
-              className="border-accent-gold/30 text-neutral-gray hover:text-white hover:bg-rich-brown/30 gap-2"
+              className="border-[var(--sf-gold)]/30 text-neutral-400 hover:text-white hover:bg-white/5 gap-2"
             >
               <X className="w-4 h-4" />
               Cancel
@@ -199,7 +200,7 @@ function EditPostForm({
           </div>
         </form>
       </Form>
-    </div>
+    </GlassCard>
   );
 }
 
@@ -251,18 +252,18 @@ function SortablePostCard({
   const isFailed = post.status === "failed";
 
   return (
-    <div
+    <GlassCard
       ref={setNodeRef}
       style={style}
       data-post-id={post.id}
-      className={`border rounded-xl overflow-hidden ${isFailed ? "border-red-500/30 bg-red-500/5" : "border-accent-gold/20 bg-rich-brown/10"} ${isHighlighted ? "post-highlight" : ""}`}
+      className={`overflow-hidden p-0 ${isFailed ? "!border-red-500/30 !bg-red-500/5" : ""} ${isHighlighted ? "post-highlight" : ""}`}
     >
       <div className="flex items-start gap-3 p-4">
         <div className="flex flex-col items-center gap-0.5 flex-shrink-0 mt-0.5">
           <button
             {...attributes}
             {...listeners}
-            className="cursor-grab active:cursor-grabbing p-0.5 text-neutral-gray/50 hover:text-accent-gold transition-colors rounded"
+            className="cursor-grab active:cursor-grabbing p-0.5 text-neutral-400/50 hover:text-[var(--sf-gold)] transition-colors rounded"
             title="Drag to reorder"
             aria-label="Drag to reorder"
           >
@@ -273,7 +274,7 @@ function SortablePostCard({
             size="icon"
             onClick={() => onMovePost(index, "up")}
             disabled={index === 0 || isReordering}
-            className="h-5 w-5 text-neutral-gray hover:text-accent-gold hover:bg-accent-gold/10 disabled:opacity-20"
+            className="h-5 w-5 text-neutral-400 hover:text-[var(--sf-gold)] hover:bg-[var(--sf-gold)]/10 disabled:opacity-20"
             title="Move up"
           >
             <ChevronUp className="w-3 h-3" />
@@ -283,19 +284,19 @@ function SortablePostCard({
             size="icon"
             onClick={() => onMovePost(index, "down")}
             disabled={index === total - 1 || isReordering}
-            className="h-5 w-5 text-neutral-gray hover:text-accent-gold hover:bg-accent-gold/10 disabled:opacity-20"
+            className="h-5 w-5 text-neutral-400 hover:text-[var(--sf-gold)] hover:bg-[var(--sf-gold)]/10 disabled:opacity-20"
             title="Move down"
           >
             <ChevronDown className="w-3 h-3" />
           </Button>
         </div>
-        <div className="w-9 h-9 rounded-lg bg-primary-black border border-accent-gold/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+        <div className="w-9 h-9 rounded-lg bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
           <PlatformIcon platform={post.platform} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-white text-sm line-clamp-2 mb-2">{post.content}</p>
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="flex items-center gap-1 text-xs text-neutral-gray">
+            <span className="flex items-center gap-1 text-xs text-neutral-400">
               <Clock className="w-3 h-3" />
               {formatScheduledAt(post.scheduledAt)}
             </span>
@@ -310,12 +311,12 @@ function SortablePostCard({
             ) : (
               <Badge
                 variant="outline"
-                className="text-xs capitalize border-0 px-2 py-0.5 bg-accent-gold/10 text-accent-gold"
+                className="text-xs capitalize border-0 px-2 py-0.5 bg-[var(--sf-gold)]/10 text-[var(--sf-gold)]"
               >
                 {post.status}
               </Badge>
             )}
-            <span className="text-xs text-neutral-gray capitalize">
+            <span className="text-xs text-neutral-400 capitalize">
               {platforms.find(p => p.value === post.platform)?.label ?? post.platform}
             </span>
           </div>
@@ -327,7 +328,7 @@ function SortablePostCard({
               size="icon"
               onClick={() => onRetry(post.id)}
               disabled={retryPending}
-              className="text-neutral-gray hover:text-blue-400 hover:bg-blue-400/10 flex-shrink-0"
+              className="text-neutral-400 hover:text-blue-400 hover:bg-blue-400/10 flex-shrink-0"
               title="Retry publishing"
             >
               <RotateCcw className="w-4 h-4" />
@@ -337,7 +338,7 @@ function SortablePostCard({
             variant="ghost"
             size="icon"
             onClick={() => onSetEditingPostId(isEditing ? null : post.id)}
-            className={`hover:bg-accent-gold/10 flex-shrink-0 ${isEditing ? "text-accent-gold" : "text-neutral-gray hover:text-accent-gold"}`}
+            className={`hover:bg-[var(--sf-gold)]/10 flex-shrink-0 ${isEditing ? "text-[var(--sf-gold)]" : "text-neutral-400 hover:text-[var(--sf-gold)]"}`}
             title="Edit post"
           >
             <Pencil className="w-4 h-4" />
@@ -347,7 +348,7 @@ function SortablePostCard({
             size="icon"
             onClick={() => onDelete(post.id)}
             disabled={deletePending}
-            className="text-neutral-gray hover:text-red-400 hover:bg-red-400/10 flex-shrink-0"
+            className="text-neutral-400 hover:text-red-400 hover:bg-red-400/10 flex-shrink-0"
             title="Delete post"
           >
             <Trash2 className="w-4 h-4" />
@@ -364,7 +365,7 @@ function SortablePostCard({
           />
         </div>
       )}
-    </div>
+    </GlassCard>
   );
 }
 
@@ -378,19 +379,19 @@ function PublishedPostCard({
   deletePending: boolean;
 }) {
   return (
-    <div className="border border-green-500/20 rounded-xl bg-green-500/5 overflow-hidden">
+    <GlassCard className="overflow-hidden p-0 !border-green-500/20 !bg-green-500/5">
       <div className="flex items-start gap-3 p-4">
-        <div className="w-9 h-9 rounded-lg bg-primary-black border border-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+        <div className="w-9 h-9 rounded-lg bg-[var(--sf-black)] border border-green-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
           <PlatformIcon platform={post.platform} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-white text-sm line-clamp-2 mb-2">{post.content}</p>
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="flex items-center gap-1 text-xs text-neutral-gray">
+            <span className="flex items-center gap-1 text-xs text-neutral-400">
               <CheckCircle2 className="w-3 h-3 text-green-400" />
               Published {formatScheduledAt(post.scheduledAt)}
             </span>
-            <span className="text-xs text-neutral-gray capitalize">
+            <span className="text-xs text-neutral-400 capitalize">
               {platforms.find(p => p.value === post.platform)?.label ?? post.platform}
             </span>
           </div>
@@ -400,13 +401,13 @@ function PublishedPostCard({
           size="icon"
           onClick={() => onDelete(post.id)}
           disabled={deletePending}
-          className="text-neutral-gray hover:text-red-400 hover:bg-red-400/10 flex-shrink-0"
+          className="text-neutral-400 hover:text-red-400 hover:bg-red-400/10 flex-shrink-0"
           title="Remove from history"
         >
           <Trash2 className="w-4 h-4" />
         </Button>
       </div>
-    </div>
+    </GlassCard>
   );
 }
 
@@ -554,26 +555,26 @@ export default function Scheduler() {
   };
 
   return (
-    <div className="min-h-screen bg-primary-black">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
+    <div className="min-h-screen bg-[var(--sf-black)] text-white">
+      <SfsContainer className="max-w-4xl mx-auto px-4 py-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-[var(--sf-gold)] hover:text-[var(--sf-gold-2)] transition-colors mb-8">
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Dashboard</span>
           </Link>
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-accent-gold to-gold-trim rounded-xl flex items-center justify-center shadow-lg shadow-accent-gold/20">
-              <Calendar className="w-6 h-6 text-primary-black" />
+            <div className="w-12 h-12 bg-gradient-to-br from-[var(--sf-gold)] to-[var(--sf-gold-2)] rounded-xl flex items-center justify-center shadow-[var(--sf-glow-gold-sm)]">
+              <Calendar className="w-6 h-6 text-[var(--sf-black)]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Post Scheduler</h1>
-              <p className="text-neutral-gray text-sm">Schedule posts for optimal engagement times</p>
+              <GoldHeading level={1} className="text-2xl font-bold">Post Scheduler</GoldHeading>
+              <p className="text-neutral-400 text-sm">Schedule posts for optimal engagement times</p>
             </div>
           </div>
           <Button
             onClick={() => { setShowForm(v => !v); setEditingPostId(null); }}
-            className="bg-accent-gold hover:bg-gold-trim text-primary-black font-semibold gap-2"
+            className="bg-[var(--sf-gold)] hover:bg-[var(--sf-gold-2)] text-[var(--sf-black)] font-semibold gap-2"
           >
             <Plus className="w-4 h-4" />
             Schedule Post
@@ -581,7 +582,7 @@ export default function Scheduler() {
         </div>
 
         {showForm && (
-          <div className="border border-accent-gold/30 rounded-xl p-6 bg-rich-brown/20 mb-8">
+          <GlassCard className="p-6 mb-8 !border-[var(--sf-gold)]/30">
             <h2 className="text-lg font-semibold text-white mb-4">New Scheduled Post</h2>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -590,16 +591,16 @@ export default function Scheduler() {
                   name="platform"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-neutral-gray">Platform</FormLabel>
+                      <FormLabel className="text-neutral-400">Platform</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger className="bg-primary-black border-accent-gold/20 text-white">
+                          <SelectTrigger className="bg-[var(--sf-black)] border-[var(--sf-gold)]/20 text-white">
                             <SelectValue placeholder="Select platform" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent className="bg-primary-black border-accent-gold/20">
+                        <SelectContent className="bg-[var(--sf-black)] border-[var(--sf-gold)]/20">
                           {platforms.map(p => (
-                            <SelectItem key={p.value} value={p.value} className="text-white focus:bg-rich-brown/40">
+                            <SelectItem key={p.value} value={p.value} className="text-white focus:bg-white/5">
                               <div className="flex items-center gap-2">
                                 <p.icon className={`w-4 h-4 ${p.color}`} />
                                 {p.label}
@@ -618,12 +619,12 @@ export default function Scheduler() {
                   name="content"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-neutral-gray">Post Content</FormLabel>
+                      <FormLabel className="text-neutral-400">Post Content</FormLabel>
                       <FormControl>
                         <Textarea
                           {...field}
                           placeholder="Write your post content here..."
-                          className="bg-primary-black border-accent-gold/20 text-white placeholder:text-neutral-gray/50 min-h-[100px] resize-none"
+                          className="bg-[var(--sf-black)] border-[var(--sf-gold)]/20 text-white placeholder:text-neutral-400/50 min-h-[100px] resize-none"
                         />
                       </FormControl>
                       <FormMessage />
@@ -636,12 +637,12 @@ export default function Scheduler() {
                   name="scheduledAt"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-neutral-gray">Schedule Date & Time</FormLabel>
+                      <FormLabel className="text-neutral-400">Schedule Date & Time</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           type="datetime-local"
-                          className="bg-primary-black border-accent-gold/20 text-white"
+                          className="bg-[var(--sf-black)] border-[var(--sf-gold)]/20 text-white"
                           min={nowDatetimeLocalValue()}
                         />
                       </FormControl>
@@ -654,7 +655,7 @@ export default function Scheduler() {
                   <Button
                     type="submit"
                     disabled={createMutation.isPending}
-                    className="bg-accent-gold hover:bg-gold-trim text-primary-black font-semibold"
+                    className="bg-[var(--sf-gold)] hover:bg-[var(--sf-gold-2)] text-[var(--sf-black)] font-semibold"
                   >
                     {createMutation.isPending ? "Scheduling..." : "Schedule Post"}
                   </Button>
@@ -662,33 +663,33 @@ export default function Scheduler() {
                     type="button"
                     variant="outline"
                     onClick={() => { setShowForm(false); form.reset(); }}
-                    className="border-accent-gold/30 text-neutral-gray hover:text-white hover:bg-rich-brown/30"
+                    className="border-[var(--sf-gold)]/30 text-neutral-400 hover:text-white hover:bg-white/5"
                   >
                     Cancel
                   </Button>
                 </div>
               </form>
             </Form>
-          </div>
+          </GlassCard>
         )}
 
         <Tabs defaultValue="upcoming">
-          <TabsList className="bg-rich-brown/20 border border-accent-gold/20 mb-6 w-full sm:w-auto">
+          <TabsList className="bg-white/5 border border-[var(--sf-gold)]/20 mb-6 w-full sm:w-auto">
             <TabsTrigger
               value="upcoming"
-              className="data-[state=active]:bg-accent-gold data-[state=active]:text-primary-black text-neutral-gray flex-1 sm:flex-none gap-2"
+              className="data-[state=active]:bg-[var(--sf-gold)] data-[state=active]:text-[var(--sf-black)] text-neutral-400 flex-1 sm:flex-none gap-2"
             >
               <Clock className="w-4 h-4" />
               Upcoming
               {upcomingPosts.length > 0 && (
-                <span className="ml-1 rounded-full bg-accent-gold/20 data-[state=active]:bg-primary-black/20 px-1.5 py-0.5 text-xs leading-none">
+                <span className="ml-1 rounded-full bg-[var(--sf-gold)]/20 data-[state=active]:bg-[var(--sf-black)]/20 px-1.5 py-0.5 text-xs leading-none">
                   {upcomingPosts.length}
                 </span>
               )}
             </TabsTrigger>
             <TabsTrigger
               value="published"
-              className="data-[state=active]:bg-green-500 data-[state=active]:text-white text-neutral-gray flex-1 sm:flex-none gap-2"
+              className="data-[state=active]:bg-green-500 data-[state=active]:text-white text-neutral-400 flex-1 sm:flex-none gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
               Published
@@ -705,17 +706,17 @@ export default function Scheduler() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">
                   Scheduled Queue
-                  <span className="ml-2 text-sm font-normal text-neutral-gray">({upcomingPosts.length} post{upcomingPosts.length !== 1 ? "s" : ""})</span>
+                  <span className="ml-2 text-sm font-normal text-neutral-400">({upcomingPosts.length} post{upcomingPosts.length !== 1 ? "s" : ""})</span>
                 </h2>
                 {upcomingPosts.length > 1 && (
                   <div className="flex items-center gap-3">
-                    <p className="text-xs text-neutral-gray hidden sm:block">Drag or use arrows to reorder</p>
+                    <p className="text-xs text-neutral-400 hidden sm:block">Drag or use arrows to reorder</p>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={resetToChronological}
                       disabled={sortByDateMutation.isPending || reorderMutation.isPending}
-                      className="border-accent-gold/30 text-neutral-gray hover:text-accent-gold hover:border-accent-gold/60 hover:bg-accent-gold/5 gap-1.5 text-xs h-7 px-3"
+                      className="border-[var(--sf-gold)]/30 text-neutral-400 hover:text-[var(--sf-gold)] hover:border-[var(--sf-gold)]/60 hover:bg-[var(--sf-gold)]/5 gap-1.5 text-xs h-7 px-3"
                       title="Reset to chronological order"
                     >
                       <ArrowUpDown className="w-3 h-3" />
@@ -728,14 +729,14 @@ export default function Scheduler() {
               {isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map(i => (
-                    <div key={i} className="border border-accent-gold/10 rounded-xl p-4 bg-rich-brown/10 animate-pulse h-24" />
+                    <div key={i} className="border border-[var(--sf-gold)]/10 rounded-xl p-4 bg-white/5 animate-pulse h-24" />
                   ))}
                 </div>
               ) : upcomingPosts.length === 0 ? (
-                <div className="border border-accent-gold/20 rounded-xl p-10 bg-rich-brown/10 text-center">
-                  <Clock className="w-12 h-12 text-accent-gold/30 mx-auto mb-3" />
-                  <p className="text-neutral-gray">No posts scheduled yet. Click "Schedule Post" to add one.</p>
-                </div>
+                <GlassCard className="p-10 text-center">
+                  <Clock className="w-12 h-12 text-[var(--sf-gold)]/30 mx-auto mb-3" />
+                  <p className="text-neutral-400">No posts scheduled yet. Click "Schedule Post" to add one.</p>
+                </GlassCard>
               ) : (
                 <DndContext
                   sensors={sensors}
@@ -776,7 +777,7 @@ export default function Scheduler() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">
                   Published History
-                  <span className="ml-2 text-sm font-normal text-neutral-gray">({publishedPosts.length} post{publishedPosts.length !== 1 ? "s" : ""})</span>
+                  <span className="ml-2 text-sm font-normal text-neutral-400">({publishedPosts.length} post{publishedPosts.length !== 1 ? "s" : ""})</span>
                 </h2>
               </div>
 
@@ -787,11 +788,11 @@ export default function Scheduler() {
                   ))}
                 </div>
               ) : publishedPosts.length === 0 ? (
-                <div className="border border-green-500/20 rounded-xl p-10 bg-green-500/5 text-center">
+                <GlassCard className="p-10 text-center !border-green-500/20 !bg-green-500/5">
                   <CheckCircle2 className="w-12 h-12 text-green-400/30 mx-auto mb-3" />
-                  <p className="text-neutral-gray">No posts published yet.</p>
-                  <p className="text-neutral-gray/60 text-sm mt-1">Posts will appear here once they go live automatically.</p>
-                </div>
+                  <p className="text-neutral-400">No posts published yet.</p>
+                  <p className="text-neutral-500 text-sm mt-1">Posts will appear here once they go live automatically.</p>
+                </GlassCard>
               ) : (
                 <div className="space-y-3">
                   {publishedPosts.map(post => (
@@ -807,7 +808,7 @@ export default function Scheduler() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </SfsContainer>
     </div>
   );
 }

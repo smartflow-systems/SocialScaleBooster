@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
+import { GlassCard, GoldButton, GhostButton, GoldHeading, SfsContainer } from "@/components/sfs";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -330,33 +331,33 @@ export default function CreatePost() {
   const minDateTime = new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16);
 
   return (
-    <div className="min-h-screen bg-primary-black">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
+    <div className="min-h-screen bg-[var(--sf-black)] text-white">
+      <SfsContainer className="max-w-4xl mx-auto px-4 py-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-[var(--sf-gold)] hover:text-[var(--sf-gold-2)] transition-colors mb-8">
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Dashboard</span>
           </Link>
 
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-accent-gold to-gold-trim rounded-xl flex items-center justify-center shadow-lg shadow-accent-gold/20">
-              <FileText className="w-6 h-6 text-primary-black" />
+            <div className="w-12 h-12 bg-gradient-to-br from-[var(--sf-gold)] to-[var(--sf-gold-2)] rounded-xl flex items-center justify-center shadow-[var(--sf-glow-gold-sm)]">
+              <FileText className="w-6 h-6 text-[var(--sf-black)]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Create Post</h1>
-              <p className="text-neutral-gray text-sm">AI-powered post builder — ready to copy and publish</p>
+              <GoldHeading level={1} className="text-2xl font-bold">Create Post</GoldHeading>
+              <p className="text-neutral-400 text-sm">AI-powered post builder — ready to copy and publish</p>
             </div>
           </div>
 
           {draftsLoading ? (
-            <div className="flex items-center gap-2 text-sm text-neutral-gray border border-accent-gold/20 rounded-lg px-3 py-2">
+            <div className="flex items-center gap-2 text-sm text-neutral-400 border border-[var(--sf-gold)]/20 rounded-lg px-3 py-2">
               <Loader2 className="w-4 h-4 animate-spin" />
               Loading drafts...
             </div>
           ) : drafts.length > 0 ? (
             <button
               onClick={() => setShowDrafts((v) => !v)}
-              className="flex items-center gap-2 text-sm text-accent-gold hover:text-gold-trim transition-colors border border-accent-gold/30 rounded-lg px-3 py-2"
+              className="flex items-center gap-2 text-sm text-[var(--sf-gold)] hover:text-[var(--sf-gold-2)] transition-colors border border-[var(--sf-gold)]/30 rounded-lg px-3 py-2"
             >
               <BookmarkPlus className="w-4 h-4" />
               Drafts ({drafts.length})
@@ -366,10 +367,10 @@ export default function CreatePost() {
         </div>
 
         {showDrafts && drafts.length > 0 && (
-          <div className="mb-6 border border-accent-gold/20 rounded-xl p-4 bg-rich-brown/10 space-y-3">
+          <GlassCard className="mb-6 p-4 space-y-3">
             <h3 className="text-white font-semibold text-sm mb-3">Saved Drafts</h3>
             {drafts.map((draft) => (
-              <div key={draft.id} className="flex items-start gap-3 bg-primary-black rounded-lg p-3 border border-accent-gold/10">
+              <div key={draft.id} className="flex items-start gap-3 bg-[var(--sf-black)] rounded-lg p-3 border border-[var(--sf-gold)]/10">
                 <div className="flex-1 min-w-0">
                   {renamingDraftId === draft.id ? (
                     <div className="flex items-center gap-1 mb-1">
@@ -381,19 +382,19 @@ export default function CreatePost() {
                           if (e.key === "Enter") commitRename(draft.id);
                           if (e.key === "Escape") cancelRename();
                         }}
-                        className="flex-1 bg-rich-brown/30 border border-accent-gold/40 rounded px-2 py-0.5 text-white text-sm focus:outline-none focus:border-accent-gold/70"
+                        className="flex-1 bg-white/5 border border-[var(--sf-gold)]/40 rounded px-2 py-0.5 text-white text-sm focus:outline-none focus:border-[var(--sf-gold)]/70"
                       />
                       <button
                         onClick={() => commitRename(draft.id)}
                         disabled={renameDraftMutation.isPending || !renameValue.trim()}
-                        className="text-xs text-accent-gold hover:text-gold-trim disabled:opacity-50 transition-colors"
+                        className="text-xs text-[var(--sf-gold)] hover:text-[var(--sf-gold-2)] disabled:opacity-50 transition-colors"
                         title="Save"
                       >
                         {renameDraftMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span className="font-medium">Save</span>}
                       </button>
                       <button
                         onClick={cancelRename}
-                        className="text-neutral-gray hover:text-white transition-colors"
+                        className="text-neutral-400 hover:text-white transition-colors"
                         title="Cancel"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -404,70 +405,70 @@ export default function CreatePost() {
                       <p className="text-white text-sm font-medium truncate">{draft.topic}</p>
                       <button
                         onClick={() => handleRename(draft)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity text-neutral-gray hover:text-accent-gold ml-1 shrink-0"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-neutral-400 hover:text-[var(--sf-gold)] ml-1 shrink-0"
                         title="Rename draft"
                       >
                         <Pencil className="w-3 h-3" />
                       </button>
                     </div>
                   )}
-                  <p className="text-neutral-gray text-xs mt-0.5">
+                  <p className="text-neutral-400 text-xs mt-0.5">
                     {draft.platform} · {draft.tone} · {new Date(draft.createdAt!).toLocaleDateString()}
                   </p>
-                  <p className="text-neutral-gray/70 text-xs mt-1 line-clamp-2">{draft.content}</p>
+                  <p className="text-neutral-400/70 text-xs mt-1 line-clamp-2">{draft.content}</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button
                     onClick={() => editDraft(draft)}
-                    className="text-xs text-accent-gold hover:text-gold-trim transition-colors border border-accent-gold/30 rounded px-2 py-1"
+                    className="text-xs text-[var(--sf-gold)] hover:text-[var(--sf-gold-2)] transition-colors border border-[var(--sf-gold)]/30 rounded px-2 py-1"
                   >
                     <Pencil className="w-3 h-3 inline mr-0.5" />
                     Edit
                   </button>
                   <button
                     onClick={() => loadDraft(draft)}
-                    className="text-xs text-neutral-gray hover:text-white transition-colors border border-white/10 rounded px-2 py-1"
+                    className="text-xs text-neutral-400 hover:text-white transition-colors border border-white/10 rounded px-2 py-1"
                   >
                     Load
                   </button>
                   <button
                     onClick={() => deleteDraftMutation.mutate(draft.id)}
                     disabled={deleteDraftMutation.isPending}
-                    className="text-neutral-gray hover:text-red-400 transition-colors"
+                    className="text-neutral-400 hover:text-red-400 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
             ))}
-          </div>
+          </GlassCard>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="border border-accent-gold/20 rounded-xl p-6 bg-rich-brown/10">
+          <GlassCard className="p-6">
             <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-accent-gold" />
+              <Sparkles className="w-4 h-4 text-[var(--sf-gold)]" />
               Post Details
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-neutral-gray mb-1 block">Topic / Product *</label>
+                <label className="text-sm text-neutral-400 mb-1 block">Topic / Product *</label>
                 <textarea
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder="Describe what you want to post about… e.g. 'New summer collection launch with 20% discount'"
-                  className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-4 py-3 text-white placeholder:text-neutral-gray/50 focus:outline-none focus:border-accent-gold/50 resize-none h-24"
+                  className="w-full bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 rounded-lg px-4 py-3 text-white placeholder:text-neutral-400/50 focus:outline-none focus:border-[var(--sf-gold)]/50 resize-none h-24"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-neutral-gray mb-1 block">Platform</label>
+                  <label className="text-sm text-neutral-400 mb-1 block">Platform</label>
                   <select
                     value={platform}
                     onChange={(e) => setPlatform(e.target.value)}
-                    className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-accent-gold/50"
+                    className="w-full bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[var(--sf-gold)]/50"
                   >
                     {PLATFORMS.map((p) => (
                       <option key={p.value} value={p.value}>{p.label}</option>
@@ -475,11 +476,11 @@ export default function CreatePost() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm text-neutral-gray mb-1 block">Tone</label>
+                  <label className="text-sm text-neutral-400 mb-1 block">Tone</label>
                   <select
                     value={tone}
                     onChange={(e) => setTone(e.target.value)}
-                    className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-accent-gold/50"
+                    className="w-full bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[var(--sf-gold)]/50"
                   >
                     {TONES.map((t) => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -489,11 +490,11 @@ export default function CreatePost() {
               </div>
 
               <div>
-                <label className="text-sm text-neutral-gray mb-1 block">Industry (optional)</label>
+                <label className="text-sm text-neutral-400 mb-1 block">Industry (optional)</label>
                 <select
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
-                  className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-accent-gold/50"
+                  className="w-full bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[var(--sf-gold)]/50"
                 >
                   <option value="">Select industry…</option>
                   {INDUSTRIES.map((i) => (
@@ -503,19 +504,19 @@ export default function CreatePost() {
               </div>
 
               <div>
-                <label className="text-sm text-neutral-gray mb-1 block">Target Audience (optional)</label>
+                <label className="text-sm text-neutral-400 mb-1 block">Target Audience (optional)</label>
                 <input
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
                   placeholder="e.g. Women 25–35 interested in skincare"
-                  className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-4 py-2.5 text-white placeholder:text-neutral-gray/50 focus:outline-none focus:border-accent-gold/50"
+                  className="w-full bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 rounded-lg px-4 py-2.5 text-white placeholder:text-neutral-400/50 focus:outline-none focus:border-[var(--sf-gold)]/50"
                 />
               </div>
 
               <Button
                 onClick={handleGenerate}
                 disabled={loading || !topic.trim()}
-                className="w-full bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold py-3 hover:opacity-90 disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-[var(--sf-gold)] to-[var(--sf-gold-2)] text-[var(--sf-black)] font-semibold py-3 hover:opacity-90 disabled:opacity-50"
               >
                 {loading ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating…</>
@@ -524,21 +525,21 @@ export default function CreatePost() {
                 )}
               </Button>
             </div>
-          </div>
+          </GlassCard>
 
-          <div className="border border-accent-gold/20 rounded-xl p-6 bg-rich-brown/10 flex flex-col min-h-[420px]">
+          <GlassCard className="p-6 flex flex-col min-h-[420px]">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <h2 className="text-white font-semibold">Generated Post</h2>
                 {editingDraftId && (
-                  <span className="text-xs bg-accent-gold/20 text-accent-gold border border-accent-gold/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="text-xs bg-[var(--sf-gold)]/20 text-[var(--sf-gold)] border border-[var(--sf-gold)]/30 px-2 py-0.5 rounded-full flex items-center gap-1">
                     <Pencil className="w-3 h-3" />
                     Editing draft
                   </span>
                 )}
               </div>
               {result && !editingDraftId && (
-                <span className="text-xs text-neutral-gray bg-primary-black px-2 py-1 rounded border border-accent-gold/10">
+                <span className="text-xs text-neutral-400 bg-[var(--sf-black)] px-2 py-1 rounded border border-[var(--sf-gold)]/10">
                   {platformLabel} · {tokensUsed} tokens
                 </span>
               )}
@@ -547,19 +548,19 @@ export default function CreatePost() {
             {loading ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
-                  <Loader2 className="w-8 h-8 text-accent-gold animate-spin mx-auto mb-3" />
-                  <p className="text-neutral-gray text-sm">AI is crafting your post…</p>
+                  <Loader2 className="w-8 h-8 text-[var(--sf-gold)] animate-spin mx-auto mb-3" />
+                  <p className="text-neutral-400 text-sm">AI is crafting your post…</p>
                 </div>
               </div>
             ) : result ? (
               <div className="flex-1 flex flex-col gap-4">
-                <div className="flex-1 bg-primary-black rounded-lg p-4 border border-accent-gold/10">
+                <div className="flex-1 bg-[var(--sf-black)] rounded-lg p-4 border border-[var(--sf-gold)]/10">
                   <p className="text-white whitespace-pre-wrap leading-relaxed text-sm">{result}</p>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     onClick={copyToClipboard}
-                    className="flex-1 bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold hover:opacity-90 text-xs px-3"
+                    className="flex-1 bg-gradient-to-r from-[var(--sf-gold)] to-[var(--sf-gold-2)] text-[var(--sf-black)] font-semibold hover:opacity-90 text-xs px-3"
                   >
                     <Copy className="w-3.5 h-3.5 mr-1.5" />
                     Copy Post
@@ -570,7 +571,7 @@ export default function CreatePost() {
                         onClick={() => updateDraftMutation.mutate(editingDraftId)}
                         disabled={updateDraftMutation.isPending}
                         variant="outline"
-                        className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
+                        className="flex-1 border-[var(--sf-gold)]/30 text-[var(--sf-gold)] hover:bg-[var(--sf-gold)]/10 hover:text-[var(--sf-gold-2)] text-xs px-3"
                       >
                         {updateDraftMutation.isPending ? (
                           <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
@@ -582,7 +583,7 @@ export default function CreatePost() {
                       <Button
                         onClick={cancelEditDraft}
                         variant="outline"
-                        className="border-white/10 text-neutral-gray hover:text-white text-xs px-3"
+                        className="border-white/10 text-neutral-400 hover:text-white text-xs px-3"
                       >
                         <X className="w-3.5 h-3.5" />
                       </Button>
@@ -593,7 +594,7 @@ export default function CreatePost() {
                         onClick={() => saveDraftMutation.mutate()}
                         disabled={saveDraftMutation.isPending}
                         variant="outline"
-                        className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
+                        className="flex-1 border-[var(--sf-gold)]/30 text-[var(--sf-gold)] hover:bg-[var(--sf-gold)]/10 hover:text-[var(--sf-gold-2)] text-xs px-3"
                       >
                         {saveDraftMutation.isPending ? (
                           <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
@@ -605,7 +606,7 @@ export default function CreatePost() {
                       <Button
                         onClick={() => { setScheduleContent(result); setShowSchedule(true); }}
                         variant="outline"
-                        className="flex-1 border-accent-gold/30 text-accent-gold hover:bg-accent-gold/10 hover:text-gold-trim text-xs px-3"
+                        className="flex-1 border-[var(--sf-gold)]/30 text-[var(--sf-gold)] hover:bg-[var(--sf-gold)]/10 hover:text-[var(--sf-gold-2)] text-xs px-3"
                       >
                         <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
                         Schedule Post
@@ -617,52 +618,52 @@ export default function CreatePost() {
             ) : (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
-                  <FileText className="w-12 h-12 text-accent-gold/30 mx-auto mb-3" />
-                  <p className="text-neutral-gray text-sm">Your generated post will appear here</p>
-                  <p className="text-neutral-gray/60 text-xs mt-1">Fill in the details on the left and click Generate</p>
+                  <FileText className="w-12 h-12 text-[var(--sf-gold)]/30 mx-auto mb-3" />
+                  <p className="text-neutral-400 text-sm">Your generated post will appear here</p>
+                  <p className="text-neutral-400/60 text-xs mt-1">Fill in the details on the left and click Generate</p>
                 </div>
               </div>
             )}
-          </div>
+          </GlassCard>
         </div>
-      </div>
+      </SfsContainer>
 
       {/* Schedule modal */}
       {showSchedule && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#111] border border-accent-gold/20 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+          <GlassCard className="p-6 w-full max-w-sm shadow-2xl">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-lg bg-accent-gold/10 border border-accent-gold/30 flex items-center justify-center">
-                <CalendarClock className="w-4 h-4 text-accent-gold" />
+              <div className="w-9 h-9 rounded-lg bg-[var(--sf-gold)]/10 border border-[var(--sf-gold)]/30 flex items-center justify-center">
+                <CalendarClock className="w-4 h-4 text-[var(--sf-gold)]" />
               </div>
               <div>
                 <h2 className="text-white font-semibold">Schedule Post</h2>
-                <p className="text-xs text-neutral-gray">{platformLabel}</p>
+                <p className="text-xs text-neutral-400">{platformLabel}</p>
               </div>
             </div>
 
             <div className="mb-5">
-              <label className="text-sm text-neutral-gray mb-2 block">Date &amp; Time</label>
+              <label className="text-sm text-neutral-400 mb-2 block">Date &amp; Time</label>
               <input
                 type="datetime-local"
                 value={scheduleDate}
                 min={minDateTime}
                 onChange={(e) => setScheduleDate(e.target.value)}
-                className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-accent-gold/50 [color-scheme:dark]"
+                className="w-full bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[var(--sf-gold)]/50 [color-scheme:dark]"
               />
             </div>
 
             <div className="mb-5">
-              <label className="text-sm text-neutral-gray mb-2 block">Post Content</label>
+              <label className="text-sm text-neutral-400 mb-2 block">Post Content</label>
               <textarea
                 value={scheduleContent}
                 onChange={(e) => setScheduleContent(e.target.value)}
                 rows={5}
-                className={`w-full bg-primary-black border rounded-lg px-3 py-2.5 text-white text-xs leading-relaxed resize-none focus:outline-none placeholder:text-neutral-gray/40 ${scheduleContent.length > (PLATFORM_CHAR_LIMITS[platform] ?? 3000) ? "border-red-500/60 focus:border-red-500" : "border-accent-gold/20 focus:border-accent-gold/50"}`}
+                className={`w-full bg-[var(--sf-black)] border rounded-lg px-3 py-2.5 text-white text-xs leading-relaxed resize-none focus:outline-none placeholder:text-neutral-400/40 ${scheduleContent.length > (PLATFORM_CHAR_LIMITS[platform] ?? 3000) ? "border-red-500/60 focus:border-red-500" : "border-[var(--sf-gold)]/20 focus:border-[var(--sf-gold)]/50"}`}
                 placeholder="Edit your post content here…"
               />
               <div className="flex justify-end mt-1">
-                <span className={`text-xs ${scheduleContent.length > (PLATFORM_CHAR_LIMITS[platform] ?? 3000) ? "text-red-400" : "text-neutral-gray/60"}`}>
+                <span className={`text-xs ${scheduleContent.length > (PLATFORM_CHAR_LIMITS[platform] ?? 3000) ? "text-red-400" : "text-neutral-400/60"}`}>
                   {scheduleContent.length} / {PLATFORM_CHAR_LIMITS[platform] ?? 3000}
                 </span>
               </div>
@@ -678,19 +679,19 @@ export default function CreatePost() {
               <Button
                 onClick={() => { setResult(scheduleContent); setShowSchedule(false); setScheduleDate(""); }}
                 variant="outline"
-                className="flex-1 border-white/10 text-neutral-gray hover:text-white"
+                className="flex-1 border-white/10 text-neutral-400 hover:text-white"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSchedule}
                 disabled={scheduling || !scheduleDate || scheduleContent.length > (PLATFORM_CHAR_LIMITS[platform] ?? 3000)}
-                className="flex-1 bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold hover:opacity-90 disabled:opacity-50"
+                className="flex-1 bg-gradient-to-r from-[var(--sf-gold)] to-[var(--sf-gold-2)] text-[var(--sf-black)] font-semibold hover:opacity-90 disabled:opacity-50"
               >
                 {scheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : "Schedule"}
               </Button>
             </div>
-          </div>
+          </GlassCard>
         </div>
       )}
     </div>

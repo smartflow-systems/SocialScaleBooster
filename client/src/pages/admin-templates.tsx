@@ -46,6 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { GlassCard, GoldHeading, SfsContainer } from "@/components/sfs";
 
 const PLATFORMS = ["instagram", "twitter", "linkedin", "tiktok", "facebook", "youtube"] as const;
 const CATEGORIES = ["growth", "engagement", "leads", "content", "analytics", "automation"] as const;
@@ -97,7 +98,7 @@ function TemplateForm({
             <FormItem>
               <FormLabel className="text-white">Name</FormLabel>
               <FormControl>
-                <Input {...field} className="bg-[#1A1A1A] border-white/10 text-white" placeholder="Instagram Growth Bot" />
+                <Input {...field} className="bg-[var(--sf-black)] border-white/10 text-white" placeholder="Instagram Growth Bot" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -114,7 +115,7 @@ function TemplateForm({
                 <Textarea
                   {...field}
                   value={field.value ?? ""}
-                  className="bg-[#1A1A1A] border-white/10 text-white resize-none"
+                  className="bg-[var(--sf-black)] border-white/10 text-white resize-none"
                   placeholder="Describe what this template does..."
                   rows={3}
                 />
@@ -133,11 +134,11 @@ function TemplateForm({
                 <FormLabel className="text-white">Platform</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className="bg-[#1A1A1A] border-white/10 text-white">
+                    <SelectTrigger className="bg-[var(--sf-black)] border-white/10 text-white">
                       <SelectValue placeholder="Select platform" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-[#1A1A1A] border-white/10">
+                  <SelectContent className="bg-[var(--sf-black)] border-white/10">
                     {PLATFORMS.map((p) => (
                       <SelectItem key={p} value={p} className="text-white capitalize">
                         {p.charAt(0).toUpperCase() + p.slice(1)}
@@ -158,11 +159,11 @@ function TemplateForm({
                 <FormLabel className="text-white">Category</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
-                    <SelectTrigger className="bg-[#1A1A1A] border-white/10 text-white">
+                    <SelectTrigger className="bg-[var(--sf-black)] border-white/10 text-white">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-[#1A1A1A] border-white/10">
+                  <SelectContent className="bg-[var(--sf-black)] border-white/10">
                     {CATEGORIES.map((c) => (
                       <SelectItem key={c} value={c} className="text-white capitalize">
                         {c.charAt(0).toUpperCase() + c.slice(1)}
@@ -200,7 +201,7 @@ function TemplateForm({
                   <Input
                     {...field}
                     value={field.value ?? ""}
-                    className="bg-[#1A1A1A] border-white/10 text-white"
+                    className="bg-[var(--sf-black)] border-white/10 text-white"
                     placeholder="29.00"
                     type="number"
                     step="0.01"
@@ -223,7 +224,7 @@ function TemplateForm({
                 <Input
                   {...field}
                   value={field.value ?? ""}
-                  className="bg-[#1A1A1A] border-white/10 text-white"
+                  className="bg-[var(--sf-black)] border-white/10 text-white"
                   placeholder="https://images.unsplash.com/..."
                 />
               </FormControl>
@@ -242,7 +243,7 @@ function TemplateForm({
                 <Textarea
                   {...field}
                   value={field.value ?? ""}
-                  className="bg-[#1A1A1A] border-white/10 text-white font-mono text-sm resize-none"
+                  className="bg-[var(--sf-black)] border-white/10 text-white font-mono text-sm resize-none"
                   placeholder='{"engageFrequency": "high", "targetHashtags": ["growth"]}'
                   rows={3}
                 />
@@ -256,7 +257,7 @@ function TemplateForm({
           <Button
             type="submit"
             disabled={isPending}
-            className="bg-[#FFD700] text-black hover:bg-[#FFD700]/90 font-semibold"
+            className="bg-[var(--sf-gold)] text-black hover:bg-[var(--sf-gold)]/90 font-semibold"
           >
             {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             Save Template
@@ -286,13 +287,13 @@ function AdminClaimSection({ onSuccess }: { onSuccess: (token: string) => void }
   });
 
   return (
-    <div className="border border-[#FFD700]/20 rounded-xl p-8 bg-[#1A1A1A] text-center max-w-md mx-auto">
-      <ShieldAlert className="w-16 h-16 text-[#FFD700]/40 mx-auto mb-4" />
-      <h2 className="text-xl font-semibold text-white mb-2">Admin Access Required</h2>
-      <p className="text-[#9CA3AF] mb-6 text-sm">
+    <GlassCard className="p-8 text-center max-w-md mx-auto">
+      <ShieldAlert className="w-16 h-16 text-[var(--sf-gold)]/40 mx-auto mb-4" />
+      <GoldHeading level={2} className="text-xl font-semibold mb-2">Admin Access Required</GoldHeading>
+      <p className="text-neutral-400 mb-6 text-sm">
         Enter the admin secret to claim admin privileges for your account.
         The secret must be configured in your Replit Secrets panel as{" "}
-        <code className="text-[#FFD700] bg-black/30 px-1 rounded">ADMIN_SECRET</code> — never share or commit it.
+        <code className="text-[var(--sf-gold)] bg-black/30 px-1 rounded">ADMIN_SECRET</code> — never share or commit it.
       </p>
       <div className="flex gap-2">
         <Input
@@ -300,18 +301,18 @@ function AdminClaimSection({ onSuccess }: { onSuccess: (token: string) => void }
           placeholder="Enter admin secret..."
           value={secret}
           onChange={(e) => setSecret(e.target.value)}
-          className="bg-[#0D0D0D] border-white/10 text-white flex-1"
+          className="bg-[var(--sf-black)] border-white/10 text-white flex-1"
           onKeyDown={(e) => e.key === "Enter" && claimMutation.mutate()}
         />
         <Button
           onClick={() => claimMutation.mutate()}
           disabled={claimMutation.isPending || !secret}
-          className="bg-[#FFD700] text-black hover:bg-[#FFD700]/90 font-semibold"
+          className="bg-[var(--sf-gold)] text-black hover:bg-[var(--sf-gold)]/90 font-semibold"
         >
           {claimMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Claim"}
         </Button>
       </div>
-    </div>
+    </GlassCard>
   );
 }
 
@@ -391,50 +392,50 @@ export default function AdminTemplates() {
 
   if (!user.isAdmin) {
     return (
-      <div className="min-h-screen bg-[#0D0D0D]">
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <Link href="/dashboard" className="inline-flex items-center gap-2 text-[#FFD700] hover:text-[#FFD700]/80 transition-colors mb-8">
+      <div className="min-h-screen bg-[var(--sf-black)] text-white">
+        <SfsContainer className="max-w-4xl mx-auto px-4 py-8">
+          <Link href="/dashboard" className="inline-flex items-center gap-2 text-[var(--sf-gold)] hover:text-[var(--sf-gold-2)] transition-colors mb-8">
             <ArrowLeft className="w-4 h-4" />
             Back to Dashboard
           </Link>
           <div className="flex items-center gap-4 mb-10">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#FFD700] to-[#B8860B] rounded-xl flex items-center justify-center shadow-lg shadow-[#FFD700]/20">
-              <ShieldCheck className="w-6 h-6 text-black" />
+            <div className="w-12 h-12 bg-gradient-to-br from-[var(--sf-gold)] to-[var(--sf-gold-2)] rounded-xl flex items-center justify-center shadow-[var(--sf-glow-gold-sm)]">
+              <ShieldCheck className="w-6 h-6 text-[var(--sf-black)]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Admin — Template Manager</h1>
-              <p className="text-[#9CA3AF] text-sm">Manage marketplace bot templates</p>
+              <GoldHeading level={1} className="text-2xl font-bold">Admin — Template Manager</GoldHeading>
+              <p className="text-neutral-400 text-sm">Manage marketplace bot templates</p>
             </div>
           </div>
           <AdminClaimSection onSuccess={(newToken: string) => {
             login(newToken, { ...user!, isAdmin: true });
           }} />
-        </div>
+        </SfsContainer>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D]">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-[#FFD700] hover:text-[#FFD700]/80 transition-colors mb-8">
+    <div className="min-h-screen bg-[var(--sf-black)] text-white">
+      <SfsContainer className="max-w-6xl mx-auto px-4 py-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-[var(--sf-gold)] hover:text-[var(--sf-gold-2)] transition-colors mb-8">
           <ArrowLeft className="w-4 h-4" />
           Back to Dashboard
         </Link>
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#FFD700] to-[#B8860B] rounded-xl flex items-center justify-center shadow-lg shadow-[#FFD700]/20">
-              <ShieldCheck className="w-6 h-6 text-black" />
+            <div className="w-12 h-12 bg-gradient-to-br from-[var(--sf-gold)] to-[var(--sf-gold-2)] rounded-xl flex items-center justify-center shadow-[var(--sf-glow-gold-sm)]">
+              <ShieldCheck className="w-6 h-6 text-[var(--sf-black)]" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Admin — Template Manager</h1>
-              <p className="text-[#9CA3AF] text-sm">{templates.length} template{templates.length !== 1 ? "s" : ""} in marketplace</p>
+              <GoldHeading level={1} className="text-2xl font-bold">Admin — Template Manager</GoldHeading>
+              <p className="text-neutral-400 text-sm">{templates.length} template{templates.length !== 1 ? "s" : ""} in marketplace</p>
             </div>
           </div>
           <Button
             onClick={() => setCreateOpen(true)}
-            className="bg-[#FFD700] text-black hover:bg-[#FFD700]/90 font-semibold gap-2"
+            className="bg-[var(--sf-gold)] text-black hover:bg-[var(--sf-gold)]/90 font-semibold gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Template
@@ -443,26 +444,26 @@ export default function AdminTemplates() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-[#FFD700]/50 animate-spin" />
+            <Loader2 className="w-8 h-8 text-[var(--sf-gold)]/50 animate-spin" />
           </div>
         ) : templates.length === 0 ? (
-          <div className="border border-[#FFD700]/10 rounded-xl p-12 text-center bg-[#1A1A1A]">
-            <p className="text-[#9CA3AF] mb-4">No templates yet. Add the first one!</p>
-            <Button onClick={() => setCreateOpen(true)} className="bg-[#FFD700] text-black hover:bg-[#FFD700]/90 gap-2">
+          <GlassCard className="p-12 text-center">
+            <p className="text-neutral-400 mb-4">No templates yet. Add the first one!</p>
+            <Button onClick={() => setCreateOpen(true)} className="bg-[var(--sf-gold)] text-[var(--sf-black)] hover:bg-[var(--sf-gold-2)] gap-2">
               <Plus className="w-4 h-4" /> Add Template
             </Button>
-          </div>
+          </GlassCard>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-white/10">
+          <GlassCard className="overflow-hidden p-0">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-white/5 border-b border-white/10">
-                  <th className="text-left px-4 py-3 text-[#9CA3AF] font-medium">Name</th>
-                  <th className="text-left px-4 py-3 text-[#9CA3AF] font-medium">Platform</th>
-                  <th className="text-left px-4 py-3 text-[#9CA3AF] font-medium">Category</th>
-                  <th className="text-left px-4 py-3 text-[#9CA3AF] font-medium">Tier</th>
-                  <th className="text-left px-4 py-3 text-[#9CA3AF] font-medium">Price</th>
-                  <th className="text-right px-4 py-3 text-[#9CA3AF] font-medium">Actions</th>
+                  <th className="text-left px-4 py-3 text-[#A0A0A0] font-medium">Name</th>
+                  <th className="text-left px-4 py-3 text-[#A0A0A0] font-medium">Platform</th>
+                  <th className="text-left px-4 py-3 text-[#A0A0A0] font-medium">Category</th>
+                  <th className="text-left px-4 py-3 text-[#A0A0A0] font-medium">Tier</th>
+                  <th className="text-left px-4 py-3 text-[#A0A0A0] font-medium">Price</th>
+                  <th className="text-right px-4 py-3 text-[#A0A0A0] font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -472,7 +473,7 @@ export default function AdminTemplates() {
                       <div>
                         <p className="text-white font-medium">{template.name}</p>
                         {template.description && (
-                          <p className="text-[#9CA3AF] text-xs mt-0.5 line-clamp-1">{template.description}</p>
+                          <p className="text-[#A0A0A0] text-xs mt-0.5 line-clamp-1">{template.description}</p>
                         )}
                       </div>
                     </td>
@@ -484,9 +485,9 @@ export default function AdminTemplates() {
                     </td>
                     <td className="px-4 py-3">
                       {template.isPremium ? (
-                        <Badge className="bg-[#FFD700]/20 text-[#FFD700] border-[#FFD700]/30 text-xs">Premium</Badge>
+                        <Badge className="bg-[var(--sf-gold)]/20 text-[var(--sf-gold)] border-[var(--sf-gold)]/30 text-xs">Premium</Badge>
                       ) : (
-                        <Badge className="bg-white/10 text-[#9CA3AF] border-white/10 text-xs">Free</Badge>
+                        <Badge className="bg-white/10 text-[#A0A0A0] border-white/10 text-xs">Free</Badge>
                       )}
                     </td>
                     <td className="px-4 py-3 text-white">
@@ -498,7 +499,7 @@ export default function AdminTemplates() {
                           size="sm"
                           variant="ghost"
                           onClick={() => setEditTemplate(template)}
-                          className="text-[#9CA3AF] hover:text-white hover:bg-white/10 h-8 w-8 p-0"
+                          className="text-[#A0A0A0] hover:text-white hover:bg-white/10 h-8 w-8 p-0"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
@@ -516,13 +517,13 @@ export default function AdminTemplates() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </GlassCard>
         )}
-      </div>
+      </SfsContainer>
 
       {/* Create dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="bg-[#1A1A1A] border-white/10 text-white max-w-lg">
+        <DialogContent className="bg-[var(--sf-black)] border-white/10 text-white max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Add New Template</DialogTitle>
           </DialogHeader>
@@ -535,7 +536,7 @@ export default function AdminTemplates() {
 
       {/* Edit dialog */}
       <Dialog open={!!editTemplate} onOpenChange={(open) => !open && setEditTemplate(null)}>
-        <DialogContent className="bg-[#1A1A1A] border-white/10 text-white max-w-lg">
+        <DialogContent className="bg-[var(--sf-black)] border-white/10 text-white max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-white">Edit Template</DialogTitle>
           </DialogHeader>
@@ -560,10 +561,10 @@ export default function AdminTemplates() {
 
       {/* Delete confirmation */}
       <AlertDialog open={!!deleteTemplate} onOpenChange={(open) => !open && setDeleteTemplate(null)}>
-        <AlertDialogContent className="bg-[#1A1A1A] border-white/10">
+        <AlertDialogContent className="bg-[var(--sf-black)] border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">Delete Template</AlertDialogTitle>
-            <AlertDialogDescription className="text-[#9CA3AF]">
+            <AlertDialogDescription className="text-[#A0A0A0]">
               Are you sure you want to delete <strong className="text-white">{deleteTemplate?.name}</strong>? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -583,3 +584,4 @@ export default function AdminTemplates() {
     </div>
   );
 }
+
