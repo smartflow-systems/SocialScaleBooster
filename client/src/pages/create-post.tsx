@@ -226,9 +226,26 @@ export default function CreatePost() {
         title: "Post scheduled!",
         description: `Scheduled for ${scheduledAt.toLocaleString()}.`,
         action: (
-          <ToastAction altText="View Schedule" onClick={() => navigate(newPostId ? `/scheduler?highlight=${newPostId}` : "/scheduler")}>
-            View Schedule
-          </ToastAction>
+          <div className="flex gap-2">
+            <ToastAction
+              altText="Undo"
+              onClick={async () => {
+                try {
+                  await apiRequest("DELETE", `/api/scheduled-posts/${newPostId}`);
+                  queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+                  queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
+                  toast({ title: "Post cancelled", description: "The scheduled post has been removed." });
+                } catch (err: any) {
+                  toast({ title: "Failed to undo", description: err.message, variant: "destructive" });
+                }
+              }}
+            >
+              Undo
+            </ToastAction>
+            <ToastAction altText="View Schedule" onClick={() => navigate(newPostId ? `/scheduler?highlight=${newPostId}` : "/scheduler")}>
+              View Schedule
+            </ToastAction>
+          </div>
         ),
       });
     } catch (err: any) {
