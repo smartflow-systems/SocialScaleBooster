@@ -4,7 +4,6 @@ import {
   FileText, ArrowLeft, Send, Copy, Loader2, Sparkles,
   BookmarkPlus, Trash2, ChevronDown, ChevronUp, CalendarClock, Pencil, X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ToastAction } from "@/components/ui/toast";
 import { GlassCard, GoldButton, GhostButton, GoldHeading, SfsContainer } from "@/components/sfs";
 import { useToast } from "@/hooks/use-toast";
@@ -513,17 +512,17 @@ export default function CreatePost() {
                 />
               </div>
 
-              <Button
+              <GoldButton
                 onClick={handleGenerate}
                 disabled={loading || !topic.trim()}
-                className="w-full bg-gradient-to-r from-[var(--sf-gold)] to-[var(--sf-gold-2)] text-[var(--sf-black)] font-semibold py-3 hover:opacity-90 disabled:opacity-50"
+                className="w-full py-3 inline-flex items-center justify-center disabled:opacity-50"
               >
                 {loading ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating…</>
                 ) : (
                   <><Send className="w-4 h-4 mr-2" /> Generate Post</>
                 )}
-              </Button>
+              </GoldButton>
             </div>
           </GlassCard>
 
@@ -558,20 +557,19 @@ export default function CreatePost() {
                   <p className="text-white whitespace-pre-wrap leading-relaxed text-sm">{result}</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button
+                  <GoldButton
                     onClick={copyToClipboard}
-                    className="flex-1 bg-gradient-to-r from-[var(--sf-gold)] to-[var(--sf-gold-2)] text-[var(--sf-black)] font-semibold hover:opacity-90 text-xs px-3"
+                    className="flex-1 inline-flex items-center justify-center text-xs px-3"
                   >
                     <Copy className="w-3.5 h-3.5 mr-1.5" />
                     Copy Post
-                  </Button>
+                  </GoldButton>
                   {editingDraftId ? (
                     <>
-                      <Button
+                      <GhostButton
                         onClick={() => updateDraftMutation.mutate(editingDraftId)}
                         disabled={updateDraftMutation.isPending}
-                        variant="outline"
-                        className="flex-1 border-[var(--sf-gold)]/30 text-[var(--sf-gold)] hover:bg-[var(--sf-gold)]/10 hover:text-[var(--sf-gold-2)] text-xs px-3"
+                        className="flex-1 inline-flex items-center justify-center text-xs px-3"
                       >
                         {updateDraftMutation.isPending ? (
                           <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
@@ -579,22 +577,20 @@ export default function CreatePost() {
                           <Pencil className="w-3.5 h-3.5 mr-1.5" />
                         )}
                         Update Draft
-                      </Button>
-                      <Button
+                      </GhostButton>
+                      <GhostButton
                         onClick={cancelEditDraft}
-                        variant="outline"
-                        className="border-white/10 text-neutral-400 hover:text-white text-xs px-3"
+                        className="inline-flex items-center justify-center text-xs px-3"
                       >
                         <X className="w-3.5 h-3.5" />
-                      </Button>
+                      </GhostButton>
                     </>
                   ) : (
                     <>
-                      <Button
+                      <GhostButton
                         onClick={() => saveDraftMutation.mutate()}
                         disabled={saveDraftMutation.isPending}
-                        variant="outline"
-                        className="flex-1 border-[var(--sf-gold)]/30 text-[var(--sf-gold)] hover:bg-[var(--sf-gold)]/10 hover:text-[var(--sf-gold-2)] text-xs px-3"
+                        className="flex-1 inline-flex items-center justify-center text-xs px-3"
                       >
                         {saveDraftMutation.isPending ? (
                           <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
@@ -602,15 +598,14 @@ export default function CreatePost() {
                           <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
                         )}
                         Save Draft
-                      </Button>
-                      <Button
+                      </GhostButton>
+                      <GhostButton
                         onClick={() => { setScheduleContent(result); setShowSchedule(true); }}
-                        variant="outline"
-                        className="flex-1 border-[var(--sf-gold)]/30 text-[var(--sf-gold)] hover:bg-[var(--sf-gold)]/10 hover:text-[var(--sf-gold-2)] text-xs px-3"
+                        className="flex-1 inline-flex items-center justify-center text-xs px-3"
                       >
                         <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
                         Schedule Post
-                      </Button>
+                      </GhostButton>
                     </>
                   )}
                 </div>
@@ -676,20 +671,19 @@ export default function CreatePost() {
             </div>
 
             <div className="flex gap-3">
-              <Button
+              <GhostButton
                 onClick={() => { setResult(scheduleContent); setShowSchedule(false); setScheduleDate(""); }}
-                variant="outline"
-                className="flex-1 border-white/10 text-neutral-400 hover:text-white"
+                className="flex-1"
               >
                 Cancel
-              </Button>
-              <Button
+              </GhostButton>
+              <GoldButton
                 onClick={handleSchedule}
                 disabled={scheduling || !scheduleDate || scheduleContent.length > (PLATFORM_CHAR_LIMITS[platform] ?? 3000)}
-                className="flex-1 bg-gradient-to-r from-[var(--sf-gold)] to-[var(--sf-gold-2)] text-[var(--sf-black)] font-semibold hover:opacity-90 disabled:opacity-50"
+                className="flex-1 inline-flex items-center justify-center disabled:opacity-50"
               >
                 {scheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : "Schedule"}
-              </Button>
+              </GoldButton>
             </div>
           </GlassCard>
         </div>

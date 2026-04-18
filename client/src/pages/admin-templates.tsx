@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -254,14 +255,14 @@ function TemplateForm({
         />
 
         <DialogFooter>
-          <Button
+          <GoldButton
             type="submit"
             disabled={isPending}
-            className="bg-[var(--sf-gold)] text-black hover:bg-[var(--sf-gold)]/90 font-semibold"
+            className="inline-flex items-center justify-center"
           >
             {isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
             Save Template
-          </Button>
+          </GoldButton>
         </DialogFooter>
       </form>
     </Form>
@@ -304,13 +305,13 @@ function AdminClaimSection({ onSuccess }: { onSuccess: (token: string) => void }
           className="bg-[var(--sf-black)] border-white/10 text-white flex-1"
           onKeyDown={(e) => e.key === "Enter" && claimMutation.mutate()}
         />
-        <Button
+        <GoldButton
           onClick={() => claimMutation.mutate()}
           disabled={claimMutation.isPending || !secret}
-          className="bg-[var(--sf-gold)] text-black hover:bg-[var(--sf-gold)]/90 font-semibold"
+          className="inline-flex items-center justify-center"
         >
           {claimMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Claim"}
-        </Button>
+        </GoldButton>
       </div>
     </GlassCard>
   );
@@ -433,13 +434,13 @@ export default function AdminTemplates() {
               <p className="text-neutral-400 text-sm">{templates.length} template{templates.length !== 1 ? "s" : ""} in marketplace</p>
             </div>
           </div>
-          <Button
+          <GoldButton
             onClick={() => setCreateOpen(true)}
-            className="bg-[var(--sf-gold)] text-black hover:bg-[var(--sf-gold)]/90 font-semibold gap-2"
+            className="inline-flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Template
-          </Button>
+          </GoldButton>
         </div>
 
         {isLoading ? (
@@ -449,9 +450,9 @@ export default function AdminTemplates() {
         ) : templates.length === 0 ? (
           <GlassCard className="p-12 text-center">
             <p className="text-neutral-400 mb-4">No templates yet. Add the first one!</p>
-            <Button onClick={() => setCreateOpen(true)} className="bg-[var(--sf-gold)] text-[var(--sf-black)] hover:bg-[var(--sf-gold-2)] gap-2">
+            <GoldButton onClick={() => setCreateOpen(true)} className="inline-flex items-center justify-center gap-2">
               <Plus className="w-4 h-4" /> Add Template
-            </Button>
+            </GoldButton>
           </GlassCard>
         ) : (
           <GlassCard className="overflow-hidden p-0">
