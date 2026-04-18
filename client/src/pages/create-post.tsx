@@ -71,8 +71,40 @@ export default function CreatePost() {
   useEffect(() => {
     if (editingDraftId !== null && !draftsLoading && !drafts.some((d) => d.id === editingDraftId)) {
       setEditingDraftId(null);
+      sessionStorage.removeItem("editingDraftId");
     }
   }, [drafts, draftsLoading, editingDraftId]);
+
+  // Restore editing draft from sessionStorage on page load
+  useEffect(() => {
+    if (draftsLoading) return;
+    const storedId = sessionStorage.getItem("editingDraftId");
+    if (!storedId) return;
+    const id = parseInt(storedId, 10);
+    if (isNaN(id)) {
+      sessionStorage.removeItem("editingDraftId");
+      return;
+    }
+    if (id === editingDraftId) return;
+    // URL-based navigation (?draftId=) takes precedence — clear stale session key
+    const params = new URLSearchParams(search);
+    if (params.get("draftId")) {
+      sessionStorage.removeItem("editingDraftId");
+      return;
+    }
+    const draft = drafts.find((d) => d.id === id);
+    if (!draft) {
+      // Draft no longer exists (including when list is empty) — clear stale reference
+      sessionStorage.removeItem("editingDraftId");
+      return;
+    }
+    setResult(draft.content);
+    setPlatform(draft.platform);
+    setTone(draft.tone);
+    setTopic(draft.topic);
+    setEditingDraftId(draft.id);
+    toast({ title: "Resumed editing draft" });
+  }, [drafts, draftsLoading, search]);
 
   // Auto-load a draft when navigated from /drafts page with ?draftId=
   useEffect(() => {
@@ -134,6 +166,7 @@ export default function CreatePost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/drafts"] });
       setEditingDraftId(null);
+      sessionStorage.removeItem("editingDraftId");
       toast({ title: "Draft updated!" });
     },
     onError: (err: any) => {
@@ -215,6 +248,7 @@ export default function CreatePost() {
     setTopic(draft.topic);
     setShowDrafts(false);
     setEditingDraftId(null);
+    sessionStorage.removeItem("editingDraftId");
     toast({ title: "Draft loaded" });
   };
 
@@ -224,12 +258,14 @@ export default function CreatePost() {
     setTone(draft.tone);
     setTopic(draft.topic);
     setEditingDraftId(draft.id);
+    sessionStorage.setItem("editingDraftId", String(draft.id));
     setShowDrafts(false);
     toast({ title: "Editing draft — modify fields then click \"Update Draft\"" });
   };
 
   const cancelEditDraft = () => {
     setEditingDraftId(null);
+    sessionStorage.removeItem("editingDraftId");
   };
 
   const handleSchedule = async () => {
