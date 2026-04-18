@@ -47,7 +47,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GlassCard, GoldHeading, SfsContainer } from "@/components/sfs";
+import { GlassCard, GoldHeading, GoldButton, SfsContainer } from "@/components/sfs";
 
 const PLATFORMS = ["instagram", "twitter", "linkedin", "tiktok", "facebook", "youtube"] as const;
 const CATEGORIES = ["growth", "engagement", "leads", "content", "analytics", "automation"] as const;
