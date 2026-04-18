@@ -190,7 +190,12 @@ export default function CreatePost() {
             </div>
           </div>
 
-          {drafts.length > 0 && (
+          {draftsLoading ? (
+            <div className="flex items-center gap-2 text-sm text-neutral-gray border border-accent-gold/20 rounded-lg px-3 py-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Loading drafts...
+            </div>
+          ) : drafts.length > 0 ? (
             <button
               onClick={() => setShowDrafts((v) => !v)}
               className="flex items-center gap-2 text-sm text-accent-gold hover:text-gold-trim transition-colors border border-accent-gold/30 rounded-lg px-3 py-2"
@@ -199,7 +204,7 @@ export default function CreatePost() {
               Drafts ({drafts.length})
               {showDrafts ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
-          )}
+          ) : null}
         </div>
 
         {showDrafts && drafts.length > 0 && (
