@@ -129,6 +129,12 @@ export async function runMigrations() {
     );
     console.log('[db] sort_order column ensured on scheduled_posts');
 
+    // Ensure is_admin column exists on users
+    await pool.query(
+      `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "is_admin" boolean DEFAULT false`
+    );
+    console.log('[db] is_admin column ensured on users');
+
     // Step 3: Run any genuinely new (unrecorded) migrations
     const db = drizzle({ client: pool });
     await migrate(db, { migrationsFolder: './migrations' });

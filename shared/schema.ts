@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email"),
   isPremium: boolean("is_premium").default(false),
+  isAdmin: boolean("is_admin").default(false),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   botCount: integer("bot_count").default(0),

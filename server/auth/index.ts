@@ -47,6 +47,7 @@ export function registerAuthRoutes(app: Express) {
         username: user.username,
         email: user.email || "",
         isPremium: user.isPremium ?? false,
+        isAdmin: user.isAdmin ?? false,
       });
 
       res.status(201).json({
@@ -58,6 +59,7 @@ export function registerAuthRoutes(app: Express) {
           username: user.username,
           email: user.email,
           isPremium: user.isPremium,
+          isAdmin: user.isAdmin,
           botCount: user.botCount,
         },
       });
@@ -94,6 +96,7 @@ export function registerAuthRoutes(app: Express) {
         username: user.username,
         email: user.email || "",
         isPremium: user.isPremium ?? false,
+        isAdmin: user.isAdmin ?? false,
       });
 
       res.json({
@@ -105,6 +108,7 @@ export function registerAuthRoutes(app: Express) {
           username: user.username,
           email: user.email,
           isPremium: user.isPremium,
+          isAdmin: user.isAdmin,
           botCount: user.botCount,
         },
       });

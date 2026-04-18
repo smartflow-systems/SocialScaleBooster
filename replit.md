@@ -10,6 +10,8 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (April 2026)
 
+✓ **Admin Template Manager** (`/admin/templates`): Admin-only page for creating, editing, and deleting bot templates from the marketplace. Adds `isAdmin` boolean to `users` table and JWT payload. Admins claim access via a secret code (`ADMIN_SECRET` env var). Full CRUD: table view, create dialog, edit dialog, delete confirmation. `PUT /api/templates/:id` and `DELETE /api/templates/:id` routes protected by admin check. `POST /api/admin/claim` issues a fresh JWT with admin flag.
+
 ✓ **Scheduled Posts Persisted to DB**: `scheduled_posts` table added to Drizzle schema. DatabaseStorage now uses DB for all scheduled post CRUD instead of in-memory Map. Migration 0002 auto-applies on startup.
 
 ✓ **Server-Side Drafts**: `drafts` DB table + full CRUD API (`GET/POST/DELETE /api/drafts`). Create Post page now saves/loads drafts from the server instead of localStorage — persists across devices and sessions.

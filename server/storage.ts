@@ -8,6 +8,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
   updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User>;
   updateUserStripeInfo(id: number, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User>;
   incrementUserBotCount(id: number): Promise<User>;
@@ -46,6 +47,8 @@ export interface IStorage {
   getBotTemplatesByCategory(category: string): Promise<BotTemplate[]>;
   getBotTemplate(id: number): Promise<BotTemplate | undefined>;
   createBotTemplate(template: InsertBotTemplate): Promise<BotTemplate>;
+  updateBotTemplate(id: number, updates: Partial<InsertBotTemplate>): Promise<BotTemplate>;
+  deleteBotTemplate(id: number): Promise<void>;
 
   // Analytics methods
   getAnalyticsByUserId(userId: number): Promise<Analytics[]>;
@@ -90,6 +93,12 @@ export class DatabaseStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+    const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    if (!user) throw new Error("User not found");
     return user;
   }
 
@@ -286,6 +295,16 @@ export class DatabaseStorage implements IStorage {
   async createBotTemplate(insertTemplate: InsertBotTemplate): Promise<BotTemplate> {
     const [template] = await db.insert(botTemplates).values(insertTemplate).returning();
     return template;
+  }
+
+  async updateBotTemplate(id: number, updates: Partial<InsertBotTemplate>): Promise<BotTemplate> {
+    const [template] = await db.update(botTemplates).set(updates).where(eq(botTemplates.id, id)).returning();
+    if (!template) throw new Error("Template not found");
+    return template;
+  }
+
+  async deleteBotTemplate(id: number): Promise<void> {
+    await db.delete(botTemplates).where(eq(botTemplates.id, id));
   }
 
   // Analytics methods
@@ -608,6 +627,14 @@ export class MemStorage implements IStorage {
     return user;
   }
 
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+    const user = this.users.get(id);
+    if (!user) throw new Error("User not found");
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
   async updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User> {
     const user = this.users.get(id);
     if (!user) throw new Error("User not found");
@@ -847,6 +874,18 @@ export class MemStorage implements IStorage {
     };
     this.botTemplates.set(id, template);
     return template;
+  }
+
+  async updateBotTemplate(id: number, updates: Partial<InsertBotTemplate>): Promise<BotTemplate> {
+    const existing = this.botTemplates.get(id);
+    if (!existing) throw new Error("Template not found");
+    const updated: BotTemplate = { ...existing, ...updates };
+    this.botTemplates.set(id, updated);
+    return updated;
+  }
+
+  async deleteBotTemplate(id: number): Promise<void> {
+    this.botTemplates.delete(id);
   }
 
   // Analytics methods

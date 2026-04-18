@@ -31,6 +31,7 @@ import Trends from "@/pages/trends";
 import Audience from "@/pages/audience";
 import Performance from "@/pages/performance";
 import Marketplace from "@/pages/marketplace";
+import AdminTemplates from "@/pages/admin-templates";
 import SettingsPage from "@/pages/settings";
 import HelpCenter from "@/pages/help";
 import Tutorials from "@/pages/tutorials";
@@ -41,7 +42,7 @@ const APP_PATHS = [
   "/drafts", "/templates", "/hashtags", "/captions", "/scheduler", "/auto-engage",
   "/dm-automation", "/accounts", "/competitors", "/trends", "/audience",
   "/performance", "/marketplace", "/clients", "/settings", "/help",
-  "/tutorials", "/support", "/subscribe", "/checkout",
+  "/tutorials", "/support", "/subscribe", "/checkout", "/admin/templates",
 ];
 
 function isAppPath(path: string) {
@@ -130,6 +131,9 @@ function AppRoutes() {
           </Route>
           <Route path="/marketplace">
             {user ? <Marketplace /> : <Redirect to="/login" />}
+          </Route>
+          <Route path="/admin/templates">
+            {user ? <AdminTemplates /> : <Redirect to="/login" />}
           </Route>
           <Route path="/settings">
             {user ? <SettingsPage /> : <Redirect to="/login" />}

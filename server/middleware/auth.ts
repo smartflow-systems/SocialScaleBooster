@@ -10,6 +10,7 @@ export interface AuthRequest extends Request {
     username: string;
     email: string;
     isPremium: boolean;
+    isAdmin: boolean;
   };
 }
 
@@ -18,6 +19,7 @@ export interface JWTPayload {
   username: string;
   email: string;
   isPremium: boolean;
+  isAdmin: boolean;
 }
 
 /**
@@ -43,7 +45,8 @@ export function authenticateToken(
       id: payload.userId,
       username: payload.username,
       email: payload.email,
-      isPremium: payload.isPremium
+      isPremium: payload.isPremium,
+      isAdmin: payload.isAdmin ?? false,
     };
     next();
   } catch (error) {
@@ -70,7 +73,8 @@ export function optionalAuth(
         id: payload.userId,
         username: payload.username,
         email: payload.email,
-        isPremium: payload.isPremium
+        isPremium: payload.isPremium,
+        isAdmin: payload.isAdmin ?? false,
       };
     } catch (error) {
       // Invalid token but continue anyway

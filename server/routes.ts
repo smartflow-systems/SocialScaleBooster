@@ -32,6 +32,17 @@ const accountActionsLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Strict rate limiter for admin claim endpoint to prevent brute-force attacks
+// Limits to 5 attempts per 15 minutes per IP
+const adminClaimLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minute window
+  max: 5,
+  message: { error: "Too many admin claim attempts. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+});
+
 // Initialize Stripe
 let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
@@ -830,11 +841,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/templates", authenticateToken, async (req: AuthRequest, res) => {
     try {
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
       const templateData = insertBotTemplateSchema.parse(req.body);
       const template = await storage.createBotTemplate(templateData);
       res.json(template);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/templates/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid template id" });
+      const updates = insertBotTemplateSchema.partial().parse(req.body);
+      const template = await storage.updateBotTemplate(id, updates);
+      res.json(template);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/templates/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid template id" });
+      await storage.deleteBotTemplate(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Admin — claim admin status using ADMIN_SECRET env variable
+  app.post("/api/admin/claim", adminClaimLimiter, authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const adminSecret = process.env.ADMIN_SECRET;
+      if (!adminSecret) {
+        return res.status(503).json({ message: "Admin secret not configured" });
+      }
+      const { secret } = req.body;
+      if (secret !== adminSecret) {
+        return res.status(403).json({ message: "Invalid admin secret" });
+      }
+      const userId = req.userId!;
+      const updatedUser = await storage.updateUser(userId, { isAdmin: true });
+      const { generateToken } = await import('./middleware/auth');
+      const newToken = generateToken({
+        userId: updatedUser.id,
+        username: updatedUser.username,
+        email: updatedUser.email || "",
+        isPremium: updatedUser.isPremium ?? false,
+        isAdmin: true,
+      });
+      res.json({ success: true, message: "Admin access granted", token: newToken });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 

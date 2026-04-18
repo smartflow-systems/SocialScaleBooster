@@ -42,6 +42,8 @@ run = ["npm", "start"]
 [userenv.production]
 NODE_ENV = "production"
 
+[userenv.shared]
+
 [nix]
 packages = ["gh"]
 channel = "stable-25_05"

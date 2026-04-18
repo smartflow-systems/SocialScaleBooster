@@ -5,6 +5,7 @@ interface User {
   username: string;
   email: string;
   isPremium?: boolean;
+  isAdmin?: boolean;
   onboardingComplete?: boolean;
   niche?: string;
   businessName?: string;
