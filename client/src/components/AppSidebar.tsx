@@ -212,12 +212,21 @@ export default function AppSidebar() {
                       <div className="relative flex-shrink-0">
                         <Icon className="w-4 h-4" />
                         {badge !== undefined && collapsed && (
-                          <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#FFD700] text-[#0D0D0D] text-[8px] font-bold flex items-center justify-center">
-                            {badge > 9 ? "9+" : badge}
-                            {pulse && (
-                              <span className="absolute inset-0 rounded-full bg-[#FFD700] animate-ping opacity-75" />
+                          <div className="absolute -top-1.5 -right-1.5 group/collapsedbadge">
+                            <span className="w-3.5 h-3.5 rounded-full bg-[#FFD700] text-[#0D0D0D] text-[8px] font-bold flex items-center justify-center">
+                              {badge > 9 ? "9+" : badge}
+                              {pulse && (
+                                <span className="absolute inset-0 rounded-full bg-[#FFD700] animate-ping opacity-75" />
+                              )}
+                            </span>
+                            {tooltipText && (
+                              <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 pointer-events-none opacity-0 group-hover/collapsedbadge:opacity-100 transition-opacity duration-150">
+                                <div className="bg-[#1a1a1a] border border-[#FFD700]/20 rounded-md px-2.5 py-1.5 text-[10px] text-neutral-300 whitespace-nowrap shadow-lg">
+                                  {tooltipText}
+                                </div>
+                              </div>
                             )}
-                          </span>
+                          </div>
                         )}
                       </div>
                       {!collapsed && (
