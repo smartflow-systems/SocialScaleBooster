@@ -144,9 +144,9 @@ export default function ClientsPage() {
           ) : (
             <div className="space-y-4">
               {clients.map((client) => (
-                <div
+                <GlassCard
                   key={client.id}
-                  className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:border-[var(--sf-gold)]/30 transition-colors"
+                  className="flex items-center justify-between p-4 hover:!border-[var(--sf-gold)]/30 transition-colors"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -195,7 +195,7 @@ export default function ClientsPage() {
                       <Trash2 className="w-4 h-4" />
                     </GhostButton>
                   </div>
-                </div>
+                </GlassCard>
               ))}
             </div>
           )}

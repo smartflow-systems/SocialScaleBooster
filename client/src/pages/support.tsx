@@ -27,8 +27,9 @@ export default function Support() {
       window.location.href = `mailto:support@smartflow.systems?subject=${subject}&body=${body}`;
       toast({ title: "Opening your email client", description: "Send the prepared email to reach support." });
       reset();
-    } catch (err: any) {
-      toast({ title: "Could not open email client", description: err.message, variant: "destructive" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      toast({ title: "Could not open email client", description: message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
