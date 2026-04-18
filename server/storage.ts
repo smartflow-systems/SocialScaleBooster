@@ -56,6 +56,8 @@ export interface IStorage {
 
   // Scheduled Post methods
   getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]>;
+  getDueScheduledPosts(): Promise<ScheduledPost[]>;
+  markScheduledPostPublished(id: number): Promise<void>;
   createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost>;
   updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined>;
   deleteScheduledPost(id: number, userId: number): Promise<boolean>;
@@ -326,6 +328,22 @@ export class DatabaseStorage implements IStorage {
   // Scheduled Post methods — DB-backed
   async getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]> {
     return await db.select().from(scheduledPosts).where(eq(scheduledPosts.userId, userId)).orderBy(scheduledPosts.sortOrder, scheduledPosts.createdAt);
+  }
+
+  async getDueScheduledPosts(): Promise<ScheduledPost[]> {
+    const now = new Date().toISOString();
+    const all = await db
+      .select()
+      .from(scheduledPosts)
+      .where(eq(scheduledPosts.status, "scheduled"));
+    return all.filter(p => new Date(p.scheduledAt) <= new Date(now));
+  }
+
+  async markScheduledPostPublished(id: number): Promise<void> {
+    await db
+      .update(scheduledPosts)
+      .set({ status: "published" })
+      .where(eq(scheduledPosts.id, id));
   }
 
   async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {
@@ -867,6 +885,20 @@ export class MemStorage implements IStorage {
     return Array.from(this.scheduledPosts.values())
       .filter(post => post.userId === userId)
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  }
+
+  async getDueScheduledPosts(): Promise<ScheduledPost[]> {
+    const now = new Date();
+    return Array.from(this.scheduledPosts.values()).filter(
+      post => post.status === "scheduled" && new Date(post.scheduledAt) <= now
+    );
+  }
+
+  async markScheduledPostPublished(id: number): Promise<void> {
+    const post = this.scheduledPosts.get(id);
+    if (post) {
+      this.scheduledPosts.set(id, { ...post, status: "published" });
+    }
   }
 
   async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {

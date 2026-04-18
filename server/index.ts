@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { runMigrations } from "./migrate";
 import { seedBotTemplates } from "./seed";
+import { startPostScheduler } from "./features/post-scheduler";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -42,6 +43,7 @@ app.use((req, res, next) => {
 (async () => {
   await runMigrations();
   await seedBotTemplates();
+  await startPostScheduler();
 
   const server = await registerRoutes(app);
 
