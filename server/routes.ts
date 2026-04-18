@@ -9,6 +9,7 @@ import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
 import aiStudioRoutes from "./routes/ai-studio";
+import { buildAuthUrl, verifyStateToken, exchangeCodeForToken, getLongLivedToken, getUserInfo, saveMetaAccount } from "./oauth/meta";
 import { generatePost, generateCaption, generateHashtags } from "./services/openai";
 
 // Rate limiter for bot management operations (create, update, delete)
@@ -257,6 +258,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================
+  // Meta OAuth Routes
+  // =================
+
+  // Initiate Meta OAuth — authenticated, redirects to Facebook dialog
+  app.get("/api/oauth/meta/connect", authenticateToken, (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const authUrl = buildAuthUrl(userId, baseUrl);
+      res.json({ url: authUrl });
+    } catch (error: any) {
+      res.status(503).json({ message: error.message });
+    }
+  });
+
+  // Meta OAuth callback — no auth middleware (arrives from Meta redirect)
+  app.get("/api/oauth/meta/callback", async (req, res) => {
+    const { code, state, error: oauthError, error_description } = req.query as Record<string, string>;
+
+    if (oauthError) {
+      console.error("[Meta OAuth] Error from Meta:", oauthError, error_description);
+      return res.redirect(`/accounts?oauth_error=${encodeURIComponent(error_description ?? oauthError)}`);
+    }
+
+    if (!code || !state) {
+      return res.redirect("/accounts?oauth_error=Missing+code+or+state");
+    }
+
+    const stateData = verifyStateToken(state);
+    if (!stateData) {
+      return res.redirect("/accounts?oauth_error=Invalid+or+expired+state+token");
+    }
+
+    try {
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const { accessToken: shortToken } = await exchangeCodeForToken(code, baseUrl);
+      const { accessToken, expiresIn } = await getLongLivedToken(shortToken);
+      const userInfo = await getUserInfo(accessToken);
+
+      const accounts: Array<{ id: string; name: string; access_token: string }> =
+        userInfo.accounts?.data ?? [];
+
+      if (accounts.length === 0) {
+        // No pages — save as personal Facebook account
+        await saveMetaAccount({
+          userId: stateData.userId,
+          accessToken,
+          expiresIn,
+          userInfo,
+          platform: "facebook",
+        });
+      } else {
+        // Save each connected page as an account
+        for (const page of accounts) {
+          await saveMetaAccount({
+            userId: stateData.userId,
+            accessToken,
+            expiresIn,
+            userInfo,
+            platform: "facebook",
+            pageInfo: page,
+          });
+        }
+      }
+
+      res.redirect("/accounts?oauth_success=meta");
+    } catch (error: any) {
+      console.error("[Meta OAuth] Callback error:", error);
+      res.redirect(`/accounts?oauth_error=${encodeURIComponent(error.message)}`);
+    }
+  });
+
   // Social Account Routes (Multi-Account Support)
   // ============================================
 

@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { Link } from "wouter";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "wouter";
 import {
   Globe, ArrowLeft, Plus, CheckCircle2, XCircle, AlertCircle,
   Trash2, RefreshCw, Loader2, ChevronDown, ChevronUp, KeyRound, AtSign, Linkedin,
+  ExternalLink,
 } from "lucide-react";
 import { SiInstagram, SiTiktok, SiFacebook, SiX, SiYoutube } from "react-icons/si";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,50 @@ function getPlatform(value: string) {
 }
 
 type SafeAccount = SocialAccount & { hasCredentials?: boolean };
+
+function MetaConnectButton() {
+  const { toast } = useToast();
+  const [connecting, setConnecting] = useState(false);
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      const res = await fetch("/api/oauth/meta/connect", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message ?? "Failed to start OAuth");
+      }
+      const { url } = await res.json();
+      window.location.href = url;
+    } catch (err: any) {
+      setConnecting(false);
+      toast({ title: "OAuth error", description: err.message, variant: "destructive" });
+    }
+  };
+
+  return (
+    <button
+      onClick={handleConnect}
+      disabled={connecting}
+      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl border border-[#1877F2]/40 bg-[#1877F2]/8 hover:bg-[#1877F2]/15 hover:border-[#1877F2]/60 transition-all group disabled:opacity-60"
+    >
+      <div className="w-9 h-9 rounded-lg bg-[#1877F2]/20 border border-[#1877F2]/30 flex items-center justify-center flex-shrink-0">
+        {connecting ? (
+          <Loader2 className="w-4 h-4 text-[#1877F2] animate-spin" />
+        ) : (
+          <SiFacebook size={18} style={{ color: "#1877F2" }} />
+        )}
+      </div>
+      <div className="text-left flex-1">
+        <p className="text-white text-sm font-semibold">Connect with Meta</p>
+        <p className="text-neutral-400 text-xs">Facebook Pages · Instagram Business</p>
+      </div>
+      <ExternalLink className="w-3.5 h-3.5 text-neutral-500 group-hover:text-[#1877F2] transition-colors" />
+    </button>
+  );
+}
 
 function StatusBadge({ status }: { status: string | null }) {
   if (status === "active") {
@@ -324,10 +369,34 @@ function AccountCard({ account }: { account: SafeAccount }) {
 
 export default function Accounts() {
   const [showAdd, setShowAdd] = useState(false);
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const { data: accounts = [], isLoading } = useQuery<SafeAccount[]>({
     queryKey: ["/api/social-accounts"],
   });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get("oauth_success");
+    const error = params.get("oauth_error");
+
+    if (success === "meta") {
+      toast({
+        title: "Meta account connected!",
+        description: "Your Facebook Pages and Instagram accounts have been linked successfully.",
+      });
+      setLocation("/accounts");
+    } else if (error) {
+      toast({
+        title: "Connection failed",
+        description: decodeURIComponent(error),
+        variant: "destructive",
+      });
+      setLocation("/accounts");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const byPlatform: Record<string, SafeAccount[]> = {};
   for (const acct of accounts) {
@@ -388,6 +457,15 @@ export default function Accounts() {
           </div>
         )}
 
+        {/* Quick-connect: Meta OAuth */}
+        <div className="mb-6 border border-white/8 rounded-xl p-4 bg-white/[0.02]">
+          <p className="text-xs text-neutral-500 uppercase tracking-wider mb-3 font-medium">One-click connect</p>
+          <MetaConnectButton />
+          <p className="text-[11px] text-neutral-600 mt-2 px-1">
+            Securely authorise SmartFlow to manage your Facebook Pages and Instagram Business accounts via Meta's official OAuth.
+          </p>
+        </div>
+
         {/* Account list */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -404,14 +482,14 @@ export default function Accounts() {
             </div>
             <h2 className="text-xl font-semibold text-white mb-2">No accounts connected yet</h2>
             <p className="text-neutral-gray max-w-sm mx-auto mb-6 text-sm">
-              Connect your social media profiles to start automating posts, scheduling content, and tracking performance.
+              Use "Connect with Meta" above to link Facebook Pages and Instagram Business accounts instantly, or add other platforms manually.
             </p>
             <Button
               onClick={() => setShowAdd(true)}
               className="bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold hover:opacity-90"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Connect Your First Account
+              Add Manually
             </Button>
           </div>
         ) : (
