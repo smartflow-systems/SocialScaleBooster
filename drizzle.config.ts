@@ -1,7 +1,18 @@
 import { defineConfig } from "drizzle-kit";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL, ensure the database is provisioned");
+function getDbUrl(): string {
+  const { DATABASE_URL, PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT } = process.env;
+
+  if (DATABASE_URL) {
+    return DATABASE_URL;
+  }
+
+  if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
+    const port = PGPORT || "5432";
+    return `postgresql://${PGUSER}:${encodeURIComponent(PGPASSWORD)}@${PGHOST}:${port}/${PGDATABASE}?sslmode=require`;
+  }
+
+  throw new Error("DATABASE_URL or PG* environment variables must be set.");
 }
 
 export default defineConfig({
@@ -9,6 +20,7 @@ export default defineConfig({
   schema: "./shared/schema.ts",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL,
+    url: getDbUrl(),
+    ssl: { rejectUnauthorized: false },
   },
 });

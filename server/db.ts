@@ -1,32 +1,30 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 import * as schema from "@shared/schema";
 
-neonConfig.webSocketConstructor = ws;
+const { Pool } = pg;
 
-function buildConnectionString(): string | undefined {
+function buildConnectionString(): string {
   const { DATABASE_URL, PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT } = process.env;
+
+  if (DATABASE_URL) {
+    console.log("[db] connecting via DATABASE_URL");
+    return DATABASE_URL;
+  }
 
   if (PGHOST && PGUSER && PGPASSWORD && PGDATABASE) {
     const port = PGPORT || "5432";
     const url = `postgresql://${PGUSER}:${encodeURIComponent(PGPASSWORD)}@${PGHOST}:${port}/${PGDATABASE}?sslmode=require`;
-    console.log('[db] using connection string built from PG* environment variables');
+    console.log("[db] connecting via PG* environment variables");
     return url;
   }
 
-  if (DATABASE_URL) {
-    return DATABASE_URL;
-  }
-
-  return undefined;
+  throw new Error(
+    "No database credentials found. Set DATABASE_URL or PG* environment variables.",
+  );
 }
 
 const connectionString = buildConnectionString();
 
-if (!connectionString) {
-  console.warn("⚠️  No database credentials found - using in-memory storage for development");
-}
-
-export const pool = new Pool({ connectionString: connectionString || "postgresql://localhost:5432/dev" });
-export const db = drizzle({ client: pool, schema });
+export const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
+export const db = drizzle(pool, { schema });
