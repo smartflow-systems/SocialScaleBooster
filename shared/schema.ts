@@ -133,10 +133,20 @@ export const scheduledPosts = pgTable("scheduled_posts", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertScheduledPostSchema = createInsertSchema(scheduledPosts).omit({
+const _baseInsertScheduledPostSchema = createInsertSchema(scheduledPosts).omit({
   id: true,
   createdAt: true,
 });
+
+export const insertScheduledPostSchema = _baseInsertScheduledPostSchema.refine(
+  (data) => {
+    const d = new Date(data.scheduledAt);
+    return !isNaN(d.getTime()) && d > new Date();
+  },
+  { message: "Scheduled date must be a valid date in the future", path: ["scheduledAt"] }
+);
+
+export const baseInsertScheduledPostSchema = _baseInsertScheduledPostSchema;
 
 export type InsertScheduledPost = z.infer<typeof insertScheduledPostSchema>;
 export type ScheduledPost = typeof scheduledPosts.$inferSelect;

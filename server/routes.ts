@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import rateLimit from "express-rate-limit";
 import { AnalyticsWebSocketServer, setAnalyticsWS } from "./websocket";
 import { storage } from "./storage";
-import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema, insertScheduledPostSchema, insertDraftSchema } from "@shared/schema";
+import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema, insertScheduledPostSchema, baseInsertScheduledPostSchema, insertDraftSchema } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
@@ -1171,6 +1171,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!parsed.success) {
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
       }
+      if (new Date(parsed.data.scheduledAt) <= new Date()) {
+        return res.status(400).json({ message: "Scheduled date must be in the future" });
+      }
       const post = await storage.createScheduledPost(parsed.data);
       res.status(201).json(post);
     } catch (error: any) {
@@ -1192,7 +1195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const patchScheduledPostSchema = insertScheduledPostSchema.pick({ platform: true, content: true, scheduledAt: true }).partial();
+  const patchScheduledPostSchema = baseInsertScheduledPostSchema.pick({ platform: true, content: true, scheduledAt: true }).partial();
 
   app.patch("/api/scheduled-posts/:id", authenticateToken, async (req: AuthRequest, res) => {
     try {
@@ -1205,6 +1208,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       if (Object.keys(parsed.data).length === 0) {
         return res.status(400).json({ message: "No fields provided to update" });
+      }
+      if (parsed.data.scheduledAt !== undefined) {
+        const d = new Date(parsed.data.scheduledAt);
+        if (isNaN(d.getTime())) {
+          return res.status(400).json({ message: "Scheduled date must be a valid date" });
+        }
+        if (d <= new Date()) {
+          return res.status(400).json({ message: "Scheduled date must be in the future" });
+        }
       }
       const updated = await storage.updateScheduledPost(id, userId, parsed.data);
       if (!updated) return res.status(404).json({ message: "Post not found or not owned by you" });
