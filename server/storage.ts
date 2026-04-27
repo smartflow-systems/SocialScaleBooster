@@ -62,10 +62,11 @@ export interface IStorage {
   getDueScheduledPosts(): Promise<ScheduledPost[]>;
   markScheduledPostPublished(id: number): Promise<void>;
   markScheduledPostFailed(id: number): Promise<void>;
-  retryScheduledPost(id: number, userId: number): Promise<ScheduledPost | undefined>;
+  retryScheduledPost(id: number, userId: number, scheduledAt?: string): Promise<ScheduledPost | undefined>;
   createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost>;
   updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined>;
   deleteScheduledPost(id: number, userId: number): Promise<boolean>;
+  deletePublishedPosts(userId: number): Promise<number>;
   reorderScheduledPosts(userId: number, orderedIds: number[]): Promise<void>;
 
   // Draft methods
@@ -375,10 +376,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(scheduledPosts.id, id));
   }
 
-  async retryScheduledPost(id: number, userId: number): Promise<ScheduledPost | undefined> {
+  async retryScheduledPost(id: number, userId: number, scheduledAt?: string): Promise<ScheduledPost | undefined> {
+    const setClause: { status: string; scheduledAt?: string } = { status: "scheduled" };
+    if (scheduledAt) setClause.scheduledAt = scheduledAt;
     const [updated] = await db
       .update(scheduledPosts)
-      .set({ status: "scheduled" })
+      .set(setClause)
       .where(and(eq(scheduledPosts.id, id), eq(scheduledPosts.userId, userId), eq(scheduledPosts.status, "failed")))
       .returning();
     return updated || undefined;
@@ -405,6 +408,13 @@ export class DatabaseStorage implements IStorage {
     if (!post) return false;
     await db.delete(scheduledPosts).where(eq(scheduledPosts.id, id));
     return true;
+  }
+
+  async deletePublishedPosts(userId: number): Promise<number> {
+    const posts = await db.select({ id: scheduledPosts.id }).from(scheduledPosts).where(and(eq(scheduledPosts.userId, userId), eq(scheduledPosts.status, "published")));
+    if (posts.length === 0) return 0;
+    await db.delete(scheduledPosts).where(and(eq(scheduledPosts.userId, userId), eq(scheduledPosts.status, "published")));
+    return posts.length;
   }
 
   async reorderScheduledPosts(userId: number, orderedIds: number[]): Promise<void> {
@@ -977,10 +987,10 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async retryScheduledPost(id: number, userId: number): Promise<ScheduledPost | undefined> {
+  async retryScheduledPost(id: number, userId: number, scheduledAt?: string): Promise<ScheduledPost | undefined> {
     const post = this.scheduledPosts.get(id);
     if (!post || post.userId !== userId || post.status !== "failed") return undefined;
-    const updated = { ...post, status: "scheduled" as const };
+    const updated = { ...post, status: "scheduled" as const, ...(scheduledAt ? { scheduledAt } : {}) };
     this.scheduledPosts.set(id, updated);
     return updated;
   }
@@ -1007,6 +1017,12 @@ export class MemStorage implements IStorage {
     if (!post || post.userId !== userId) return false;
     this.scheduledPosts.delete(id);
     return true;
+  }
+
+  async deletePublishedPosts(userId: number): Promise<number> {
+    const toDelete = Array.from(this.scheduledPosts.values()).filter(p => p.userId === userId && p.status === "published");
+    toDelete.forEach(p => this.scheduledPosts.delete(p.id));
+    return toDelete.length;
   }
 
   async reorderScheduledPosts(userId: number, orderedIds: number[]): Promise<void> {

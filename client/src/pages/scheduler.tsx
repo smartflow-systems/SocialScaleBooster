@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { insertScheduledPostSchema, type ScheduledPost } from "@shared/schema";
+import { baseInsertScheduledPostSchema, type ScheduledPost } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,13 +17,27 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GlassCard, GoldHeading, SfsContainer } from "@/components/sfs";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   DndContext,
+  DragOverlay,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragStartEvent,
+  type DragCancelEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -42,7 +56,7 @@ const platforms = [
   { value: "tiktok", label: "TikTok", icon: Music, color: "text-cyan-400" },
 ];
 
-const formSchema = insertScheduledPostSchema.omit({ userId: true, status: true, sortOrder: true }).extend({
+const formSchema = baseInsertScheduledPostSchema.omit({ userId: true, status: true, sortOrder: true }).extend({
   scheduledAt: z.string().min(1, "Please select a date and time"),
   content: z.string().min(1, "Content is required").max(2200, "Content is too long"),
   platform: z.string().min(1, "Please select a platform"),
@@ -204,32 +218,143 @@ function EditPostForm({
   );
 }
 
+const retrySchema = z.object({
+  scheduledAt: z.string().min(1, "Please select a date and time"),
+}).refine(
+  (data) => new Date(data.scheduledAt) > new Date(),
+  { message: "Scheduled time must be in the future", path: ["scheduledAt"] }
+);
+type RetryFormData = z.infer<typeof retrySchema>;
+
+function RetryRescheduleForm({
+  post,
+  onCancel,
+  onRetried,
+}: {
+  post: ScheduledPost;
+  onCancel: () => void;
+  onRetried: () => void;
+}) {
+  const { toast } = useToast();
+  const platformInfo = platforms.find(p => p.value === post.platform);
+
+  const defaultRetryAt = (() => {
+    const d = new Date(Date.now() + 15 * 60 * 1000);
+    return toDatetimeLocalValue(d.toISOString());
+  })();
+
+  const retryForm = useForm<RetryFormData>({
+    resolver: zodResolver(retrySchema),
+    defaultValues: {
+      scheduledAt: defaultRetryAt,
+    },
+  });
+
+  const retryWithRescheduleMutation = useMutation({
+    mutationFn: (data: RetryFormData) =>
+      apiRequest("POST", `/api/scheduled-posts/${post.id}/retry`, { scheduledAt: new Date(data.scheduledAt).toISOString() }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
+      toast({ title: "Post rescheduled", description: "The post has been rescheduled and queued for publishing." });
+      onRetried();
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Could not reschedule the post. Please try again.", variant: "destructive" });
+    },
+  });
+
+  return (
+    <GlassCard className="p-5 mt-2 !border-blue-500/40">
+      <h3 className="text-sm font-semibold text-white mb-1">Reschedule & Retry</h3>
+      <p className="text-xs text-neutral-400 mb-4">Pick a new time in the future to re-queue this post. Content and platform stay the same.</p>
+
+      <div className="mb-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-neutral-500 w-16 shrink-0">Platform</span>
+          <div className="flex items-center gap-1.5 text-xs text-neutral-300">
+            {platformInfo && <platformInfo.icon className={`w-3.5 h-3.5 ${platformInfo.color}`} />}
+            <span className="capitalize">{platformInfo?.label ?? post.platform}</span>
+          </div>
+        </div>
+        <div className="flex items-start gap-2">
+          <span className="text-xs text-neutral-500 w-16 shrink-0 pt-0.5">Content</span>
+          <p className="text-xs text-neutral-300 line-clamp-3 leading-relaxed">{post.content}</p>
+        </div>
+      </div>
+
+      <Form {...retryForm}>
+        <form onSubmit={retryForm.handleSubmit(data => retryWithRescheduleMutation.mutate(data))} className="space-y-4">
+          <FormField
+            control={retryForm.control}
+            name="scheduledAt"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-neutral-400">New Scheduled Date & Time</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="datetime-local"
+                    className="bg-[var(--sf-black)] border-[var(--sf-gold)]/20 text-white"
+                    min={nowDatetimeLocalValue()}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex gap-3 pt-1">
+            <Button
+              type="submit"
+              disabled={retryWithRescheduleMutation.isPending}
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              {retryWithRescheduleMutation.isPending ? "Rescheduling..." : "Reschedule & Retry"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="border-[var(--sf-gold)]/30 text-neutral-400 hover:text-white hover:bg-white/5 gap-2"
+            >
+              <X className="w-4 h-4" />
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </GlassCard>
+  );
+}
+
 function SortablePostCard({
   post,
   index,
   total,
   isReordering,
   editingPostId,
+  retryingPostId,
   isHighlighted,
   onMovePost,
   onSetEditingPostId,
+  onSetRetryingPostId,
   onDelete,
-  onRetry,
   deletePending,
-  retryPending,
 }: {
   post: ScheduledPost;
   index: number;
   total: number;
   isReordering: boolean;
   editingPostId: number | null;
+  retryingPostId: number | null;
   isHighlighted: boolean;
   onMovePost: (index: number, direction: "up" | "down") => void;
   onSetEditingPostId: (id: number | null) => void;
+  onSetRetryingPostId: (id: number | null) => void;
   onDelete: (id: number) => void;
-  onRetry: (id: number) => void;
   deletePending: boolean;
-  retryPending: boolean;
 }) {
   const {
     attributes,
@@ -243,13 +368,23 @@ function SortablePostCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 10 : undefined,
   };
 
   const isEditing = editingPostId === post.id;
+  const isRetrying = retryingPostId === post.id;
 
   const isFailed = post.status === "failed";
+
+  if (isDragging) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        data-post-id={post.id}
+        className="rounded-xl border-2 border-dashed border-[var(--sf-gold)]/40 bg-[var(--sf-gold)]/5 h-[72px]"
+      />
+    );
+  }
 
   return (
     <GlassCard
@@ -326,10 +461,12 @@ function SortablePostCard({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onRetry(post.id)}
-              disabled={retryPending}
-              className="text-neutral-400 hover:text-blue-400 hover:bg-blue-400/10 flex-shrink-0"
-              title="Retry publishing"
+              onClick={() => {
+                onSetEditingPostId(null);
+                onSetRetryingPostId(isRetrying ? null : post.id);
+              }}
+              className={`flex-shrink-0 ${isRetrying ? "text-blue-400 bg-blue-400/10" : "text-neutral-400 hover:text-blue-400 hover:bg-blue-400/10"}`}
+              title="Reschedule & retry"
             >
               <RotateCcw className="w-4 h-4" />
             </Button>
@@ -337,7 +474,10 @@ function SortablePostCard({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onSetEditingPostId(isEditing ? null : post.id)}
+            onClick={() => {
+              onSetRetryingPostId(null);
+              onSetEditingPostId(isEditing ? null : post.id);
+            }}
             className={`hover:bg-[var(--sf-gold)]/10 flex-shrink-0 ${isEditing ? "text-[var(--sf-gold)]" : "text-neutral-400 hover:text-[var(--sf-gold)]"}`}
             title="Edit post"
           >
@@ -365,6 +505,65 @@ function SortablePostCard({
           />
         </div>
       )}
+
+      {isRetrying && (
+        <div className="px-4 pb-4">
+          <RetryRescheduleForm
+            post={post}
+            onCancel={() => onSetRetryingPostId(null)}
+            onRetried={() => onSetRetryingPostId(null)}
+          />
+        </div>
+      )}
+    </GlassCard>
+  );
+}
+
+function DragOverlayCard({ post }: { post: ScheduledPost }) {
+  const isFailed = post.status === "failed";
+  return (
+    <GlassCard
+      className={`overflow-hidden p-0 shadow-2xl ring-2 ring-[var(--sf-gold)]/60 ${isFailed ? "!border-red-500/30 !bg-red-500/5" : ""}`}
+      style={{ cursor: "grabbing" }}
+    >
+      <div className="flex items-start gap-3 p-4">
+        <div className="flex flex-col items-center gap-0.5 flex-shrink-0 mt-0.5">
+          <span className="p-0.5 text-[var(--sf-gold)]">
+            <GripVertical className="w-4 h-4" />
+          </span>
+        </div>
+        <div className="w-9 h-9 rounded-lg bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+          <PlatformIcon platform={post.platform} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-white text-sm line-clamp-2 mb-2">{post.content}</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="flex items-center gap-1 text-xs text-neutral-400">
+              <Clock className="w-3 h-3" />
+              {formatScheduledAt(post.scheduledAt)}
+            </span>
+            {isFailed ? (
+              <Badge
+                variant="outline"
+                className="text-xs capitalize border-0 px-2 py-0.5 bg-red-500/10 text-red-400 flex items-center gap-1"
+              >
+                <AlertCircle className="w-3 h-3" />
+                Failed
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="text-xs capitalize border-0 px-2 py-0.5 bg-[var(--sf-gold)]/10 text-[var(--sf-gold)]"
+              >
+                {post.status}
+              </Badge>
+            )}
+            <span className="text-xs text-neutral-400 capitalize">
+              {platforms.find(p => p.value === post.platform)?.label ?? post.platform}
+            </span>
+          </div>
+        </div>
+      </div>
     </GlassCard>
   );
 }
@@ -415,6 +614,10 @@ export default function Scheduler() {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
+  const [retryingPostId, setRetryingPostId] = useState<number | null>(null);
+  const [activePost, setActivePost] = useState<ScheduledPost | null>(null);
+  const [showSortConfirm, setShowSortConfirm] = useState(false);
+  const [showClearHistoryConfirm, setShowClearHistoryConfirm] = useState(false);
 
   const searchStr = useSearch();
   const highlightId = (() => {
@@ -424,6 +627,7 @@ export default function Scheduler() {
   })();
 
   const [activeHighlightId, setActiveHighlightId] = useState<number | null>(null);
+  const [publishedPlatformFilter, setPublishedPlatformFilter] = useState<string>("all");
   const scrolledRef = useRef(false);
 
   const { data: posts = [], isLoading } = useQuery<ScheduledPost[]>({
@@ -477,15 +681,15 @@ export default function Scheduler() {
     },
   });
 
-  const retryMutation = useMutation({
-    mutationFn: (id: number) => apiRequest("POST", `/api/scheduled-posts/${id}/retry`),
+  const clearHistoryMutation = useMutation({
+    mutationFn: () => apiRequest("DELETE", "/api/scheduled-posts/published"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
-      toast({ title: "Post queued for retry", description: "The post has been reset to scheduled and will be published at its scheduled time." });
+      setShowClearHistoryConfirm(false);
+      toast({ title: "History cleared", description: "All published posts have been removed." });
     },
     onError: () => {
-      toast({ title: "Error", description: "Could not retry the post. Please try again.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to clear history. Please try again.", variant: "destructive" });
     },
   });
 
@@ -534,9 +738,15 @@ export default function Scheduler() {
   };
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -544,7 +754,17 @@ export default function Scheduler() {
     })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const post = upcomingPosts.find(p => p.id === event.active.id);
+    setActivePost(post ?? null);
+  };
+
+  const handleDragCancel = (_event: DragCancelEvent) => {
+    setActivePost(null);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
+    setActivePost(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     const oldIndex = upcomingPosts.findIndex(p => p.id === active.id);
@@ -714,7 +934,7 @@ export default function Scheduler() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={resetToChronological}
+                      onClick={() => setShowSortConfirm(true)}
                       disabled={sortByDateMutation.isPending || reorderMutation.isPending}
                       className="border-[var(--sf-gold)]/30 text-neutral-400 hover:text-[var(--sf-gold)] hover:border-[var(--sf-gold)]/60 hover:bg-[var(--sf-gold)]/5 gap-1.5 text-xs h-7 px-3"
                       title="Reset to chronological order"
@@ -741,7 +961,9 @@ export default function Scheduler() {
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
+                  onDragCancel={handleDragCancel}
                 >
                   <SortableContext
                     items={upcomingPosts.map(p => p.id)}
@@ -756,17 +978,20 @@ export default function Scheduler() {
                           total={upcomingPosts.length}
                           isReordering={reorderMutation.isPending}
                           editingPostId={editingPostId}
+                          retryingPostId={retryingPostId}
                           isHighlighted={activeHighlightId === post.id}
                           onMovePost={movePost}
                           onSetEditingPostId={setEditingPostId}
+                          onSetRetryingPostId={setRetryingPostId}
                           onDelete={(id) => deleteMutation.mutate(id)}
-                          onRetry={(id) => retryMutation.mutate(id)}
                           deletePending={deleteMutation.isPending}
-                          retryPending={retryMutation.isPending}
                         />
                       ))}
                     </div>
                   </SortableContext>
+                  <DragOverlay dropAnimation={null}>
+                    {activePost ? <DragOverlayCard post={activePost} /> : null}
+                  </DragOverlay>
                 </DndContext>
               )}
             </div>
@@ -779,7 +1004,53 @@ export default function Scheduler() {
                   Published History
                   <span className="ml-2 text-sm font-normal text-neutral-400">({publishedPosts.length} post{publishedPosts.length !== 1 ? "s" : ""})</span>
                 </h2>
+                {!isLoading && publishedPosts.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowClearHistoryConfirm(true)}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/30"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                    Clear History
+                  </Button>
+                )}
               </div>
+
+              {!isLoading && publishedPosts.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <button
+                    onClick={() => setPublishedPlatformFilter("all")}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors border ${
+                      publishedPlatformFilter === "all"
+                        ? "bg-white/10 border-white/30 text-white"
+                        : "bg-transparent border-white/10 text-neutral-400 hover:border-white/20 hover:text-neutral-300"
+                    }`}
+                  >
+                    All
+                  </button>
+                  {platforms
+                    .filter(p => publishedPosts.some(post => post.platform === p.value))
+                    .map(p => {
+                      const Icon = p.icon;
+                      const isActive = publishedPlatformFilter === p.value;
+                      return (
+                        <button
+                          key={p.value}
+                          onClick={() => setPublishedPlatformFilter(p.value)}
+                          className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium transition-colors border ${
+                            isActive
+                              ? "bg-white/10 border-white/30 text-white"
+                              : "bg-transparent border-white/10 text-neutral-400 hover:border-white/20 hover:text-neutral-300"
+                          }`}
+                        >
+                          <Icon className={`w-3.5 h-3.5 ${p.color}`} />
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                </div>
+              )}
 
               {isLoading ? (
                 <div className="space-y-3">
@@ -795,20 +1066,73 @@ export default function Scheduler() {
                 </GlassCard>
               ) : (
                 <div className="space-y-3">
-                  {publishedPosts.map(post => (
-                    <PublishedPostCard
-                      key={post.id}
-                      post={post}
-                      onDelete={(id) => deleteMutation.mutate(id)}
-                      deletePending={deleteMutation.isPending}
-                    />
-                  ))}
+                  {publishedPosts
+                    .filter(post => publishedPlatformFilter === "all" || post.platform === publishedPlatformFilter)
+                    .map(post => (
+                      <PublishedPostCard
+                        key={post.id}
+                        post={post}
+                        onDelete={(id) => deleteMutation.mutate(id)}
+                        deletePending={deleteMutation.isPending}
+                      />
+                    ))}
+                  {publishedPosts.filter(post => publishedPlatformFilter !== "all" && post.platform === publishedPlatformFilter).length === 0 && publishedPlatformFilter !== "all" && (
+                    <GlassCard className="p-10 text-center !border-green-500/20 !bg-green-500/5">
+                      <CheckCircle2 className="w-12 h-12 text-green-400/30 mx-auto mb-3" />
+                      <p className="text-neutral-400">No published posts for this platform.</p>
+                    </GlassCard>
+                  )}
                 </div>
               )}
             </div>
           </TabsContent>
         </Tabs>
       </SfsContainer>
+
+      <AlertDialog open={showSortConfirm} onOpenChange={setShowSortConfirm}>
+        <AlertDialogContent className="bg-[var(--sf-black)] border border-[var(--sf-gold)]/30 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Reset to chronological order?</AlertDialogTitle>
+            <AlertDialogDescription className="text-neutral-400">
+              This will sort all queued posts by their scheduled date, overwriting your current manual arrangement. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[var(--sf-gold)]/30 text-neutral-400 hover:text-white hover:bg-white/5 bg-transparent">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={resetToChronological}
+              className="bg-[var(--sf-gold)] hover:bg-[var(--sf-gold-2)] text-[var(--sf-black)] font-semibold"
+            >
+              Sort by date
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showClearHistoryConfirm} onOpenChange={setShowClearHistoryConfirm}>
+        <AlertDialogContent className="bg-[var(--sf-black)] border border-red-500/30 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">Clear all published history?</AlertDialogTitle>
+            <AlertDialogDescription className="text-neutral-400">
+              This will permanently delete all {publishedPosts.length} published post{publishedPosts.length !== 1 ? "s" : ""} from your history. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-white/10 text-neutral-400 hover:text-white hover:bg-white/5 bg-transparent">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => clearHistoryMutation.mutate()}
+              disabled={clearHistoryMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+            >
+              {clearHistoryMutation.isPending ? "Clearing..." : "Clear History"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

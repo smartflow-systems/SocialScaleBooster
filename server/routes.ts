@@ -1265,6 +1265,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/scheduled-posts/published", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const count = await storage.deletePublishedPosts(userId);
+      res.json({ deleted: count });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.delete("/api/scheduled-posts/:id", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -1283,7 +1293,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const userId = req.user!.id;
       if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
-      const updated = await storage.retryScheduledPost(id, userId);
+
+      let scheduledAt: string | undefined;
+      if (req.body?.scheduledAt) {
+        const parsed = new Date(req.body.scheduledAt);
+        if (isNaN(parsed.getTime())) {
+          return res.status(400).json({ message: "Invalid scheduledAt date" });
+        }
+        if (parsed <= new Date()) {
+          return res.status(400).json({ message: "scheduledAt must be in the future" });
+        }
+        scheduledAt = parsed.toISOString();
+      }
+
+      const updated = await storage.retryScheduledPost(id, userId, scheduledAt);
       if (!updated) return res.status(404).json({ message: "Post not found, not owned by you, or not in failed state" });
       res.json(updated);
     } catch (error: any) {
