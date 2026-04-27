@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import rateLimit from "express-rate-limit";
+import { z } from "zod";
 import { AnalyticsWebSocketServer, setAnalyticsWS } from "./websocket";
 import { storage } from "./storage";
 import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema, insertScheduledPostSchema, baseInsertScheduledPostSchema, insertDraftSchema } from "@shared/schema";
@@ -1016,6 +1017,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         botCount: user?.botCount || 0,
         maxBots: user?.isPremium ? "unlimited" : 3
       });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/user/preferences", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const prefs = await storage.getUserNotificationPrefs(userId);
+      res.json({ notificationPrefs: prefs });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  const notificationPrefsSchema = z.object({
+    badgePulse: z.boolean().optional(),
+    toastNotifications: z.boolean().optional(),
+  });
+
+  app.patch("/api/user/preferences", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const parsed = notificationPrefsSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid preferences", errors: parsed.error.errors });
+      }
+      const existing = await storage.getUserNotificationPrefs(userId);
+      const merged = { ...existing, ...parsed.data };
+      const user = await storage.updateUserNotificationPrefs(userId, merged);
+      res.json({ notificationPrefs: user.notificationPrefs });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

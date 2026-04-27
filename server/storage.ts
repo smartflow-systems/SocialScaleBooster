@@ -13,6 +13,8 @@ export interface IStorage {
   updateUserStripeInfo(id: number, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User>;
   incrementUserBotCount(id: number): Promise<User>;
   decrementUserBotCount(id: number): Promise<User>;
+  getUserNotificationPrefs(id: number): Promise<Record<string, unknown> | null>;
+  updateUserNotificationPrefs(id: number, prefs: Record<string, unknown>): Promise<User>;
 
   // Client methods
   getClientsByUserId(userId: number): Promise<Client[]>;
@@ -138,6 +140,22 @@ export class DatabaseStorage implements IStorage {
       .set({ botCount: sql`${users.botCount} - 1` })
       .where(eq(users.id, id))
       .returning();
+    return user;
+  }
+
+  async getUserNotificationPrefs(id: number): Promise<Record<string, unknown> | null> {
+    const [user] = await db.select({ notificationPrefs: users.notificationPrefs }).from(users).where(eq(users.id, id));
+    if (!user) return null;
+    return (user.notificationPrefs as Record<string, unknown>) ?? null;
+  }
+
+  async updateUserNotificationPrefs(id: number, prefs: Record<string, unknown>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ notificationPrefs: prefs })
+      .where(eq(users.id, id))
+      .returning();
+    if (!user) throw new Error("User not found");
     return user;
   }
 
@@ -693,6 +711,20 @@ export class MemStorage implements IStorage {
     const user = this.users.get(id);
     if (!user) throw new Error("User not found");
     const updatedUser = { ...user, botCount: Math.max(0, (user.botCount || 0) - 1) };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async getUserNotificationPrefs(id: number): Promise<Record<string, unknown> | null> {
+    const user = this.users.get(id);
+    if (!user) return null;
+    return (user.notificationPrefs as Record<string, unknown>) ?? null;
+  }
+
+  async updateUserNotificationPrefs(id: number, prefs: Record<string, unknown>): Promise<User> {
+    const user = this.users.get(id);
+    if (!user) throw new Error("User not found");
+    const updatedUser = { ...user, notificationPrefs: prefs };
     this.users.set(id, updatedUser);
     return updatedUser;
   }

@@ -13,6 +13,7 @@ export const users = pgTable("users", {
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   botCount: integer("bot_count").default(0),
+  notificationPrefs: jsonb("notification_prefs"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

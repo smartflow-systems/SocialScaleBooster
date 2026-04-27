@@ -137,6 +137,12 @@ export async function runMigrations() {
     );
     console.log('[db] is_admin column ensured on users');
 
+    // Ensure notification_prefs column exists on users
+    await pool.query(
+      `ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "notification_prefs" jsonb`
+    );
+    console.log('[db] notification_prefs column ensured on users');
+
     // Step 3: Run any genuinely new (unrecorded) migrations
     const db = drizzle({ client: pool });
     await migrate(db, { migrationsFolder: './migrations' });

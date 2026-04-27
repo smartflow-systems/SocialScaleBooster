@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from "react";
+import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/lib/auth-context";
 
 export interface NotificationPrefs {
   badgePulse: boolean;
@@ -34,6 +36,8 @@ const NotificationPrefsContext = createContext<NotificationPrefsContextType>({
 
 export function NotificationPrefsProvider({ children }: { children: ReactNode }) {
   const [prefs, setPrefs] = useState<NotificationPrefs>(load);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { token } = useAuth();
 
   useEffect(() => {
     try {
@@ -41,9 +45,36 @@ export function NotificationPrefsProvider({ children }: { children: ReactNode })
     } catch {}
   }, [prefs]);
 
+  useEffect(() => {
+    if (!token) return;
+    apiRequest("GET", "/api/user/preferences")
+      .then((res) => res.json())
+      .then((data: { notificationPrefs: Partial<NotificationPrefs> | null }) => {
+        if (data.notificationPrefs && typeof data.notificationPrefs === "object") {
+          setPrefs((prev) => ({ ...prev, ...data.notificationPrefs }));
+        }
+      })
+      .catch(() => {});
+  }, [token]);
+
   function update(patch: Partial<NotificationPrefs>) {
-    setPrefs((prev) => ({ ...prev, ...patch }));
+    setPrefs((prev) => {
+      const next = { ...prev, ...patch };
+      if (token) {
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+          apiRequest("PATCH", "/api/user/preferences", next).catch(() => {});
+        }, 300);
+      }
+      return next;
+    });
   }
+
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
 
   return (
     <NotificationPrefsContext.Provider value={{ prefs, update }}>
