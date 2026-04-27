@@ -216,6 +216,19 @@ export class AnalyticsWebSocketServer {
     });
   }
 
+  public broadcastPostFailed(post: { id: number; platform: string; content: string; userId: number }) {
+    this.sendToUser(post.userId, {
+      type: 'post_failed',
+      data: {
+        id: post.id,
+        platform: post.platform,
+        content: post.content,
+        userId: post.userId,
+        failedAt: Date.now(),
+      }
+    });
+  }
+
   public close() {
     if (this.analyticsInterval) {
       clearInterval(this.analyticsInterval);

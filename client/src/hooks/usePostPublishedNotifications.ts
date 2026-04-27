@@ -34,6 +34,20 @@ export function usePostPublishedNotifications({ userId, token }: Options) {
               description: preview || 'Your scheduled post has been published.',
               duration: 6000,
             });
+          } else if (message.type === 'post_failed') {
+            if (message.data.userId !== userId) return;
+            const { platform, content } = message.data;
+            const preview =
+              content && content.length > 60 ? content.slice(0, 60) + '…' : content;
+            const platformLabel = platform
+              ? platform.charAt(0).toUpperCase() + platform.slice(1)
+              : 'A';
+            toast({
+              title: `${platformLabel} post failed to publish`,
+              description: preview || 'A scheduled post could not be published. Please check the scheduler and retry.',
+              variant: 'destructive',
+              duration: 8000,
+            });
           }
         } catch {
         }

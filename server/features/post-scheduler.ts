@@ -21,6 +21,19 @@ async function publishDuePosts(): Promise<void> {
         try {
           await storage.markScheduledPostFailed(post.id);
           log(`[scheduler] Marked post ${post.id} as failed`);
+          try {
+            const ws = getAnalyticsWS();
+            if (ws) {
+              ws.broadcastPostFailed({
+                id: post.id,
+                platform: post.platform,
+                content: post.content,
+                userId: post.userId,
+              });
+            }
+          } catch (wsErr) {
+            log(`[scheduler] WebSocket broadcast failed for post ${post.id}: ${wsErr}`);
+          }
         } catch (failErr) {
           log(`[scheduler] Could not mark post ${post.id} as failed: ${failErr}`);
         }
