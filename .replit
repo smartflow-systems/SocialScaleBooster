@@ -46,7 +46,7 @@ NODE_ENV = "production"
 [userenv.shared]
 
 [nix]
-packages = ["gh"]
+packages = ["gh", "psmisc"]
 channel = "stable-25_05"
 
 [postMerge]
