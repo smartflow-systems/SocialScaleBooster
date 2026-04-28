@@ -86,9 +86,15 @@ router.post('/signup', async (req, res) => {
     // Create Stripe customer
     await createStripeCustomer(organization.id, email, organizationName);
 
-    // Generate JWT token
+    // Generate JWT token — full SFS payload shape for cross-repo SSO compatibility
     const token = jwt.sign(
-      { userId: user.id, organizationId: organization.id },
+      {
+        userId: user.id,
+        orgId: organization.id,
+        email: user.email,
+        role: user.role ?? 'owner',
+        plan: organization.plan ?? 'free',
+      },
       process.env.SFS_JWT_SECRET!,
       { expiresIn: '7d' }
     );
@@ -235,9 +241,15 @@ router.post('/accept-invite', async (req, res) => {
       })
       .where(eq(organizations.id, invitation.invitation.organizationId));
 
-    // Generate JWT token
+    // Generate JWT token — full SFS payload shape for cross-repo SSO compatibility
     const authToken = jwt.sign(
-      { userId: user.id, organizationId: user.organizationId },
+      {
+        userId: user.id,
+        orgId: user.organizationId,
+        email: user.email,
+        role: user.role ?? 'member',
+        plan: invitation.organization?.plan ?? 'free',
+      },
       process.env.SFS_JWT_SECRET!,
       { expiresIn: '7d' }
     );

@@ -72,9 +72,15 @@ router.post('/auth/login', async (req, res) => {
       .set({ lastLoginAt: new Date() })
       .where(eq(users.id, user.user.id));
 
-    // Generate token
+    // Generate token — full SFS payload shape for cross-repo SSO compatibility
     const token = jwt.sign(
-      { userId: user.user.id, organizationId: user.user.organizationId },
+      {
+        userId: user.user.id,
+        orgId: user.user.organizationId,
+        email: user.user.email,
+        role: user.user.role ?? 'member',
+        plan: user.organization.plan ?? 'free',
+      },
       process.env.SFS_JWT_SECRET!,
       { expiresIn: '7d' }
     );
