@@ -175,8 +175,10 @@ export default function AIStudio() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-white font-semibold">Generated Content</h2>
                 {result && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-neutral-gray">{tokensUsed} tokens</span>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={handleGenerate} disabled={loading} className="text-neutral-gray hover:text-accent-gold text-xs px-2">
+                      ↻ Redo
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={copyToClipboard} className="text-accent-gold hover:text-gold-trim">
                       <Copy className="w-4 h-4 mr-1" /> Copy
                     </Button>

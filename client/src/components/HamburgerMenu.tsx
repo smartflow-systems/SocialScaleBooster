@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import {
   X,
+  Menu,
   Home,
   Bot,
   Calendar,
@@ -190,7 +191,7 @@ export default function HamburgerMenuSidebar({ isOpen, onClose }: HamburgerMenuS
       <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-accent-gold/20 bg-gradient-to-r from-rich-brown to-primary-black">
         <div className="text-xs text-neutral-gray text-center">
           <p className="font-semibold text-accent-gold">SmartFlow Systems</p>
-          <p>© 2025 Social Automation</p>
+          <p>© 2026 Social Automation</p>
         </div>
       </div>
     </div>
@@ -203,4 +204,3 @@ export default function HamburgerMenuSidebar({ isOpen, onClose }: HamburgerMenuS
     </>
   );
 }
-import { Menu } from "lucide-react";

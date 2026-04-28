@@ -116,7 +116,13 @@ export default function Dashboard() {
                 <Crown className="w-4 h-4 mr-2" />
                 Upgrade Pro
               </Button>
-              <div className="w-8 h-8 bg-accent-gold rounded-full"></div>
+              <button
+                onClick={() => window.location.href = "/settings"}
+                className="w-9 h-9 bg-accent-gold rounded-full flex items-center justify-center text-primary-black font-bold text-sm hover:opacity-90 transition-opacity"
+                title="Account settings"
+              >
+                G
+              </button>
             </div>
           </div>
         </div>
@@ -126,7 +132,7 @@ export default function Dashboard() {
       <div className="bg-card-bg border-b border-secondary-brown">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-transparent h-auto p-2 grid grid-cols-3 sm:flex sm:gap-4 lg:gap-8 w-full">
+            <TabsList className="bg-transparent h-auto p-2 flex overflow-x-auto gap-1 sm:gap-4 lg:gap-8 w-full scrollbar-hide">
               <TabsTrigger 
                 value="bots" 
                 className="data-[state=active]:border-b-2 data-[state=active]:border-accent-gold data-[state=active]:text-accent-gold text-neutral-gray py-3 px-1 sm:px-3 font-semibold rounded-none bg-transparent text-xs sm:text-base flex flex-col sm:flex-row items-center justify-center"
