@@ -50,6 +50,19 @@
   --input: 45 15% 25%;
   --ring: 51 100% 50%;
 
+  /* Surface tokens (raised black variants) */
+  --sf-surface: #111111;
+  --sf-surface-2: #1a1a1a;
+  --sf-surface-3: #0f0f0f;
+  --sf-surface-deep: #0a0a0a;
+
+  /* Gold glow shadows */
+  --sf-glow-gold-xs: 0 0 30px rgba(255, 215, 0, 0.06);
+  --sf-glow-gold-sm: 0 0 30px rgba(255, 215, 0, 0.08);
+  --sf-glow-gold-md: 0 0 40px rgba(255, 215, 0, 0.12);
+  --sf-glow-gold-lg: 0 0 40px rgba(255, 215, 0, 0.15);
+  --sf-glow-gold-xl: 0 0 80px rgba(255, 215, 0, 0.06);
+
   /* SmartFlow Utilities */
   --sf-radius: 1rem;
   --sf-blur: 12px;
@@ -198,6 +211,16 @@ h4 { font-size: clamp(1.25rem, 2.5vw, 1.5rem); }
 
 .text-gold {
   color: var(--sf-gold);
+}
+
+/* Override inside .text-gold-gradient to render plain (non-gradient) text */
+.text-gold-gradient .text-plain-white,
+.text-plain-white {
+  background: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: var(--sf-white) !important;
+  color: var(--sf-white) !important;
 }
 
 /* ========================================================================== */

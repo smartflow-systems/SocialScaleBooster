@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { MessageSquare, ArrowLeft, Send, Copy, Loader2, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { GlassCard, GoldButton, GhostButton, GoldHeading, SfsContainer } from "@/components/sfs";
 
 const PLATFORMS = [
   { value: "instagram", label: "Instagram" },
@@ -58,50 +58,48 @@ export default function Captions() {
   };
 
   return (
-    <div className="min-h-screen bg-primary-black">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <Link href="/dashboard">
-          <a className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
-          </a>
+    <div className="min-h-screen bg-[var(--sf-black)] text-white">
+      <SfsContainer className="max-w-5xl mx-auto px-4 py-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-[var(--sf-gold)] hover:text-[var(--sf-gold-2)] transition-colors mb-8">
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Dashboard</span>
         </Link>
 
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-accent-gold to-gold-trim rounded-xl flex items-center justify-center shadow-lg shadow-accent-gold/20">
-            <MessageSquare className="w-6 h-6 text-primary-black" />
+          <div className="w-12 h-12 bg-gradient-to-br from-[var(--sf-gold)] to-[var(--sf-gold-2)] rounded-xl flex items-center justify-center shadow-[var(--sf-glow-gold-sm)]">
+            <MessageSquare className="w-6 h-6 text-[var(--sf-black)]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Caption Generator</h1>
-            <p className="text-neutral-gray text-sm">Create engaging captions powered by AI</p>
+            <GoldHeading level={1} className="text-2xl font-bold">Caption Generator</GoldHeading>
+            <p className="text-neutral-400 text-sm">Create engaging captions powered by AI</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="border border-accent-gold/20 rounded-xl p-6 bg-rich-brown/10">
+          <GlassCard className="p-6">
             <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-accent-gold" />
+              <Sparkles className="w-4 h-4 text-[var(--sf-gold)]" />
               Describe Your Content
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm text-neutral-gray mb-1 block">What is this caption for?</label>
+                <label className="text-sm text-neutral-400 mb-1 block">What is this caption for?</label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your photo, video, or product... e.g. 'A flat-lay photo of our new organic skincare line with roses and candles'"
-                  className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-4 py-3 text-white placeholder:text-neutral-gray/50 focus:outline-none focus:border-accent-gold/50 resize-none h-32"
+                  className="w-full bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 rounded-lg px-4 py-3 text-white placeholder:text-neutral-500 focus:outline-none focus:border-[var(--sf-gold)]/50 resize-none h-32"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm text-neutral-gray mb-1 block">Platform</label>
+                  <label className="text-sm text-neutral-400 mb-1 block">Platform</label>
                   <select
                     value={platform}
                     onChange={(e) => setPlatform(e.target.value)}
-                    className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-accent-gold/50"
+                    className="w-full bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[var(--sf-gold)]/50"
                   >
                     {PLATFORMS.map((p) => (
                       <option key={p.value} value={p.value}>{p.label}</option>
@@ -109,11 +107,11 @@ export default function Captions() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm text-neutral-gray mb-1 block">Tone</label>
+                  <label className="text-sm text-neutral-400 mb-1 block">Tone</label>
                   <select
                     value={tone}
                     onChange={(e) => setTone(e.target.value)}
-                    className="w-full bg-primary-black border border-accent-gold/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-accent-gold/50"
+                    className="w-full bg-[var(--sf-black)] border border-[var(--sf-gold)]/20 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[var(--sf-gold)]/50"
                   >
                     {TONES.map((t) => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -122,34 +120,30 @@ export default function Captions() {
                 </div>
               </div>
 
-              <Button
+              <GoldButton
                 onClick={handleGenerate}
                 disabled={loading || !description.trim()}
-                className="w-full bg-gradient-to-r from-accent-gold to-gold-trim text-primary-black font-semibold py-3 hover:opacity-90 disabled:opacity-50"
+                className="w-full py-3 disabled:opacity-50"
               >
                 {loading ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Generating...</>
                 ) : (
                   <><Send className="w-4 h-4 mr-2" /> Generate Caption</>
                 )}
-              </Button>
+              </GoldButton>
             </div>
-          </div>
+          </GlassCard>
 
-          <div className="border border-accent-gold/20 rounded-xl p-6 bg-rich-brown/10 min-h-[350px] flex flex-col">
+          <GlassCard className="p-6 min-h-[350px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white font-semibold">Your Caption</h2>
               {result && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-neutral-gray">✓ Generated</span>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" onClick={handleGenerate} disabled={loading} className="text-neutral-gray hover:text-accent-gold text-xs px-2">
-                      ↻ Redo
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={copyToClipboard} className="text-accent-gold hover:text-gold-trim">
-                      <Copy className="w-4 h-4 mr-1" /> Copy
-                    </Button>
-                  </div>
+                  <span className="text-xs text-neutral-400">✓ Generated</span>
+                  <GhostButton onClick={handleGenerate} disabled={loading} className="!py-1.5 !px-3 text-xs">↻ Redo</GhostButton>
+                  <GhostButton onClick={copyToClipboard} className="!py-1.5 !px-3 text-xs">
+                    <Copy className="w-3.5 h-3.5 mr-1" /> Copy
+                  </GhostButton>
                 </div>
               )}
             </div>
@@ -157,28 +151,28 @@ export default function Captions() {
             {loading ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
-                  <Loader2 className="w-8 h-8 text-accent-gold animate-spin mx-auto mb-3" />
-                  <p className="text-neutral-gray text-sm">Crafting your perfect caption...</p>
+                  <Loader2 className="w-8 h-8 text-[var(--sf-gold)] animate-spin mx-auto mb-3" />
+                  <p className="text-neutral-400 text-sm">Crafting your perfect caption...</p>
                 </div>
               </div>
             ) : result ? (
               <div className="flex-1">
-                <div className="bg-primary-black rounded-lg p-4 border border-accent-gold/10">
+                <div className="bg-[var(--sf-black)] rounded-lg p-4 border border-[var(--sf-gold)]/10">
                   <p className="text-white whitespace-pre-wrap leading-relaxed">{result}</p>
                 </div>
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
-                  <MessageSquare className="w-12 h-12 text-accent-gold/30 mx-auto mb-3" />
-                  <p className="text-neutral-gray text-sm">Your caption will appear here</p>
-                  <p className="text-neutral-gray/60 text-xs mt-1">Describe your content and click Generate</p>
+                  <MessageSquare className="w-12 h-12 text-[var(--sf-gold)]/30 mx-auto mb-3" />
+                  <p className="text-neutral-400 text-sm">Your caption will appear here</p>
+                  <p className="text-neutral-500 text-xs mt-1">Describe your content and click Generate</p>
                 </div>
               </div>
             )}
-          </div>
+          </GlassCard>
         </div>
-      </div>
+      </SfsContainer>
     </div>
   );
 }

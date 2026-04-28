@@ -1,253 +1,221 @@
-import { useStripe, Elements, PaymentElement, useElements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { useEffect, useState } from 'react';
-import { apiRequest } from "@/lib/queryClient";
+import { useState } from "react";
+import { Check, Crown, Zap, Bot, BarChart3, Infinity, ArrowLeft, Star, Loader2 } from "lucide-react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Crown, Check, Zap, Bot, BarChart3, Infinity } from "lucide-react";
+import { GlassCard, GoldButton, GhostButton, GoldHeading, GoldText, SfsContainer, SfsSection } from "@/components/sfs";
 
-// Make sure to call `loadStripe` outside of a component's render to avoid
-// recreating the `Stripe` object on every render.
-const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
-const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
-
-const SubscribeForm = () => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const { toast } = useToast();
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!stripe || !elements) {
-      return;
-    }
-
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/dashboard?upgrade=success`,
-      },
-    });
-
-    if (error) {
-      toast({
-        title: "Payment Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Payment Successful",
-        description: "Welcome to SmartFlow AI Pro!",
-      });
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement className="p-4 bg-card-bg border border-secondary-brown rounded-lg" />
-      <Button 
-        type="submit" 
-        disabled={!stripe}
-        className="w-full bg-accent-gold text-primary-black hover:opacity-90 font-bold text-lg py-6"
-      >
-        <Crown className="w-5 h-5 mr-2" />
-        Subscribe to Pro Plan - £49/month
-      </Button>
-    </form>
-  );
-};
+const plans = [
+  {
+    id: "free",
+    name: "Starter",
+    price: "£0",
+    period: "/month",
+    badge: null,
+    description: "Get started with essential tools — no card required.",
+    highlight: false,
+    titleGold: false,
+    features: [
+      { text: "Up to 3 AI generations/day", icon: Bot },
+      { text: "Caption & hashtag generator", icon: BarChart3 },
+      { text: "Community templates", icon: Star },
+      { text: "Email support", icon: Check },
+    ],
+    cta: "Current Plan",
+    ctaDisabled: true,
+    stripePlan: null,
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    price: "£49",
+    period: "/month",
+    badge: "MOST POPULAR",
+    description: "Unlimited AI content, scheduling & automation. 14-day free trial.",
+    highlight: true,
+    titleGold: true,
+    features: [
+      { text: "Unlimited AI generations", icon: Infinity },
+      { text: "Full post builder & scheduler", icon: Zap },
+      { text: "Advanced analytics", icon: BarChart3 },
+      { text: "Premium templates", icon: Crown },
+      { text: "Multi-platform posting", icon: Check },
+      { text: "Priority support", icon: Check },
+    ],
+    cta: "Start 14-Day Free Trial",
+    ctaDisabled: false,
+    stripePlan: "pro",
+  },
+  {
+    id: "agency",
+    name: "Agency",
+    price: "£149",
+    period: "/month",
+    badge: "BEST VALUE",
+    description: "Full-service automation for agencies managing multiple clients.",
+    highlight: false,
+    titleGold: false,
+    features: [
+      { text: "Everything in Pro", icon: Crown },
+      { text: "Up to 20 client workspaces", icon: Bot },
+      { text: "White-label dashboard", icon: Star },
+      { text: "Dedicated account manager", icon: Check },
+      { text: "Custom integrations", icon: Zap },
+      { text: "SLA support", icon: Check },
+    ],
+    cta: "Start 14-Day Free Trial",
+    ctaDisabled: false,
+    stripePlan: "agency",
+  },
+];
 
 export default function Subscribe() {
-  const [clientSecret, setClientSecret] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Create subscription as soon as the page loads
-    apiRequest("POST", "/api/create-subscription")
-      .then((res) => res.json())
-      .then((data) => {
-        setClientSecret(data.clientSecret);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error creating subscription:', error);
-        setLoading(false);
+  const handleCta = async (plan: typeof plans[0]) => {
+    if (!plan.stripePlan || plan.ctaDisabled) return;
+
+    setLoadingPlan(plan.id);
+    try {
+      const res = await fetch("/api/billing/simple/create-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan: plan.stripePlan,
+          email: user?.email || undefined,
+        }),
       });
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-primary-black flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-accent-gold border-t-transparent rounded-full" aria-label="Loading"/>
-      </div>
-    );
-  }
-
-  if (!stripePromise) {
-    return (
-      <div className="min-h-screen bg-primary-black flex items-center justify-center">
-        <Card className="max-w-md bg-card-bg border-secondary-brown">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-bold text-white mb-4">Payment Not Available</h2>
-            <p className="text-neutral-gray mb-4">Payment processing is not configured. Please contact support.</p>
-            <Button 
-              onClick={() => window.location.href = '/dashboard'}
-              className="bg-accent-gold text-primary-black hover:opacity-90"
-            >
-              Return to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!clientSecret) {
-    return (
-      <div className="min-h-screen bg-primary-black flex items-center justify-center">
-        <Card className="max-w-md bg-card-bg border-secondary-brown">
-          <CardContent className="p-6 text-center">
-            <h2 className="text-xl font-bold text-white mb-4">Unable to load payment</h2>
-            <p className="text-neutral-gray mb-4">Please try again or contact support.</p>
-            <Button 
-              onClick={() => window.location.href = '/dashboard'}
-              className="bg-accent-gold text-primary-black hover:opacity-90"
-            >
-              Return to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to start checkout");
+      window.location.href = data.url;
+    } catch (err: any) {
+      toast({ title: "Checkout failed", description: err.message, variant: "destructive" });
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-primary-black">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-8 relative">
-          <Button 
-            onClick={() => window.location.href = "/"}
-            className="absolute left-0 top-0 bg-card-bg text-accent-gold border border-accent-gold hover:bg-accent-gold hover:text-primary-black"
-          >
-            ← Home
-          </Button>
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Upgrade to <span className="text-accent-gold">SmartFlow AI Pro</span>
-          </h1>
-          <p className="text-xl text-neutral-gray">
-            Unlock unlimited bots and premium features
-          </p>
-        </div>
+    <div className="min-h-screen" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <SfsSection>
+        <SfsContainer className="max-w-6xl">
 
-        <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {/* Plan Comparison */}
-          <div className="space-y-6">
-            <Card className="bg-card-bg border-secondary-brown">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Bot className="w-5 h-5" />
-                  Free Plan
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span className="text-neutral-gray">Up to 3 bots</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span className="text-neutral-gray">Basic analytics</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span className="text-neutral-gray">Community templates</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-accent-gold/10 to-gold-trim/5 border-accent-gold relative overflow-hidden">
-              <div className="absolute top-4 right-4">
-                <Badge className="bg-accent-gold text-primary-black font-bold">
-                  RECOMMENDED
-                </Badge>
-              </div>
-              <CardHeader>
-                <CardTitle className="text-accent-gold flex items-center gap-2">
-                  <Crown className="w-5 h-5" />
-                  Pro Plan
-                </CardTitle>
-                <div className="text-3xl font-bold text-white">
-                  £49<span className="text-lg text-neutral-gray">/month</span>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-accent-gold" />
-                  <span className="text-white font-medium">Unlimited bots</span>
-                  <Infinity className="w-4 h-4 text-accent-gold" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-accent-gold" />
-                  <span className="text-white font-medium">Advanced analytics & insights</span>
-                  <BarChart3 className="w-4 h-4 text-accent-gold" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-accent-gold" />
-                  <span className="text-white font-medium">Premium bot templates</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-accent-gold" />
-                  <span className="text-white font-medium">Priority customer support</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-accent-gold" />
-                  <span className="text-white font-medium">Advanced scheduling features</span>
-                  <Zap className="w-4 h-4 text-accent-gold" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-accent-gold" />
-                  <span className="text-white font-medium">AI personality customization</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-accent-gold" />
-                  <span className="text-white font-medium">Multi-platform integrations</span>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="mb-10">
+            <GhostButton
+              onClick={() => setLocation(user ? "/dashboard" : "/")}
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {user ? "Back to Dashboard" : "Back to Home"}
+            </GhostButton>
           </div>
 
-          {/* Payment Form */}
-          <div className="space-y-6">
-            <Card className="bg-card-bg border-secondary-brown">
-              <CardHeader>
-                <CardTitle className="text-accent-gold flex items-center gap-2">
-                  <Crown className="w-5 h-5" />
-                  Complete Your Upgrade
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <SubscribeForm />
-                </Elements>
-              </CardContent>
-            </Card>
-
-            <div className="text-center space-y-2">
-              <p className="text-sm text-neutral-gray">
-                🔒 Secure payment processing powered by Stripe
-              </p>
-              <p className="text-xs text-neutral-gray">
-                Cancel anytime. No hidden fees.
-              </p>
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 bg-[var(--sf-gold)]/10 text-[var(--sf-gold)] border border-[var(--sf-gold)]/30 rounded-full px-4 py-1.5 mb-4 text-xs font-semibold uppercase tracking-widest">
+              Simple, Transparent Pricing
             </div>
+            <GoldHeading level={1} className="text-4xl sm:text-5xl mb-4">
+              Choose Your <GoldText>Plan</GoldText>
+            </GoldHeading>
+            <p className="text-lg text-neutral-400 max-w-2xl mx-auto">
+              Start free, scale as you grow. All paid plans include a 14-day free trial — no card charged upfront.
+            </p>
           </div>
-        </div>
-      </div>
+
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {plans.map((plan) => (
+              <GlassCard
+                key={plan.name}
+                className={`relative flex flex-col ${
+                  plan.highlight
+                    ? "ring-1 ring-[var(--sf-gold)]/40 shadow-[0_0_40px_rgba(255,215,0,0.1)] border-[var(--sf-gold)]/40"
+                    : ""
+                }`}
+              >
+                {plan.badge && (
+                  <div className="absolute -top-3 left-0 right-0 flex justify-center">
+                    <span className="bg-[var(--sf-gold)] text-[var(--sf-black)] font-bold px-4 py-1 text-xs rounded-full">
+                      {plan.badge}
+                    </span>
+                  </div>
+                )}
+
+                <div className="pt-4 pb-4">
+                  <GoldHeading
+                    level={3}
+                    className={`text-xl flex items-center gap-2 mb-1 font-bold ${plan.titleGold ? "" : "!text-white !bg-none"}`}
+                    style={plan.titleGold ? undefined : { WebkitTextFillColor: "var(--sf-white)", backgroundClip: "initial" }}
+                  >
+                    <Crown className="w-5 h-5" />
+                    {plan.name}
+                  </GoldHeading>
+                  <div className="flex items-end gap-1 mt-2">
+                    <span className="text-4xl font-extrabold text-white">{plan.price}</span>
+                    <span className="text-neutral-500 mb-1">{plan.period}</span>
+                  </div>
+                  <p className="text-neutral-400 text-sm mt-2">{plan.description}</p>
+                </div>
+
+                <div className="flex flex-col flex-1 gap-6">
+                  <ul className="space-y-3 flex-1">
+                    {plan.features.map(({ text, icon: Icon }) => (
+                      <li key={text} className="flex items-center gap-3">
+                        <Icon className="w-4 h-4 text-[var(--sf-gold)] flex-shrink-0" />
+                        <span className="text-neutral-300 text-sm">{text}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {plan.ctaDisabled ? (
+                    <button
+                      disabled
+                      className="w-full py-4 text-base bg-white/5 text-neutral-500 border border-white/10 rounded-xl cursor-default"
+                    >
+                      {plan.cta}
+                    </button>
+                  ) : (
+                    <GoldButton
+                      onClick={() => handleCta(plan)}
+                      disabled={loadingPlan !== null}
+                      className={`w-full py-4 text-base disabled:opacity-60 ${plan.highlight ? "" : "!opacity-90 hover:!opacity-100"}`}
+                    >
+                      {loadingPlan === plan.id ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Redirecting...</>
+                      ) : (
+                        plan.cta
+                      )}
+                    </GoldButton>
+                  )}
+                </div>
+              </GlassCard>
+            ))}
+          </div>
+
+          <div className="mt-12 text-center space-y-2">
+            <p className="text-neutral-500 text-sm">
+              Secured by Stripe. SSL-encrypted billing. Cancel anytime.
+            </p>
+            <p className="text-neutral-600 text-sm">
+              Need a custom quote?{" "}
+              <button
+                onClick={() => {
+                  setLocation("/");
+                  setTimeout(() => {
+                    const el = document.getElementById("contact");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }, 100);
+                }}
+                className="text-[var(--sf-gold)]/70 underline hover:no-underline hover:text-[var(--sf-gold)] transition-colors"
+              >
+                Talk to us
+              </button>
+            </p>
+          </div>
+        </SfsContainer>
+      </SfsSection>
     </div>
   );
 }

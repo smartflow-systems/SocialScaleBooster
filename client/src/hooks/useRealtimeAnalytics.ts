@@ -93,6 +93,7 @@ export function useRealtimeAnalytics(): RealtimeAnalyticsHook {
                 });
               }
               break;
+
           }
         } catch (error) {
           console.error('Error parsing WebSocket message:', error);

@@ -18,6 +18,13 @@
  */
 
 function initSFSCircuitFlow() {
+  // Idempotent: if already running, return the existing cleanup handle so
+  // multiple callers (auto-init + React component) don't spawn duplicate
+  // animation loops or listeners.
+  if (typeof window !== 'undefined' && window.__sfsCircuitCleanup) {
+    return window.__sfsCircuitCleanup
+  }
+
   const canvas = document.getElementById('circuit-canvas')
   if (!canvas) {
     console.warn('SFS Circuit Flow: Canvas element #circuit-canvas not found')
@@ -116,14 +123,23 @@ function initSFSCircuitFlow() {
   animate()
 
   // Cleanup function to stop animation and remove listeners
-  return () => {
+  const cleanup = () => {
     if (animationId) {
       cancelAnimationFrame(animationId)
       animationId = null
     }
     window.removeEventListener('resize', resize)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
+    if (typeof window !== 'undefined' && window.__sfsCircuitCleanup === cleanup) {
+      window.__sfsCircuitCleanup = null
+    }
   }
+
+  if (typeof window !== 'undefined') {
+    window.__sfsCircuitCleanup = cleanup
+  }
+
+  return cleanup
 }
 
 // Auto-initialize on DOM ready

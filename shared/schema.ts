@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email"),
   isPremium: boolean("is_premium").default(false),
+  isAdmin: boolean("is_admin").default(false),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
   botCount: integer("bot_count").default(0),
@@ -119,6 +120,68 @@ export const insertAnalyticsSchema = createInsertSchema(analytics).omit({
   id: true,
   date: true,
 });
+
+// Scheduled Posts — persisted to DB
+export const scheduledPosts = pgTable("scheduled_posts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  platform: text("platform").notNull(),
+  content: text("content").notNull(),
+  scheduledAt: text("scheduled_at").notNull(),
+  status: text("status").default("scheduled"),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+const _baseInsertScheduledPostSchema = createInsertSchema(scheduledPosts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertScheduledPostSchema = _baseInsertScheduledPostSchema.refine(
+  (data) => {
+    const d = new Date(data.scheduledAt);
+    return !isNaN(d.getTime()) && d > new Date();
+  },
+  { message: "Scheduled date must be a valid date in the future", path: ["scheduledAt"] }
+);
+
+export const baseInsertScheduledPostSchema = _baseInsertScheduledPostSchema;
+
+export type InsertScheduledPost = z.infer<typeof insertScheduledPostSchema>;
+export type ScheduledPost = typeof scheduledPosts.$inferSelect;
+
+// Drafts — persisted to DB
+export const drafts = pgTable("drafts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  topic: text("topic").notNull(),
+  content: text("content").notNull(),
+  platform: text("platform").notNull(),
+  tone: text("tone").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertDraftSchema = createInsertSchema(drafts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertDraft = z.infer<typeof insertDraftSchema>;
+export type Draft = typeof drafts.$inferSelect;
+
+// All pgTable objects — used by the startup health check to verify every
+// table exists in the database without maintaining a separate manual list.
+export const allTables = [
+  users,
+  clients,
+  socialAccounts,
+  bots,
+  botTemplates,
+  analytics,
+  scheduledPosts,
+  drafts,
+] as const;
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;

@@ -1,9 +1,10 @@
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "postgresql-16"]
 
 [agent]
 expertMode = true
 
 run = "npm start"
+integrations = ["javascript_database:1.0.0"]
 
 [[ports]]
 localPort = 5000
@@ -25,13 +26,13 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm start"
 waitForPort = 5000
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -42,5 +43,12 @@ run = ["npm", "start"]
 [userenv.production]
 NODE_ENV = "production"
 
+[userenv.shared]
+
 [nix]
 packages = ["gh"]
+channel = "stable-25_05"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000

@@ -56,6 +56,19 @@
   --elevate-1: rgba(255, 215, 0, 0.06);
   --elevate-2: rgba(255, 215, 0, 0.14);
 
+  /* Surface tokens (raised black variants) */
+  --sf-surface: #111111;
+  --sf-surface-2: #1a1a1a;
+  --sf-surface-3: #0f0f0f;
+  --sf-surface-deep: #0a0a0a;
+
+  /* Gold glow shadows */
+  --sf-glow-gold-xs: 0 0 30px rgba(255, 215, 0, 0.06);
+  --sf-glow-gold-sm: 0 0 30px rgba(255, 215, 0, 0.08);
+  --sf-glow-gold-md: 0 0 40px rgba(255, 215, 0, 0.12);
+  --sf-glow-gold-lg: 0 0 40px rgba(255, 215, 0, 0.15);
+  --sf-glow-gold-xl: 0 0 80px rgba(255, 215, 0, 0.06);
+
   /* Shadows */
   --shadow-sm: 0px 2px 4px -1px rgba(0,0,0,0.35), 0px 1px 2px -1px rgba(0,0,0,0.50);
   --shadow-md: 0px 6px 10px -2px rgba(0,0,0,0.45), 0px 2px 4px -2px rgba(0,0,0,0.35);
@@ -198,6 +211,16 @@ h4 { font-size: clamp(1.25rem, 2.5vw, 1.5rem); }
 
 .text-gold {
   color: var(--sf-gold);
+}
+
+/* Override inside .text-gold-gradient to render plain (non-gradient) text */
+.text-gold-gradient .text-plain-white,
+.text-plain-white {
+  background: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: var(--sf-white) !important;
+  color: var(--sf-white) !important;
 }
 
 /* ========================================================================== */

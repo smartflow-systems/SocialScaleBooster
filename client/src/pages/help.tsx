@@ -1,103 +1,66 @@
-import { useState } from "react";
 import { Link } from "wouter";
-import { HelpCircle, ArrowLeft, Mail } from "lucide-react";
+import { HelpCircle, ArrowLeft, ChevronDown } from "lucide-react";
+import { GlassCard, GoldHeading, SfsContainer, FadeInUp, type FadeStagger } from "@/components/sfs";
 
-const faqs = [
+const FAQS = [
   {
-    q: "Do I need to know anything about social media to use this?",
-    a: "No. If you can copy and paste text into Instagram, you're qualified. The AI does the thinking. You just post.",
+    q: "How do I connect my social accounts?",
+    a: "Open Connected Accounts and use 'Connect with Meta' for Facebook & Instagram, or add other platforms manually with API credentials.",
   },
   {
-    q: "Is the content actually written for barbers, or is it generic AI?",
-    a: "It's niche-specific. Barber content sounds like barber content. Salon content sounds like salon content. Trained on what works in your industry — not a tech startup.",
+    q: "Can I schedule posts in advance?",
+    a: "Yes. Use the Scheduler page to pick a date, time and platforms. Posts auto-publish when due.",
   },
   {
-    q: "Can I cancel any time?",
-    a: "Yes. No contracts, no minimum term. Cancel from your dashboard whenever you like.",
+    q: "What does the AI Studio do?",
+    a: "It drafts captions, hashtag sets, and image prompts using your brand tone. You can edit before scheduling.",
   },
   {
-    q: "What's the difference between this and just using ChatGPT?",
-    a: "ChatGPT doesn't know your industry posting times, doesn't generate matched hashtag sets, and doesn't have a schedule built in. It's the difference between a Swiss Army knife and a proper barber's razor.",
+    q: "Is my data secure?",
+    a: "Credentials are encrypted at rest, OAuth tokens are scoped to the minimum required, and we never share your data with third parties.",
   },
   {
-    q: "What's the Bundle deal?",
-    a: "The bundle gets you SocialScaleBooster and Barber Booker (our online booking system) for £49/mo instead of £58. Social content and bookings, sorted.",
-  },
-  {
-    q: "How do I generate a caption?",
-    a: "Go to Caption Generator in the menu. Describe your photo or post, pick your platform and tone, hit Generate. It takes under 10 seconds.",
-  },
-  {
-    q: "How many captions can I generate per month?",
-    a: "Starter plan: 100 per month. Pro plan: 1,000 per month. Agency: unlimited. You'll see your usage in the dashboard.",
-  },
-  {
-    q: "Something isn't working — what do I do?",
-    a: "Email gareth@smartflowsystems.co.uk with your account email and a description of what happened. Gareth answers personally, usually within a few hours.",
+    q: "How do I cancel my subscription?",
+    a: "Go to Settings → Billing and click 'Cancel plan'. Your access continues until the end of the current billing period.",
   },
 ];
 
 export default function HelpCenter() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-
   return (
-    <div className="min-h-screen bg-primary-black">
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <Link href="/dashboard">
-          <a className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors mb-8">
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Dashboard</span>
-          </a>
+    <div className="min-h-screen bg-[var(--sf-black)] text-white">
+      <SfsContainer className="max-w-4xl mx-auto px-4 py-8">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-[var(--sf-gold)] hover:text-[var(--sf-gold-2)] transition-colors mb-8">
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Dashboard</span>
         </Link>
-
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-accent-gold to-gold-trim rounded-xl flex items-center justify-center shadow-lg shadow-accent-gold/20">
-            <HelpCircle className="w-6 h-6 text-primary-black" />
+          <div className="w-12 h-12 bg-gradient-to-br from-[var(--sf-gold)] to-[var(--sf-gold-2)] rounded-xl flex items-center justify-center shadow-[var(--sf-glow-gold-sm)]">
+            <HelpCircle className="w-6 h-6 text-[var(--sf-black)]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Help Center</h1>
-            <p className="text-neutral-gray text-sm">Common questions, answered straight</p>
+            <GoldHeading level={1} className="text-2xl font-bold">Help Center</GoldHeading>
+            <p className="text-neutral-400 text-sm">Find answers to common questions and get support</p>
           </div>
         </div>
-
-        <div className="space-y-3 mb-10">
-          {faqs.map((faq, i) => (
-            <div
-              key={i}
-              className="border border-accent-gold/20 rounded-xl bg-rich-brown/10 overflow-hidden"
-            >
-              <button
-                className="w-full text-left px-6 py-4 flex justify-between items-start gap-4"
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-              >
-                <span className="font-semibold text-white text-sm">{faq.q}</span>
-                <span className="text-accent-gold text-xl flex-shrink-0 leading-none">
-                  {openFaq === i ? "−" : "+"}
-                </span>
-              </button>
-              {openFaq === i && (
-                <div className="px-6 pb-5 text-neutral-gray text-sm leading-relaxed border-t border-accent-gold/10 pt-3">
-                  {faq.a}
-                </div>
-              )}
-            </div>
-          ))}
+        <div className="space-y-3">
+          {FAQS.map((f, i) => {
+            const stagger = (Math.min(i + 1, 6) as FadeStagger);
+            return (
+              <FadeInUp key={f.q} stagger={stagger}>
+                <GlassCard className="p-0 overflow-hidden">
+                  <details className="group">
+                    <summary className="flex items-center justify-between gap-4 px-5 py-4 cursor-pointer list-none">
+                      <span className="text-sm font-semibold text-white">{f.q}</span>
+                      <ChevronDown className="w-4 h-4 text-[var(--sf-gold)] transition-transform group-open:rotate-180 flex-shrink-0" />
+                    </summary>
+                    <div className="px-5 pb-5 text-sm text-neutral-400">{f.a}</div>
+                  </details>
+                </GlassCard>
+              </FadeInUp>
+            );
+          })}
         </div>
-
-        <div className="border border-accent-gold/20 rounded-xl p-6 bg-rich-brown/10 text-center">
-          <p className="text-white font-semibold mb-1">Still stuck?</p>
-          <p className="text-neutral-gray text-sm mb-4">
-            Email Gareth directly — he handles all support personally.
-          </p>
-          <a
-            href="mailto:gareth@smartflowsystems.co.uk?subject=Help%20Request%20-%20SocialScaleBooster"
-            className="inline-flex items-center gap-2 text-accent-gold hover:text-gold-trim transition-colors font-semibold text-sm"
-          >
-            <Mail className="w-4 h-4" />
-            gareth@smartflowsystems.co.uk
-          </a>
-        </div>
-      </div>
+      </SfsContainer>
     </div>
   );
 }

@@ -1,5 +1,5 @@
-import { users, bots, botTemplates, analytics, clients, socialAccounts, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics, type Client, type InsertClient, type SocialAccount, type InsertSocialAccount } from "@shared/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { users, bots, botTemplates, analytics, clients, socialAccounts, scheduledPosts, drafts, type User, type InsertUser, type Bot, type InsertBot, type BotTemplate, type InsertBotTemplate, type Analytics, type InsertAnalytics, type Client, type InsertClient, type SocialAccount, type InsertSocialAccount, type ScheduledPost, type InsertScheduledPost, type Draft, type InsertDraft } from "@shared/schema";
+import { eq, and, sql, desc } from "drizzle-orm";
 import { db } from "./db";
 
 export interface IStorage {
@@ -8,6 +8,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
   updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User>;
   updateUserStripeInfo(id: number, stripeCustomerId: string, stripeSubscriptionId: string): Promise<User>;
   incrementUserBotCount(id: number): Promise<User>;
@@ -46,6 +47,8 @@ export interface IStorage {
   getBotTemplatesByCategory(category: string): Promise<BotTemplate[]>;
   getBotTemplate(id: number): Promise<BotTemplate | undefined>;
   createBotTemplate(template: InsertBotTemplate): Promise<BotTemplate>;
+  updateBotTemplate(id: number, updates: Partial<InsertBotTemplate>): Promise<BotTemplate>;
+  deleteBotTemplate(id: number): Promise<void>;
 
   // Analytics methods
   getAnalyticsByUserId(userId: number): Promise<Analytics[]>;
@@ -53,6 +56,23 @@ export interface IStorage {
   createAnalytics(analytics: InsertAnalytics): Promise<Analytics>;
   getRevenueMetrics(userId: number): Promise<{ totalRevenue: number; monthlyGrowth: number }>;
   getEngagementMetrics(userId: number): Promise<{ avgEngagement: number; totalPosts: number }>;
+
+  // Scheduled Post methods
+  getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]>;
+  getDueScheduledPosts(): Promise<ScheduledPost[]>;
+  markScheduledPostPublished(id: number): Promise<void>;
+  markScheduledPostFailed(id: number): Promise<void>;
+  retryScheduledPost(id: number, userId: number): Promise<ScheduledPost | undefined>;
+  createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost>;
+  updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined>;
+  deleteScheduledPost(id: number, userId: number): Promise<boolean>;
+  reorderScheduledPosts(userId: number, orderedIds: number[]): Promise<void>;
+
+  // Draft methods
+  getDraftsByUserId(userId: number): Promise<Draft[]>;
+  createDraft(draft: InsertDraft): Promise<Draft>;
+  updateDraft(id: number, userId: number, updates: Partial<Pick<Draft, "topic" | "content" | "platform" | "tone">>): Promise<Draft | undefined>;
+  deleteDraft(id: number, userId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -75,6 +95,12 @@ export class DatabaseStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+    const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    if (!user) throw new Error("User not found");
     return user;
   }
 
@@ -273,6 +299,16 @@ export class DatabaseStorage implements IStorage {
     return template;
   }
 
+  async updateBotTemplate(id: number, updates: Partial<InsertBotTemplate>): Promise<BotTemplate> {
+    const [template] = await db.update(botTemplates).set(updates).where(eq(botTemplates.id, id)).returning();
+    if (!template) throw new Error("Template not found");
+    return template;
+  }
+
+  async deleteBotTemplate(id: number): Promise<void> {
+    await db.delete(botTemplates).where(eq(botTemplates.id, id));
+  }
+
   // Analytics methods
   async getAnalyticsByUserId(userId: number): Promise<Analytics[]> {
     return await db.select().from(analytics).where(eq(analytics.userId, userId));
@@ -310,6 +346,101 @@ export class DatabaseStorage implements IStorage {
 
     return result[0] || { avgEngagement: 0, totalPosts: 0 };
   }
+
+  // Scheduled Post methods — DB-backed
+  async getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]> {
+    return await db.select().from(scheduledPosts).where(eq(scheduledPosts.userId, userId)).orderBy(scheduledPosts.sortOrder, scheduledPosts.createdAt);
+  }
+
+  async getDueScheduledPosts(): Promise<ScheduledPost[]> {
+    const now = new Date().toISOString();
+    const all = await db
+      .select()
+      .from(scheduledPosts)
+      .where(eq(scheduledPosts.status, "scheduled"));
+    return all.filter(p => new Date(p.scheduledAt) <= new Date(now));
+  }
+
+  async markScheduledPostPublished(id: number): Promise<void> {
+    await db
+      .update(scheduledPosts)
+      .set({ status: "published" })
+      .where(eq(scheduledPosts.id, id));
+  }
+
+  async markScheduledPostFailed(id: number): Promise<void> {
+    await db
+      .update(scheduledPosts)
+      .set({ status: "failed" })
+      .where(eq(scheduledPosts.id, id));
+  }
+
+  async retryScheduledPost(id: number, userId: number): Promise<ScheduledPost | undefined> {
+    const [updated] = await db
+      .update(scheduledPosts)
+      .set({ status: "scheduled" })
+      .where(and(eq(scheduledPosts.id, id), eq(scheduledPosts.userId, userId), eq(scheduledPosts.status, "failed")))
+      .returning();
+    return updated || undefined;
+  }
+
+  async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {
+    const existing = await db.select({ sortOrder: scheduledPosts.sortOrder }).from(scheduledPosts).where(eq(scheduledPosts.userId, post.userId));
+    const maxOrder = existing.reduce((max, p) => Math.max(max, p.sortOrder ?? 0), -1);
+    const [created] = await db.insert(scheduledPosts).values({ ...post, sortOrder: maxOrder + 1 }).returning();
+    return created;
+  }
+
+  async updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined> {
+    const [updated] = await db
+      .update(scheduledPosts)
+      .set(updates)
+      .where(and(eq(scheduledPosts.id, id), eq(scheduledPosts.userId, userId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteScheduledPost(id: number, userId: number): Promise<boolean> {
+    const [post] = await db.select().from(scheduledPosts).where(and(eq(scheduledPosts.id, id), eq(scheduledPosts.userId, userId)));
+    if (!post) return false;
+    await db.delete(scheduledPosts).where(eq(scheduledPosts.id, id));
+    return true;
+  }
+
+  async reorderScheduledPosts(userId: number, orderedIds: number[]): Promise<void> {
+    for (let i = 0; i < orderedIds.length; i++) {
+      await db
+        .update(scheduledPosts)
+        .set({ sortOrder: i })
+        .where(and(eq(scheduledPosts.id, orderedIds[i]), eq(scheduledPosts.userId, userId)));
+    }
+  }
+
+  // Draft methods — DB-backed
+  async getDraftsByUserId(userId: number): Promise<Draft[]> {
+    return await db.select().from(drafts).where(eq(drafts.userId, userId)).orderBy(desc(drafts.createdAt));
+  }
+
+  async createDraft(draft: InsertDraft): Promise<Draft> {
+    const [created] = await db.insert(drafts).values(draft).returning();
+    return created;
+  }
+
+  async updateDraft(id: number, userId: number, updates: Partial<Pick<Draft, "topic" | "content" | "platform" | "tone">>): Promise<Draft | undefined> {
+    const [updated] = await db
+      .update(drafts)
+      .set(updates)
+      .where(and(eq(drafts.id, id), eq(drafts.userId, userId)))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteDraft(id: number, userId: number): Promise<boolean> {
+    const [draft] = await db.select().from(drafts).where(and(eq(drafts.id, id), eq(drafts.userId, userId)));
+    if (!draft) return false;
+    await db.delete(drafts).where(eq(drafts.id, id));
+    return true;
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -319,12 +450,14 @@ export class MemStorage implements IStorage {
   private bots: Map<number, Bot>;
   private botTemplates: Map<number, BotTemplate>;
   private analytics: Map<number, Analytics>;
+  private scheduledPosts: Map<number, ScheduledPost>;
   private currentUserId: number;
   private currentClientId: number;
   private currentSocialAccountId: number;
   private currentBotId: number;
   private currentTemplateId: number;
   private currentAnalyticsId: number;
+  private currentScheduledPostId: number;
 
   constructor() {
     this.users = new Map();
@@ -333,12 +466,14 @@ export class MemStorage implements IStorage {
     this.bots = new Map();
     this.botTemplates = new Map();
     this.analytics = new Map();
+    this.scheduledPosts = new Map();
     this.currentUserId = 1;
     this.currentClientId = 1;
     this.currentSocialAccountId = 1;
     this.currentBotId = 1;
     this.currentTemplateId = 1;
     this.currentAnalyticsId = 1;
+    this.currentScheduledPostId = 1;
 
     this.initializeSampleTemplates();
     this.initializeSampleUser();
@@ -444,6 +579,7 @@ export class MemStorage implements IStorage {
       password: "password",
       email: "demo@smartflowai.com",
       isPremium: false,
+      isAdmin: false,
       botCount: 0,
       stripeCustomerId: null,
       stripeSubscriptionId: null,
@@ -501,6 +637,7 @@ export class MemStorage implements IStorage {
       id,
       email: insertUser.email || null,
       isPremium: false,
+      isAdmin: false,
       botCount: 0,
       stripeCustomerId: null,
       stripeSubscriptionId: null,
@@ -508,6 +645,14 @@ export class MemStorage implements IStorage {
     };
     this.users.set(id, user);
     return user;
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+    const user = this.users.get(id);
+    if (!user) throw new Error("User not found");
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
 
   async updateUserPremiumStatus(id: number, isPremium: boolean): Promise<User> {
@@ -751,6 +896,18 @@ export class MemStorage implements IStorage {
     return template;
   }
 
+  async updateBotTemplate(id: number, updates: Partial<InsertBotTemplate>): Promise<BotTemplate> {
+    const existing = this.botTemplates.get(id);
+    if (!existing) throw new Error("Template not found");
+    const updated: BotTemplate = { ...existing, ...updates };
+    this.botTemplates.set(id, updated);
+    return updated;
+  }
+
+  async deleteBotTemplate(id: number): Promise<void> {
+    this.botTemplates.delete(id);
+  }
+
   // Analytics methods
   async getAnalyticsByUserId(userId: number): Promise<Analytics[]> {
     return Array.from(this.analytics.values()).filter(analytic => analytic.userId === userId);
@@ -791,7 +948,113 @@ export class MemStorage implements IStorage {
       : 0;
     return { avgEngagement, totalPosts };
   }
+
+  // Scheduled Post methods
+  async getScheduledPostsByUserId(userId: number): Promise<ScheduledPost[]> {
+    return Array.from(this.scheduledPosts.values())
+      .filter(post => post.userId === userId)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  }
+
+  async getDueScheduledPosts(): Promise<ScheduledPost[]> {
+    const now = new Date();
+    return Array.from(this.scheduledPosts.values()).filter(
+      post => post.status === "scheduled" && new Date(post.scheduledAt) <= now
+    );
+  }
+
+  async markScheduledPostPublished(id: number): Promise<void> {
+    const post = this.scheduledPosts.get(id);
+    if (post) {
+      this.scheduledPosts.set(id, { ...post, status: "published" });
+    }
+  }
+
+  async markScheduledPostFailed(id: number): Promise<void> {
+    const post = this.scheduledPosts.get(id);
+    if (post) {
+      this.scheduledPosts.set(id, { ...post, status: "failed" });
+    }
+  }
+
+  async retryScheduledPost(id: number, userId: number): Promise<ScheduledPost | undefined> {
+    const post = this.scheduledPosts.get(id);
+    if (!post || post.userId !== userId || post.status !== "failed") return undefined;
+    const updated = { ...post, status: "scheduled" as const };
+    this.scheduledPosts.set(id, updated);
+    return updated;
+  }
+
+  async createScheduledPost(post: InsertScheduledPost): Promise<ScheduledPost> {
+    const id = this.currentScheduledPostId++;
+    const userPosts = Array.from(this.scheduledPosts.values()).filter(p => p.userId === post.userId);
+    const maxOrder = userPosts.reduce((max, p) => Math.max(max, p.sortOrder ?? 0), -1);
+    const newPost: ScheduledPost = { ...post, id, status: post.status || "scheduled", sortOrder: maxOrder + 1, createdAt: new Date() };
+    this.scheduledPosts.set(id, newPost);
+    return newPost;
+  }
+
+  async updateScheduledPost(id: number, userId: number, updates: Partial<Pick<ScheduledPost, "platform" | "content" | "scheduledAt">>): Promise<ScheduledPost | undefined> {
+    const post = this.scheduledPosts.get(id);
+    if (!post || post.userId !== userId) return undefined;
+    const updatedPost = { ...post, ...updates };
+    this.scheduledPosts.set(id, updatedPost);
+    return updatedPost;
+  }
+
+  async deleteScheduledPost(id: number, userId: number): Promise<boolean> {
+    const post = this.scheduledPosts.get(id);
+    if (!post || post.userId !== userId) return false;
+    this.scheduledPosts.delete(id);
+    return true;
+  }
+
+  async reorderScheduledPosts(userId: number, orderedIds: number[]): Promise<void> {
+    for (let i = 0; i < orderedIds.length; i++) {
+      const post = this.scheduledPosts.get(orderedIds[i]);
+      if (post && post.userId === userId) {
+        this.scheduledPosts.set(orderedIds[i], { ...post, sortOrder: i });
+      }
+    }
+  }
+
+  // Draft methods (in-memory)
+  private draftsMap: Map<number, Draft> = new Map();
+  private currentDraftId: number = 1;
+
+  async getDraftsByUserId(userId: number): Promise<Draft[]> {
+    return Array.from(this.draftsMap.values()).filter(d => d.userId === userId);
+  }
+
+  async createDraft(draft: InsertDraft): Promise<Draft> {
+    const id = this.currentDraftId++;
+    const newDraft: Draft = { ...draft, id, createdAt: new Date() };
+    this.draftsMap.set(id, newDraft);
+    return newDraft;
+  }
+
+  async updateDraft(id: number, userId: number, updates: Partial<Pick<Draft, "topic" | "content" | "platform" | "tone">>): Promise<Draft | undefined> {
+    const draft = this.draftsMap.get(id);
+    if (!draft || draft.userId !== userId) return undefined;
+    const updated: Draft = { ...draft, ...updates };
+    this.draftsMap.set(id, updated);
+    return updated;
+  }
+
+  async deleteDraft(id: number, userId: number): Promise<boolean> {
+    const draft = this.draftsMap.get(id);
+    if (!draft || draft.userId !== userId) return false;
+    this.draftsMap.delete(id);
+    return true;
+  }
 }
 
-// Use MemStorage in development when DATABASE_URL is not set
-export const storage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemStorage();
+// Use DatabaseStorage when any database credentials are configured.
+// This mirrors the connection-string logic in server/db.ts: either DATABASE_URL
+// or the individual PG* variables (PGHOST + PGUSER + PGPASSWORD + PGDATABASE)
+// are sufficient to attempt a connection.
+const hasDatabaseConfig =
+  !!process.env.DATABASE_URL ||
+  !!(process.env.PGHOST && process.env.PGUSER && process.env.PGPASSWORD && process.env.PGDATABASE);
+
+export const storage = hasDatabaseConfig ? new DatabaseStorage() : new MemStorage();

@@ -1,9 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { runMigrations } from "./migrate";
+import { seedBotTemplates } from "./seed";
+import { startPostScheduler } from "./features/post-scheduler";
 
 const app = express();
 app.set("trust proxy", 1);
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -38,7 +43,21 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  try {
+    await runMigrations();
+  } catch (err: any) {
+    console.error('[db] startup: database migration failed — the app will continue but data may not persist:', err.message);
+  }
+  try {
+    await seedBotTemplates();
+  } catch (err: any) {
+    console.warn('[seed] skipped bot template seeding — database unavailable:', err.message);
+  }
+
   const server = await registerRoutes(app);
+
+  // Start scheduler after WebSocket server is set up so publish notifications work
+  await startPostScheduler();
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

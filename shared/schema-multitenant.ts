@@ -306,7 +306,7 @@ export const PLANS = {
     price: 29,
     currency: "GBP", 
     interval: "month",
-    stripePriceId: "price_starter_gbp_monthly", // You'll get this from Stripe
+    stripePriceId: "price_1TISJxIzLfwhhUxx0BFBUY6m",
     limits: {
       socialAccounts: 3,
       postsPerMonth: 100,

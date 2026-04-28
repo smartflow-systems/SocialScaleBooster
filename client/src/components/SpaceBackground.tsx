@@ -11,178 +11,108 @@ export default function SpaceBackground() {
     if (!ctx) return;
 
     let animationId: number;
-    let stars: Star[] = [];
-    let shootingStars: ShootingStar[] = [];
 
-    interface Star {
+    const nodeCount = 55;
+    const connectionDistance = 180;
+    const connectionDistanceSq = connectionDistance * connectionDistance;
+
+    interface Node {
       x: number;
       y: number;
-      size: number;
-      twinkleSpeed: number;
-      twinkleOffset: number;
-      baseAlpha: number;
-      color: string;
+      vx: number;
+      vy: number;
+      radius: number;
+      pulse: number;
+      pulseSpeed: number;
     }
 
-    interface ShootingStar {
-      x: number;
-      y: number;
-      length: number;
-      speed: number;
-      angle: number;
-      opacity: number;
-      life: number;
-      maxLife: number;
-      thickness: number;
-    }
+    let nodes: Node[] = [];
 
     function resize() {
       if (!canvas) return;
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      initStars();
+      initNodes();
     }
 
-    function initStars() {
+    function initNodes() {
       if (!canvas) return;
-      const w = canvas.width;
-      const h = canvas.height;
-      const starCount = Math.floor((w * h) / 4000);
-      stars = [];
-
-      for (let i = 0; i < starCount; i++) {
-        const colors = [
-          "255,255,255",
-          "240,240,255",
-          "255,250,240",
-          "230,240,255",
-        ];
-        stars.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          size: Math.random() < 0.92 ? Math.random() * 0.8 + 0.2 : Math.random() * 1.4 + 0.6,
-          twinkleSpeed: Math.random() * 0.008 + 0.002,
-          twinkleOffset: Math.random() * Math.PI * 2,
-          baseAlpha: Math.random() * 0.3 + 0.1,
-          color: colors[Math.floor(Math.random() * colors.length)],
+      nodes = [];
+      for (let i = 0; i < nodeCount; i++) {
+        nodes.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+          radius: Math.random() * 2 + 1.5,
+          pulse: Math.random() * Math.PI * 2,
+          pulseSpeed: 0.012 + Math.random() * 0.01,
         });
       }
     }
 
-    function spawnShootingStar() {
-      if (!canvas) return;
-      const w = canvas.width;
-      const h = canvas.height;
-      const angle = Math.random() * 0.8 + 0.1;
-      const startSide = Math.random();
-      let startX: number, startY: number;
-      if (startSide < 0.5) {
-        startX = Math.random() * w;
-        startY = Math.random() * h * 0.2;
-      } else {
-        startX = Math.random() * w * 0.3 + w * 0.2;
-        startY = Math.random() * h * 0.4;
-      }
-
-      shootingStars.push({
-        x: startX,
-        y: startY,
-        length: Math.random() * 40 + 25,
-        speed: Math.random() * 4 + 3,
-        angle,
-        opacity: 0,
-        life: 0,
-        maxLife: Math.random() * 50 + 35,
-        thickness: Math.random() * 0.6 + 0.3,
-      });
-    }
-
-    let time = 0;
-    let nextShootingStarAt = 400 + Math.random() * 600;
+    let frame = 0;
 
     function draw() {
       if (!canvas || !ctx) return;
-      const w = canvas.width;
-      const h = canvas.height;
-      time += 1;
+      frame++;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.clearRect(0, 0, w, h);
+      nodes.forEach((node) => {
+        node.x += node.vx;
+        node.y += node.vy;
+        node.pulse += node.pulseSpeed;
 
-      for (const star of stars) {
-        const twinkle =
-          Math.sin(time * star.twinkleSpeed + star.twinkleOffset) * 0.5 + 0.5;
-        const noise = Math.sin(time * star.twinkleSpeed * 3.7 + star.twinkleOffset * 2.3) * 0.15;
-        const alpha = Math.max(0.04, star.baseAlpha * (0.4 + twinkle * 0.6) + noise);
-        const size = star.size * (0.85 + twinkle * 0.15);
+        if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+        if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+      });
+
+      for (let i = 0; i < nodes.length; i++) {
+        const a = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++) {
+          const b = nodes[j];
+          const dx = b.x - a.x;
+          const dy = b.y - a.y;
+          const distSq = dx * dx + dy * dy;
+
+          if (distSq < connectionDistanceSq) {
+            const dist = Math.sqrt(distSq);
+            const proximity = 1 - dist / connectionDistance;
+            const lineAlpha = proximity * 0.55;
+
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(255, 200, 0, ${lineAlpha})`;
+            ctx.lineWidth = proximity * 1.2;
+            ctx.stroke();
+          }
+        }
+      }
+
+      nodes.forEach((node) => {
+        const glow = Math.sin(node.pulse) * 0.5 + 0.5;
+        const nodeAlpha = 0.55 + glow * 0.35;
+        const nodeRadius = node.radius * (0.9 + glow * 0.2);
+
+        const gradient = ctx.createRadialGradient(
+          node.x, node.y, 0,
+          node.x, node.y, nodeRadius * 3.5
+        );
+        gradient.addColorStop(0, `rgba(255, 215, 0, ${nodeAlpha})`);
+        gradient.addColorStop(0.4, `rgba(255, 190, 0, ${nodeAlpha * 0.4})`);
+        gradient.addColorStop(1, `rgba(255, 190, 0, 0)`);
 
         ctx.beginPath();
-        ctx.arc(star.x, star.y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${star.color},${alpha})`;
+        ctx.arc(node.x, node.y, nodeRadius * 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
         ctx.fill();
 
-        if (star.size > 1.2 && twinkle > 0.9) {
-          const glow = ctx.createRadialGradient(
-            star.x, star.y, 0,
-            star.x, star.y, size * 2.5
-          );
-          glow.addColorStop(0, `rgba(${star.color},${alpha * 0.2})`);
-          glow.addColorStop(1, `rgba(${star.color},0)`);
-          ctx.beginPath();
-          ctx.arc(star.x, star.y, size * 2.5, 0, Math.PI * 2);
-          ctx.fillStyle = glow;
-          ctx.fill();
-        }
-      }
-
-      if (time >= nextShootingStarAt) {
-        spawnShootingStar();
-        nextShootingStarAt = time + 500 + Math.random() * 900;
-      }
-
-      for (let i = shootingStars.length - 1; i >= 0; i--) {
-        const s = shootingStars[i];
-        s.life += 1;
-        s.x += Math.cos(s.angle) * s.speed;
-        s.y += Math.sin(s.angle) * s.speed;
-
-        const progress = s.life / s.maxLife;
-        if (progress < 0.15) {
-          s.opacity = progress / 0.15;
-        } else if (progress > 0.6) {
-          s.opacity = Math.max(0, (1 - progress) / 0.4);
-        } else {
-          s.opacity = 0.7;
-        }
-
-        if (s.life >= s.maxLife) {
-          shootingStars.splice(i, 1);
-          continue;
-        }
-
-        const tailX = s.x - Math.cos(s.angle) * s.length;
-        const tailY = s.y - Math.sin(s.angle) * s.length;
-
-        const gradient = ctx.createLinearGradient(tailX, tailY, s.x, s.y);
-        gradient.addColorStop(0, `rgba(255,255,255,0)`);
-        gradient.addColorStop(0.7, `rgba(255,252,245,${s.opacity * 0.15})`);
-        gradient.addColorStop(1, `rgba(255,255,255,${s.opacity * 0.5})`);
-
         ctx.beginPath();
-        ctx.moveTo(tailX, tailY);
-        ctx.lineTo(s.x, s.y);
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = s.thickness;
-        ctx.lineCap = "round";
-        ctx.stroke();
-
-        const headGlow = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, 2);
-        headGlow.addColorStop(0, `rgba(255,255,255,${s.opacity * 0.6})`);
-        headGlow.addColorStop(1, `rgba(255,255,255,0)`);
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, 2, 0, Math.PI * 2);
-        ctx.fillStyle = headGlow;
+        ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 220, 50, ${nodeAlpha})`;
         ctx.fill();
-      }
+      });
 
       animationId = requestAnimationFrame(draw);
     }
@@ -202,7 +132,8 @@ export default function SpaceBackground() {
       ref={canvasRef}
       className="fixed inset-0 z-0 pointer-events-none"
       style={{
-        background: "radial-gradient(ellipse at 50% 0%, #080812 0%, #040408 50%, #010104 100%)",
+        background:
+          "radial-gradient(ellipse at 50% 40%, #141200 0%, #0c0c00 35%, #080800 65%, #040400 100%)",
       }}
     />
   );

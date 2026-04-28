@@ -1,6 +1,17 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server as HTTPServer } from 'http';
+import { IncomingMessage } from 'http';
+import { URL } from 'url';
+import jwt from 'jsonwebtoken';
 import { storage } from './storage';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'sfs-dev-secret-change-in-production';
+
+interface JWTPayload {
+  userId: number;
+  username: string;
+  email: string;
+}
 
 interface AnalyticsData {
   totalRevenue: string;
@@ -17,34 +28,78 @@ interface AnalyticsData {
   }>;
 }
 
+let _analyticsWSInstance: AnalyticsWebSocketServer | null = null;
+
+export function getAnalyticsWS(): AnalyticsWebSocketServer | null {
+  return _analyticsWSInstance;
+}
+
+export function setAnalyticsWS(instance: AnalyticsWebSocketServer): void {
+  _analyticsWSInstance = instance;
+}
+
+function parseUserIdFromRequest(req: IncomingMessage): number | null {
+  try {
+    const rawUrl = req.url ?? '';
+    const parsed = new URL(rawUrl, 'http://localhost');
+    const token = parsed.searchParams.get('token');
+    if (!token) return null;
+    const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return payload.userId ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export class AnalyticsWebSocketServer {
   private wss: WebSocketServer;
   private clients: Set<WebSocket> = new Set();
+  private userClients: Map<number, Set<WebSocket>> = new Map();
   private analyticsInterval: NodeJS.Timeout | null = null;
   private activityInterval: NodeJS.Timeout | null = null;
 
   constructor(server: HTTPServer) {
     this.wss = new WebSocketServer({ server, path: '/ws/analytics' });
     
-    this.wss.on('connection', (ws: WebSocket) => {
+    this.wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
       console.log('Analytics WebSocket client connected');
       this.clients.add(ws);
+
+      const userId = parseUserIdFromRequest(req);
+      if (userId !== null) {
+        if (!this.userClients.has(userId)) {
+          this.userClients.set(userId, new Set());
+        }
+        this.userClients.get(userId)!.add(ws);
+      }
       
-      // Send initial data
       this.sendInitialData(ws);
       
       ws.on('close', () => {
         console.log('Analytics WebSocket client disconnected');
         this.clients.delete(ws);
+        if (userId !== null) {
+          const sockets = this.userClients.get(userId);
+          if (sockets) {
+            sockets.delete(ws);
+            if (sockets.size === 0) this.userClients.delete(userId);
+          }
+        }
       });
       
       ws.on('error', (error) => {
         console.error('WebSocket error:', error);
         this.clients.delete(ws);
+        if (userId !== null) {
+          const sockets = this.userClients.get(userId);
+          if (sockets) {
+            sockets.delete(ws);
+            if (sockets.size === 0) this.userClients.delete(userId);
+          }
+        }
       });
     });
 
-    // Start broadcasting real-time updates
     this.startRealTimeUpdates();
   }
 
@@ -61,7 +116,6 @@ export class AnalyticsWebSocketServer {
   }
 
   private startRealTimeUpdates() {
-    // Update main metrics every 5 seconds
     this.analyticsInterval = setInterval(async () => {
       const analyticsData = await this.generateAnalyticsData();
       this.broadcast({
@@ -70,7 +124,6 @@ export class AnalyticsWebSocketServer {
       });
     }, 5000);
 
-    // Generate activity updates every 3 seconds
     this.activityInterval = setInterval(() => {
       const activity = this.generateRecentActivity();
       this.broadcast({
@@ -81,17 +134,16 @@ export class AnalyticsWebSocketServer {
   }
 
   private async generateAnalyticsData(): Promise<AnalyticsData> {
-    // Simulate real-time changes with small variations
     const baseRevenue = 4550.50;
-    const revenueVariation = (Math.random() - 0.5) * 100; // ±50 variation
+    const revenueVariation = (Math.random() - 0.5) * 100;
     const currentRevenue = Math.max(0, baseRevenue + revenueVariation);
 
     const baseROI = 340;
-    const roiVariation = (Math.random() - 0.5) * 20; // ±10 variation
+    const roiVariation = (Math.random() - 0.5) * 20;
     const currentROI = Math.max(0, baseROI + roiVariation);
 
     const baseEngagement = 8.5;
-    const engagementVariation = (Math.random() - 0.5) * 2; // ±1 variation
+    const engagementVariation = (Math.random() - 0.5) * 2;
     const currentEngagement = Math.max(0, baseEngagement + engagementVariation);
 
     return {
@@ -99,7 +151,7 @@ export class AnalyticsWebSocketServer {
       monthlyGrowth: 25.5 + (Math.random() - 0.5) * 5,
       roi: Math.round(currentROI),
       engagementRate: Number(currentEngagement.toFixed(1)),
-      activeUsers: Math.floor(Math.random() * 50) + 180, // 180-230 active users
+      activeUsers: Math.floor(Math.random() * 50) + 180,
       recentActivity: this.generateRecentActivity()
     };
   }
@@ -114,7 +166,6 @@ export class AnalyticsWebSocketServer {
       { type: 'revenue_generated', message: 'Product sold via bot', value: Math.floor(Math.random() * 300) + 75 }
     ];
 
-    // Return 1-3 random activities
     const numActivities = Math.floor(Math.random() * 3) + 1;
     const selectedActivities = [];
     
@@ -137,6 +188,30 @@ export class AnalyticsWebSocketServer {
     this.clients.forEach(client => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(data);
+      }
+    });
+  }
+
+  private sendToUser(userId: number, message: any) {
+    const sockets = this.userClients.get(userId);
+    if (!sockets || sockets.size === 0) return;
+    const data = JSON.stringify(message);
+    sockets.forEach(ws => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(data);
+      }
+    });
+  }
+
+  public broadcastPostPublished(post: { id: number; platform: string; content: string; userId: number }) {
+    this.sendToUser(post.userId, {
+      type: 'post_published',
+      data: {
+        id: post.id,
+        platform: post.platform,
+        content: post.content,
+        userId: post.userId,
+        publishedAt: Date.now(),
       }
     });
   }

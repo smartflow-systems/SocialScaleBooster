@@ -2,14 +2,27 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import rateLimit from "express-rate-limit";
-import { AnalyticsWebSocketServer } from "./websocket";
+import { AnalyticsWebSocketServer, setAnalyticsWS } from "./websocket";
 import { storage } from "./storage";
-import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema } from "@shared/schema";
+import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema, insertScheduledPostSchema, baseInsertScheduledPostSchema, insertDraftSchema } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
 import aiStudioRoutes from "./routes/ai-studio";
+import { buildAuthUrl, verifyStateToken, exchangeCodeForToken, getLongLivedToken, getUserInfo, saveMetaAccount } from "./oauth/meta";
 import { generatePost, generateCaption, generateHashtags } from "./services/openai";
+
+// Running count of posts generated via the public /api/boost endpoint
+let boostCount = 47_312;
+
+// Rate limiter for public boost endpoint - 5 per minute per IP
+const boostLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { error: "Too many requests. Try again in a minute." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Rate limiter for bot management operations (create, update, delete)
 // Limits to 20 requests per minute per IP to prevent abuse
@@ -31,6 +44,17 @@ const accountActionsLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Strict rate limiter for admin claim endpoint to prevent brute-force attacks
+// Limits to 5 attempts per 15 minutes per IP
+const adminClaimLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minute window
+  max: 5,
+  message: { error: "Too many admin claim attempts. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+});
+
 // Initialize Stripe
 let stripe: Stripe | null = null;
 if (process.env.STRIPE_SECRET_KEY) {
@@ -42,11 +66,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ ok: true });
   });
 
+  app.get("/api/boost/count", (_req, res) => {
+    res.json({ count: boostCount });
+  });
+
+  app.post("/api/boost", boostLimiter, async (req, res) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: "AI service not configured" });
+      }
+      const { niche, platform = "instagram", topic } = req.body;
+      if (!niche) {
+        return res.status(400).json({ error: "niche is required" });
+      }
+      const result = await generatePost({
+        topic: topic || `${niche} business social media post`,
+        platform: platform as any,
+        tone: "friendly",
+        industry: niche,
+        targetAudience: `${niche} customers`,
+      });
+      boostCount++;
+      res.json({ content: result.content, count: boostCount });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || "Failed to generate content" });
+    }
+  });
+
   // Register authentication routes
   registerAuthRoutes(app);
   
   // Register AI Studio routes
   app.use("/api/ai", aiStudioRoutes);
+
+  // Simple Stripe checkout — no multi-tenant auth needed
+  app.post("/api/billing/simple/create-checkout", async (req, res) => {
+    try {
+      if (!stripe) {
+        return res.status(500).json({ error: "Stripe is not configured" });
+      }
+      const { plan, email } = req.body;
+      if (!plan || !["pro", "agency"].includes(plan)) {
+        return res.status(400).json({ error: "Invalid plan. Choose 'pro' or 'agency'" });
+      }
+
+      const priceId = plan === "pro"
+        ? process.env.STRIPE_PRICE_ID_PRO
+        : process.env.STRIPE_PRICE_ID_ENTERPRISE;
+
+      if (!priceId) {
+        return res.status(500).json({ error: `Stripe price ID not configured for plan: ${plan}` });
+      }
+
+      const origin = req.headers.origin || `https://${req.headers.host}`;
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        mode: "subscription",
+        line_items: [{ price: priceId, quantity: 1 }],
+        ...(email ? { customer_email: email } : {}),
+        success_url: `${origin}/checkout?success=true&plan=${plan}`,
+        cancel_url: `${origin}/subscribe?canceled=true`,
+        subscription_data: { trial_period_days: 14 },
+        metadata: { plan },
+      });
+
+      res.json({ url: session.url });
+    } catch (error: any) {
+      console.error("Stripe checkout error:", error);
+      res.status(500).json({ error: error.message || "Failed to create checkout session" });
+    }
+  });
 
   app.post("/api/ai/simple/generate-post", async (req, res) => {
     try {
@@ -219,6 +308,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================
+  // Meta OAuth Routes
+  // =================
+
+  // Initiate Meta OAuth — authenticated, redirects to Facebook dialog
+  app.get("/api/oauth/meta/connect", authenticateToken, (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const authUrl = buildAuthUrl(userId, baseUrl);
+      res.json({ url: authUrl });
+    } catch (error: any) {
+      res.status(503).json({ message: error.message });
+    }
+  });
+
+  // Meta OAuth callback — no auth middleware (arrives from Meta redirect)
+  app.get("/api/oauth/meta/callback", async (req, res) => {
+    const { code, state, error: oauthError, error_description } = req.query as Record<string, string>;
+
+    if (oauthError) {
+      console.error("[Meta OAuth] Error from Meta:", oauthError, error_description);
+      return res.redirect(`/accounts?oauth_error=${encodeURIComponent(error_description ?? oauthError)}`);
+    }
+
+    if (!code || !state) {
+      return res.redirect("/accounts?oauth_error=Missing+code+or+state");
+    }
+
+    const stateData = verifyStateToken(state);
+    if (!stateData) {
+      return res.redirect("/accounts?oauth_error=Invalid+or+expired+state+token");
+    }
+
+    try {
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+      const { accessToken: shortToken } = await exchangeCodeForToken(code, baseUrl);
+      const { accessToken, expiresIn } = await getLongLivedToken(shortToken);
+      const userInfo = await getUserInfo(accessToken);
+
+      const accounts: Array<{ id: string; name: string; access_token: string }> =
+        userInfo.accounts?.data ?? [];
+
+      if (accounts.length === 0) {
+        // No pages — save as personal Facebook account
+        await saveMetaAccount({
+          userId: stateData.userId,
+          accessToken,
+          expiresIn,
+          userInfo,
+          platform: "facebook",
+        });
+      } else {
+        // Save each connected page as an account
+        for (const page of accounts) {
+          await saveMetaAccount({
+            userId: stateData.userId,
+            accessToken,
+            expiresIn,
+            userInfo,
+            platform: "facebook",
+            pageInfo: page,
+          });
+        }
+      }
+
+      res.redirect("/accounts?oauth_success=meta");
+    } catch (error: any) {
+      console.error("[Meta OAuth] Callback error:", error);
+      res.redirect(`/accounts?oauth_error=${encodeURIComponent(error.message)}`);
+    }
+  });
+
   // Social Account Routes (Multi-Account Support)
   // ============================================
 
@@ -719,11 +880,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/templates", authenticateToken, async (req: AuthRequest, res) => {
     try {
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
       const templateData = insertBotTemplateSchema.parse(req.body);
       const template = await storage.createBotTemplate(templateData);
       res.json(template);
     } catch (error: any) {
       res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/templates/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid template id" });
+      const updates = insertBotTemplateSchema.partial().parse(req.body);
+      const template = await storage.updateBotTemplate(id, updates);
+      res.json(template);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/templates/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      if (!req.user?.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid template id" });
+      await storage.deleteBotTemplate(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Admin — claim admin status using ADMIN_SECRET env variable
+  app.post("/api/admin/claim", adminClaimLimiter, authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const adminSecret = process.env.ADMIN_SECRET;
+      if (!adminSecret) {
+        return res.status(503).json({ message: "Admin secret not configured" });
+      }
+      const { secret } = req.body;
+      if (secret !== adminSecret) {
+        return res.status(403).json({ message: "Invalid admin secret" });
+      }
+      const userId = req.userId!;
+      const updatedUser = await storage.updateUser(userId, { isAdmin: true });
+      const { generateToken } = await import('./middleware/auth');
+      const newToken = generateToken({
+        userId: updatedUser.id,
+        username: updatedUser.username,
+        email: updatedUser.email || "",
+        isPremium: updatedUser.isPremium ?? false,
+        isAdmin: true,
+      });
+      res.json({ success: true, message: "Admin access granted", token: newToken });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
   });
 
@@ -972,10 +1192,182 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Scheduled Posts routes (require authentication)
+  app.get("/api/scheduled-posts", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const posts = await storage.getScheduledPostsByUserId(userId);
+      res.json(posts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/scheduled-posts", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const parsed = insertScheduledPostSchema.safeParse({ ...req.body, userId });
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
+      }
+      if (new Date(parsed.data.scheduledAt) <= new Date()) {
+        return res.status(400).json({ message: "Scheduled date must be in the future" });
+      }
+      const post = await storage.createScheduledPost(parsed.data);
+      res.status(201).json(post);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/scheduled-posts/reorder", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { orderedIds } = req.body;
+      if (!Array.isArray(orderedIds) || orderedIds.some(id => typeof id !== "number")) {
+        return res.status(400).json({ message: "orderedIds must be an array of numbers" });
+      }
+      await storage.reorderScheduledPosts(userId, orderedIds);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  const patchScheduledPostSchema = baseInsertScheduledPostSchema.pick({ platform: true, content: true, scheduledAt: true }).partial();
+
+  app.patch("/api/scheduled-posts/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user!.id;
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+      const parsed = patchScheduledPostSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
+      }
+      if (Object.keys(parsed.data).length === 0) {
+        return res.status(400).json({ message: "No fields provided to update" });
+      }
+      if (parsed.data.scheduledAt !== undefined) {
+        const d = new Date(parsed.data.scheduledAt);
+        if (isNaN(d.getTime())) {
+          return res.status(400).json({ message: "Scheduled date must be a valid date" });
+        }
+        if (d <= new Date()) {
+          return res.status(400).json({ message: "Scheduled date must be in the future" });
+        }
+      }
+      const updated = await storage.updateScheduledPost(id, userId, parsed.data);
+      if (!updated) return res.status(404).json({ message: "Post not found or not owned by you" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/scheduled-posts/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user!.id;
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+      const deleted = await storage.deleteScheduledPost(id, userId);
+      if (!deleted) return res.status(404).json({ message: "Post not found or not owned by you" });
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/scheduled-posts/:id/retry", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user!.id;
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+      const updated = await storage.retryScheduledPost(id, userId);
+      if (!updated) return res.status(404).json({ message: "Post not found, not owned by you, or not in failed state" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Scheduled posts count (for sidebar badge)
+  app.get("/api/scheduled-posts/count", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const posts = await storage.getScheduledPostsByUserId(userId);
+      const upcoming = posts.filter(p => p.status === "scheduled" && new Date(p.scheduledAt) > new Date());
+      const breakdown: Record<string, number> = {};
+      for (const post of upcoming) {
+        if (post.platform) {
+          breakdown[post.platform] = (breakdown[post.platform] || 0) + 1;
+        }
+      }
+      res.json({ count: upcoming.length, breakdown });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Draft routes
+  app.get("/api/drafts", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const userDrafts = await storage.getDraftsByUserId(userId);
+      res.json(userDrafts);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/drafts", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const parsed = insertDraftSchema.safeParse({ ...req.body, userId });
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.errors });
+      }
+      const draft = await storage.createDraft(parsed.data);
+      res.status(201).json(draft);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.put("/api/drafts/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user!.id;
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+      const parsed = insertDraftSchema.omit({ userId: true }).partial().safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: parsed.error.message });
+      if (Object.keys(parsed.data).length === 0) return res.status(400).json({ message: "No fields to update" });
+      const updated = await storage.updateDraft(id, userId, parsed.data);
+      if (!updated) return res.status(404).json({ message: "Draft not found" });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/drafts/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = req.user!.id;
+      if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+      const deleted = await storage.deleteDraft(id, userId);
+      if (!deleted) return res.status(404).json({ message: "Draft not found" });
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
 
   // Initialize WebSocket server for real-time analytics
   const analyticsWS = new AnalyticsWebSocketServer(httpServer);
+  setAnalyticsWS(analyticsWS);
 
   // Handle server shutdown
   process.on('SIGTERM', () => {
