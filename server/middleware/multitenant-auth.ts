@@ -4,7 +4,7 @@ import { db } from '../db';
 import { users, organizations } from '@shared/schema-multitenant';
 import { eq } from 'drizzle-orm';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'sfs-dev-secret-change-in-production';
+const JWT_SECRET = process.env.SFS_JWT_SECRET || 'sfs-dev-secret-change-in-production';
 
 export interface MultiTenantAuthRequest extends Request {
   user?: {

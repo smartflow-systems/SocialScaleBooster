@@ -33,7 +33,7 @@ export async function tenantMiddleware(req: Request, res: Response, next: NextFu
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+    const decoded = jwt.verify(token, process.env.SFS_JWT_SECRET!) as any;
     const userId = decoded.userId;
 
     // Get user with organization

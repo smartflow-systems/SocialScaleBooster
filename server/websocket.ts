@@ -5,7 +5,7 @@ import { URL } from 'url';
 import jwt from 'jsonwebtoken';
 import { storage } from './storage';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'sfs-dev-secret-change-in-production';
+const JWT_SECRET = process.env.SFS_JWT_SECRET || 'sfs-dev-secret-change-in-production';
 
 interface JWTPayload {
   userId: number;

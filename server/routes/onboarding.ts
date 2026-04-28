@@ -89,7 +89,7 @@ router.post('/signup', async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { userId: user.id, organizationId: organization.id },
-      process.env.JWT_SECRET!,
+      process.env.SFS_JWT_SECRET!,
       { expiresIn: '7d' }
     );
 
@@ -238,7 +238,7 @@ router.post('/accept-invite', async (req, res) => {
     // Generate JWT token
     const authToken = jwt.sign(
       { userId: user.id, organizationId: user.organizationId },
-      process.env.JWT_SECRET!,
+      process.env.SFS_JWT_SECRET!,
       { expiresIn: '7d' }
     );
 
