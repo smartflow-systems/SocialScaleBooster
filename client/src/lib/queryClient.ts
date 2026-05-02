@@ -47,7 +47,14 @@ export const getQueryFn: <T>(options: {
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    // Guard against empty body (e.g. 204 No Content or 304 Not Modified)
+    const text = await res.text();
+    if (!text || text.trim() === "") return null as unknown as T;
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      return null as unknown as T;
+    }
   };
 
 export const queryClient = new QueryClient({

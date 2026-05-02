@@ -10,9 +10,13 @@ const registerSchema = z.object({
   password: z.string().min(8),
 });
 
+// Accept email OR username for login
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().optional(),
+  username: z.string().optional(),
   password: z.string(),
+}).refine((d) => d.email || d.username, {
+  message: 'Provide email or username to log in',
 });
 
 export function registerAuthRoutes(app: Express) {
@@ -61,6 +65,9 @@ export function registerAuthRoutes(app: Express) {
           isPremium: user.isPremium,
           isAdmin: user.isAdmin,
           botCount: user.botCount,
+          onboardingComplete: (user as any).onboardingComplete ?? false,
+          businessName: (user as any).businessName ?? null,
+          niche: (user as any).niche ?? null,
         },
       });
     } catch (error: any) {
@@ -72,22 +79,30 @@ export function registerAuthRoutes(app: Express) {
   });
 
   /**
-   * Login user
+   * Login user — accepts email or username
    */
   app.post('/api/auth/login', async (req, res) => {
     try {
-      const { email, password } = loginSchema.parse(req.body);
+      const parsed = loginSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: 'Validation error', errors: parsed.error.issues });
+      }
+      const { email, username, password } = parsed.data;
 
-      // Find user
-      const user = await storage.getUserByEmail(email);
+      // Look up by email first, then username
+      let user = email ? await storage.getUserByEmail(email) : undefined;
+      if (!user && username) {
+        user = await storage.getUserByUsername(username);
+      }
+
       if (!user) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        return res.status(401).json({ message: 'Invalid credentials' });
       }
 
       // Verify password
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
-        return res.status(401).json({ message: 'Invalid email or password' });
+        return res.status(401).json({ message: 'Invalid credentials' });
       }
 
       // Generate token
@@ -110,30 +125,25 @@ export function registerAuthRoutes(app: Express) {
           isPremium: user.isPremium,
           isAdmin: user.isAdmin,
           botCount: user.botCount,
+          onboardingComplete: (user as any).onboardingComplete ?? false,
+          businessName: (user as any).businessName ?? null,
+          niche: (user as any).niche ?? null,
         },
       });
     } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: 'Validation error', errors: error.issues });
-      }
       res.status(500).json({ message: error.message });
     }
   });
 
   /**
-   * Get current user info
+   * Get current user info (stub — full impl via middleware)
    */
   app.get('/api/auth/me', async (req, res) => {
     try {
-      // This route requires authenticateToken middleware
-      // For now, return basic structure
       const authHeader = req.headers['authorization'];
       if (!authHeader) {
         return res.status(401).json({ message: 'Not authenticated' });
       }
-
-      // Token verification happens in middleware
-      // Return user info from storage
       res.json({
         message: 'Authentication endpoint - implement with middleware',
       });
