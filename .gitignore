@@ -234,7 +234,7 @@ server/*.bak.*
 postcss.config.js.bak.*
 
 # replit scratch assets
-attached_assets/image_*.png
+attached_assets/
 
 shared/schema.ts.backup
 *.bak*

@@ -54,6 +54,8 @@ app.use((req, res, next) => {
     console.warn('[seed] skipped bot template seeding — database unavailable:', err.message);
   }
 
+  app.get("/health", (_req, res) => res.json({ ok: true }));
+
   const server = await registerRoutes(app);
 
   // Start scheduler after WebSocket server is set up so publish notifications work

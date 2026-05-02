@@ -4,6 +4,10 @@
 
 Part of the SmartFlow Systems ecosystem - Enterprise-grade business automation and social media management.
 
+## Live Demo
+
+> **[Coming soon — deploy on Replit and paste the `.replit.app` URL here]**
+
 ---
 
 ## Features
