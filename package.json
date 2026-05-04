@@ -98,7 +98,7 @@
     "@typescript-eslint/parser": "^8.0.0",
     "@vitejs/plugin-react": "^5.1.2",
     "@vitest/coverage-v8": "^4.0.18",
-    "@vitest/ui": "^4.0.18",
+    "@vitest/ui": "^4.1.5",
     "autoprefixer": "^10.4.23",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
