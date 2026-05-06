@@ -120,7 +120,8 @@
     "zod": "^4.3.5"
   },
   "overrides": {
-    "esbuild": ">=0.25.0"
+    "esbuild": ">=0.25.0",
+    "ip-address": "^10.2.0"
   },
   "engines": {
     "node": ">=20.19"
