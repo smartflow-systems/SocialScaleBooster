@@ -26,29 +26,26 @@ const boostLimiter = rateLimit({
 });
 
 // Rate limiter for bot management operations (create, update, delete)
-// Limits to 20 requests per minute per IP to prevent abuse
 const botActionsLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute window
-  max: 20, // 20 requests per window
+  windowMs: 60 * 1000,
+  max: 20,
   message: { error: "Too many bot operations. Please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 // Rate limiter for social account operations (more sensitive - involves credentials)
-// Limits to 10 requests per minute per IP
 const accountActionsLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute window
-  max: 10, // 10 requests per window
+  windowMs: 60 * 1000,
+  max: 10,
   message: { error: "Too many account operations. Please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 // Strict rate limiter for admin claim endpoint to prevent brute-force attacks
-// Limits to 5 attempts per 15 minutes per IP
 const adminClaimLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minute window
+  windowMs: 15 * 60 * 1000,
   max: 5,
   message: { error: "Too many admin claim attempts. Please try again later." },
   standardHeaders: true,
