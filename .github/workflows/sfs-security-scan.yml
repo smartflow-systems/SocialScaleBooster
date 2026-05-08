@@ -28,7 +28,7 @@ jobs:
         if: hashFiles('package.json') != ''
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Setup Python
         if: hashFiles('requirements.txt') != '' || hashFiles('pyproject.toml') != ''
@@ -155,7 +155,7 @@ jobs:
       # Upload artifacts
       - name: Upload security reports
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: security-scan-reports
           path: |
