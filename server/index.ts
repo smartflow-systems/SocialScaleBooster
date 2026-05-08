@@ -1,5 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { runMigrations } from "./migrate";
@@ -8,9 +10,20 @@ import { startPostScheduler } from "./features/post-scheduler";
 
 const app = express();
 app.set("trust proxy", 1);
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+app.use(helmet());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || false,
+  credentials: false,
+}));
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+}));
+app.use(express.json({ limit: "16kb" }));
+app.use(express.urlencoded({ extended: false, limit: "16kb" }));
 
 app.use((req, res, next) => {
   const start = Date.now();
