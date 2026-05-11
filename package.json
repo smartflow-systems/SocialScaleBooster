@@ -99,7 +99,7 @@
     "@vitejs/plugin-react": "^5.1.2",
     "@vitest/coverage-v8": "^4.1.5",
     "@vitest/ui": "^4.0.18",
-    "autoprefixer": "^10.4.23",
+    "autoprefixer": "^10.5.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "drizzle-kit": "^0.31.10",
