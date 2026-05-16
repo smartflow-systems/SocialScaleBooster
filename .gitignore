@@ -37,6 +37,10 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Generated audit/risk reports
+SFS_ENV_RISK_REPORT_*.md
+sfs-env-risk-report.sh
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
