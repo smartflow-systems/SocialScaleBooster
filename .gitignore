@@ -243,3 +243,4 @@ attached_assets/
 shared/schema.ts.backup
 *.bak*
 .env.backup*
+.env.bak.*
