@@ -250,12 +250,12 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
 }
 
 function getPlanFromPriceId(priceId: string): keyof typeof PLANS {
-  // You'll need to map your actual Stripe price IDs here
   const priceMap: Record<string, keyof typeof PLANS> = {
-    'price_starter_gbp_monthly': 'starter',
-    'price_pro_gbp_monthly': 'pro',
+    'price_1TISJxIzLfwhhUxx0BFBUY6m': 'starter',
+    [process.env.STRIPE_PRICE_ID_PRO || 'price_pro_gbp_monthly']: 'pro',
+    [process.env.STRIPE_PRICE_ID_ENTERPRISE || 'price_enterprise_placeholder']: 'agency',
   };
-  
+
   return priceMap[priceId] || 'trial';
 }
 

@@ -26,29 +26,26 @@ const boostLimiter = rateLimit({
 });
 
 // Rate limiter for bot management operations (create, update, delete)
-// Limits to 20 requests per minute per IP to prevent abuse
 const botActionsLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute window
-  max: 20, // 20 requests per window
+  windowMs: 60 * 1000,
+  max: 20,
   message: { error: "Too many bot operations. Please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 // Rate limiter for social account operations (more sensitive - involves credentials)
-// Limits to 10 requests per minute per IP
 const accountActionsLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute window
-  max: 10, // 10 requests per window
+  windowMs: 60 * 1000,
+  max: 10,
   message: { error: "Too many account operations. Please try again later." },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 // Strict rate limiter for admin claim endpoint to prevent brute-force attacks
-// Limits to 5 attempts per 15 minutes per IP
 const adminClaimLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minute window
+  windowMs: 15 * 60 * 1000,
   max: 5,
   message: { error: "Too many admin claim attempts. Please try again later." },
   standardHeaders: true,
@@ -1235,6 +1232,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Scheduled posts count (for sidebar badge) — MUST be before /:id routes
+  app.get("/api/scheduled-posts/count", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const posts = await storage.getScheduledPostsByUserId(userId);
+      const upcoming = posts.filter(p => p.status === "scheduled" && new Date(p.scheduledAt) > new Date());
+      const breakdown: Record<string, number> = {};
+      for (const post of upcoming) {
+        if (post.platform) {
+          breakdown[post.platform] = (breakdown[post.platform] || 0) + 1;
+        }
+      }
+      res.json({ count: upcoming.length, breakdown });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.post("/api/scheduled-posts", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const userId = req.user!.id;
@@ -1341,24 +1356,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updated = await storage.retryScheduledPost(id, userId, scheduledAt);
       if (!updated) return res.status(404).json({ message: "Post not found, not owned by you, or not in failed state" });
       res.json(updated);
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  // Scheduled posts count (for sidebar badge)
-  app.get("/api/scheduled-posts/count", authenticateToken, async (req: AuthRequest, res) => {
-    try {
-      const userId = req.user!.id;
-      const posts = await storage.getScheduledPostsByUserId(userId);
-      const upcoming = posts.filter(p => p.status === "scheduled" && new Date(p.scheduledAt) > new Date());
-      const breakdown: Record<string, number> = {};
-      for (const post of upcoming) {
-        if (post.platform) {
-          breakdown[post.platform] = (breakdown[post.platform] || 0) + 1;
-        }
-      }
-      res.json({ count: upcoming.length, breakdown });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

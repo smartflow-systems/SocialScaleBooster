@@ -12,6 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({ username: "", email: "", password: "" });
+  // For sign-in we send email; for register we send username + email + password
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +21,7 @@ export default function Login() {
 
     const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
     const body = isLogin
-      ? { username: form.username, password: form.password }
+      ? { email: form.email, password: form.password }
       : { username: form.username, email: form.email, password: form.password };
 
     try {
@@ -35,11 +36,8 @@ export default function Login() {
         setError(data.message || data.error || "Something went wrong. Please try again.");
       } else {
         login(data.token, data.user);
-        if (!data.user?.onboardingComplete) {
-          setLocation("/onboarding");
-        } else {
-          setLocation("/dashboard");
-        }
+        // Always go to dashboard; onboarding is optional and can be accessed from settings
+        setLocation("/dashboard");
       }
     } catch {
       setError("Unable to connect. Please check your internet connection.");
@@ -84,37 +82,37 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs text-neutral-400 font-medium uppercase tracking-widest mb-1.5">
-                Username
-              </label>
-              <input
-                type="text"
-                required
-                autoComplete="username"
-                placeholder="yourname"
-                value={form.username}
-                onChange={(e) => setForm({ ...form, username: e.target.value })}
-                className="w-full bg-[var(--sf-black)] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--sf-gold)]/50 transition-colors"
-              />
-            </div>
-
             {!isLogin && (
               <div>
                 <label className="block text-xs text-neutral-400 font-medium uppercase tracking-widest mb-1.5">
-                  Email
+                  Username
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   required
-                  autoComplete="email"
-                  placeholder="you@company.com"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  autoComplete="username"
+                  placeholder="yourname"
+                  value={form.username}
+                  onChange={(e) => setForm({ ...form, username: e.target.value })}
                   className="w-full bg-[var(--sf-black)] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--sf-gold)]/50 transition-colors"
                 />
               </div>
             )}
+
+            <div>
+              <label className="block text-xs text-neutral-400 font-medium uppercase tracking-widest mb-1.5">
+                Email
+              </label>
+              <input
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="you@company.com"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full bg-[var(--sf-black)] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-[var(--sf-gold)]/50 transition-colors"
+              />
+            </div>
 
             <div>
               <label className="block text-xs text-neutral-400 font-medium uppercase tracking-widest mb-1.5">
