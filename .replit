@@ -41,12 +41,12 @@ run = ["npm", "start"]
 [userenv]
 
 [userenv.production]
-NODE_ENV = "production"
 
 [userenv.shared]
+NODE_ENV = "production"
 
 [nix]
-packages = ["gh", "psmisc"]
+packages = ["gh", "psmisc", "libosmscout"]
 channel = "stable-25_05"
 
 [postMerge]
