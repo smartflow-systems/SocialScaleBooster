@@ -290,6 +290,7 @@ export default function CreatePost() {
       const newPostId: number | undefined = newPost?.id;
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/scheduled-posts/count"] });
+      setResult(scheduleContent);
       setShowSchedule(false);
       setScheduleDate("");
       toast({
