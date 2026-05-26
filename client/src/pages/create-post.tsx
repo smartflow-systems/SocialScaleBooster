@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useSearch } from "wouter";
 import {
   FileText, ArrowLeft, Send, Copy, Loader2, Sparkles,
-  BookmarkPlus, Trash2, ChevronDown, ChevronUp, CalendarClock, Pencil, X,
+  BookmarkPlus, Trash2, ChevronDown, ChevronUp, CalendarClock, Pencil, X, AlertTriangle,
 } from "lucide-react";
 import { ToastAction } from "@/components/ui/toast";
 import { GlassCard, GoldButton, GhostButton, GoldHeading, SfsContainer } from "@/components/sfs";
@@ -553,64 +553,88 @@ export default function CreatePost() {
                 </div>
               </div>
             ) : result ? (
-              <div className="flex-1 flex flex-col gap-4">
-                <div className="flex-1 bg-[var(--sf-black)] rounded-lg p-4 border border-[var(--sf-gold)]/10">
-                  <p className="text-white whitespace-pre-wrap leading-relaxed text-sm">{result}</p>
-                </div>
-                <div className="flex gap-2">
-                  <GoldButton
-                    onClick={copyToClipboard}
-                    className="flex-1 inline-flex items-center justify-center text-xs px-3"
-                  >
-                    <Copy className="w-3.5 h-3.5 mr-1.5" />
-                    Copy Post
-                  </GoldButton>
-                  {editingDraftId ? (
-                    <>
-                      <GhostButton
-                        onClick={() => updateDraftMutation.mutate(editingDraftId)}
-                        disabled={updateDraftMutation.isPending}
-                        className="flex-1 inline-flex items-center justify-center text-xs px-3"
-                      >
-                        {updateDraftMutation.isPending ? (
-                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                        ) : (
-                          <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                        )}
-                        Update Draft
-                      </GhostButton>
-                      <GhostButton
-                        onClick={cancelEditDraft}
-                        className="inline-flex items-center justify-center text-xs px-3"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </GhostButton>
-                    </>
-                  ) : (
-                    <>
-                      <GhostButton
-                        onClick={() => saveDraftMutation.mutate()}
-                        disabled={saveDraftMutation.isPending}
-                        className="flex-1 inline-flex items-center justify-center text-xs px-3"
-                      >
-                        {saveDraftMutation.isPending ? (
-                          <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                        ) : (
-                          <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
-                        )}
-                        Save Draft
-                      </GhostButton>
+              (() => {
+                const charLimit = PLATFORM_CHAR_LIMITS[platform];
+                const charCount = result.length;
+                const isTooLong = charLimit !== undefined && charCount > charLimit;
+                return (
+                  <div className="flex-1 flex flex-col gap-4">
+                    <div className={`flex-1 bg-[var(--sf-black)] rounded-lg p-4 border ${isTooLong ? "border-amber-500/50" : "border-[var(--sf-gold)]/10"}`}>
+                      <p className="text-white whitespace-pre-wrap leading-relaxed text-sm">{result}</p>
+                    </div>
+                    <div className="flex items-center justify-between px-1">
+                      {isTooLong ? (
+                        <span className="flex items-center gap-1.5 text-xs font-medium text-amber-400">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                          Too long for {platformLabel} — {charCount.toLocaleString()} / {charLimit.toLocaleString()} chars
+                        </span>
+                      ) : (
+                        <span className="text-xs text-neutral-500">
+                          {charCount.toLocaleString()}{charLimit ? ` / ${charLimit.toLocaleString()}` : ""} chars
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
                       <GoldButton
-                        onClick={() => { setScheduleContent(result); setShowSchedule(true); }}
+                        onClick={copyToClipboard}
                         className="flex-1 inline-flex items-center justify-center text-xs px-3"
                       >
-                        <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
-                        Schedule Post
+                        <Copy className="w-3.5 h-3.5 mr-1.5" />
+                        Copy Post
                       </GoldButton>
-                    </>
-                  )}
-                </div>
-              </div>
+                      {editingDraftId ? (
+                        <>
+                          <GhostButton
+                            onClick={() => updateDraftMutation.mutate(editingDraftId)}
+                            disabled={updateDraftMutation.isPending}
+                            className="flex-1 inline-flex items-center justify-center text-xs px-3"
+                          >
+                            {updateDraftMutation.isPending ? (
+                              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                            ) : (
+                              <Pencil className="w-3.5 h-3.5 mr-1.5" />
+                            )}
+                            Update Draft
+                          </GhostButton>
+                          <GhostButton
+                            onClick={cancelEditDraft}
+                            className="inline-flex items-center justify-center text-xs px-3"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </GhostButton>
+                        </>
+                      ) : (
+                        <>
+                          <GhostButton
+                            onClick={() => saveDraftMutation.mutate()}
+                            disabled={saveDraftMutation.isPending}
+                            className="flex-1 inline-flex items-center justify-center text-xs px-3"
+                          >
+                            {saveDraftMutation.isPending ? (
+                              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                            ) : (
+                              <BookmarkPlus className="w-3.5 h-3.5 mr-1.5" />
+                            )}
+                            Save Draft
+                          </GhostButton>
+                          <GoldButton
+                            onClick={() => { setScheduleContent(result); setShowSchedule(true); }}
+                            className={`flex-1 inline-flex items-center justify-center text-xs px-3 ${isTooLong ? "ring-1 ring-amber-500/60" : ""}`}
+                            title={isTooLong ? `Content exceeds the ${charLimit?.toLocaleString()}-character limit for ${platformLabel}` : undefined}
+                          >
+                            {isTooLong ? (
+                              <AlertTriangle className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
+                            ) : (
+                              <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
+                            )}
+                            Schedule Post
+                          </GoldButton>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()
             ) : (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
