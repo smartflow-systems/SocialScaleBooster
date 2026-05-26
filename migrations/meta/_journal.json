@@ -36,6 +36,13 @@
       "when": 1776522977109,
       "tag": "0004_lively_vapor",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1745700000000,
+      "tag": "0005_user_business_name",
+      "breakpoints": true
     }
   ]
 }

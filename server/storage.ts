@@ -606,9 +606,12 @@ export class MemStorage implements IStorage {
       username: "demo_user",
       password: "password",
       email: "demo@smartflowai.com",
+      orgId: null,
+      businessName: null,
       isPremium: false,
       isAdmin: false,
       botCount: 0,
+      notificationPrefs: null,
       stripeCustomerId: null,
       stripeSubscriptionId: null,
       createdAt: new Date()

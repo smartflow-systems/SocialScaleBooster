@@ -3,9 +3,10 @@ import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { AnalyticsWebSocketServer, setAnalyticsWS } from "./websocket";
 import { storage } from "./storage";
-import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema, insertScheduledPostSchema, baseInsertScheduledPostSchema, insertDraftSchema } from "@shared/schema";
+import { insertBotSchema, insertBotTemplateSchema, insertAnalyticsSchema, insertClientSchema, insertSocialAccountSchema, insertScheduledPostSchema, baseInsertScheduledPostSchema, insertDraftSchema, type InsertUser } from "@shared/schema";
 import { authenticateToken, optionalAuth, type AuthRequest } from "./middleware/auth";
 import { registerAuthRoutes } from "./auth";
 import { encrypt, decrypt, validateEncryption } from "./utils/encryption";
@@ -1047,6 +1048,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ notificationPrefs: user.notificationPrefs });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  const profileUpdateSchema = z.object({
+    username: z.string().min(2, "Username must be at least 2 characters").max(50).optional(),
+    email: z.string().email("Invalid email address").optional().or(z.literal("")),
+    businessName: z.string().max(100).optional().or(z.literal("")),
+  });
+
+  app.get("/api/user/profile", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email ?? "",
+        businessName: user.businessName ?? "",
+        isPremium: user.isPremium,
+        isAdmin: user.isAdmin,
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Internal server error";
+      res.status(500).json({ message });
+    }
+  });
+
+  app.patch("/api/user/profile", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const parsed = profileUpdateSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Validation failed", errors: parsed.error.errors });
+      }
+      const { username, email, businessName } = parsed.data;
+      if (username) {
+        const existing = await storage.getUserByUsername(username);
+        if (existing && existing.id !== userId) {
+          return res.status(409).json({ message: "Username is already taken" });
+        }
+      }
+      if (email) {
+        const existing = await storage.getUserByEmail(email);
+        if (existing && existing.id !== userId) {
+          return res.status(409).json({ message: "Email address is already in use" });
+        }
+      }
+      const updates: Partial<InsertUser> = {};
+      if (username !== undefined) updates.username = username;
+      if (email !== undefined) updates.email = email || null;
+      if (businessName !== undefined) updates.businessName = businessName || null;
+      const user = await storage.updateUser(userId, updates);
+      res.json({
+        id: user.id,
+        username: user.username,
+        email: user.email ?? "",
+        businessName: user.businessName ?? "",
+        isPremium: user.isPremium,
+        isAdmin: user.isAdmin,
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Internal server error";
+      res.status(500).json({ message });
+    }
+  });
+
+  const passwordChangeSchema = z.object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(8, "New password must be at least 8 characters"),
+  });
+
+  app.patch("/api/user/password", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.userId!;
+      const parsed = passwordChangeSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Validation failed", errors: parsed.error.errors });
+      }
+      const { currentPassword, newPassword } = parsed.data;
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      const valid = await bcrypt.compare(currentPassword, user.password);
+      if (!valid) {
+        return res.status(401).json({ message: "Current password is incorrect" });
+      }
+      const hashed = await bcrypt.hash(newPassword, 10);
+      await storage.updateUser(userId, { password: hashed });
+      res.json({ message: "Password updated successfully" });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Internal server error";
+      res.status(500).json({ message });
     }
   });
 

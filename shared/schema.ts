@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email"),
   orgId: text("org_id"), // SFS-Backend SSO: maps to SFSTokenPayload.orgId
+  businessName: text("business_name"),
   isPremium: boolean("is_premium").default(false),
   isAdmin: boolean("is_admin").default(false),
   stripeCustomerId: text("stripe_customer_id"),
