@@ -20,7 +20,8 @@ export default function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [badgePulse, setBadgePulse] = useState(false);
   const prevCountRef = useRef<number | null>(null);
-  const pendingDeltaRef = useRef<number>(0);
+  const pendingIncreaseRef = useRef<number>(0);
+  const pendingDecreaseRef = useRef<number>(0);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast } = useToast();
   const { prefs } = useNotificationPrefs();
@@ -52,7 +53,12 @@ export default function AppSidebar() {
 
     if (scheduledCount === prev) return;
 
-    pendingDeltaRef.current += scheduledCount - prev;
+    const delta = scheduledCount - prev;
+    if (delta > 0) {
+      pendingIncreaseRef.current += delta;
+    } else {
+      pendingDecreaseRef.current += Math.abs(delta);
+    }
 
     let pulseTimer: ReturnType<typeof setTimeout> | undefined;
     if (prefs.badgePulse) {
@@ -66,22 +72,24 @@ export default function AppSidebar() {
       }
 
       debounceTimerRef.current = setTimeout(() => {
-        const netDelta = pendingDeltaRef.current;
-        pendingDeltaRef.current = 0;
+        const totalDecreased = pendingDecreaseRef.current;
+        const totalIncreased = pendingIncreaseRef.current;
+        pendingDecreaseRef.current = 0;
+        pendingIncreaseRef.current = 0;
         debounceTimerRef.current = null;
 
         const currentCount = prevCountRef.current ?? scheduledCount;
 
-        if (netDelta < 0) {
-          const diff = Math.abs(netDelta);
+        if (totalDecreased > 0) {
           toast({
             title: "Post Published",
-            description: `${diff} scheduled post${diff > 1 ? "s were" : " was"} published. ${currentCount} remaining in queue.`,
+            description: `${totalDecreased} scheduled post${totalDecreased > 1 ? "s were" : " was"} published. ${currentCount} remaining in queue.`,
           });
-        } else if (netDelta > 0) {
+        }
+        if (totalIncreased > 0) {
           toast({
             title: "New Scheduled Post",
-            description: `${netDelta} new post${netDelta > 1 ? "s" : ""} added to your schedule. ${currentCount} total queued.`,
+            description: `${totalIncreased} new post${totalIncreased > 1 ? "s" : ""} added to your schedule. ${currentCount} total queued.`,
           });
         }
       }, 5_000);
