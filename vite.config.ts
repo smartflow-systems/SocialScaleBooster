@@ -1,32 +1,21 @@
-{
-  "include": ["client/src/**/*", "shared/**/*"],
-  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
-  "compilerOptions": {
-    "incremental": true,
-    "tsBuildInfoFile": "./.tsbuildinfo",
+const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
-    "noEmit": true,
-
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-
-    "strict": true,
-
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
-
-    "jsx": "react-jsx",
-
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-
-    "baseUrl": ".",
-
-    "types": ["node", "vite/client"],
-
-    "paths": {
-      "@/*": ["./client/src/*"],
-      "@shared/*": ["./shared/*"]
-    }
-  }
-}
+export default defineConfig({
+  root: path.resolve(rootDir, "client"),
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(rootDir, "client/src"),
+      "@shared": path.resolve(rootDir, "shared"),
+    },
+  },
+  build: {
+    outDir: path.resolve(rootDir, "dist/public"),
+    emptyOutDir: true,
+  },
+});
