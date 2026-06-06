@@ -10,6 +10,7 @@
     "dev": "tsx watch server/index.ts",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
+    "type-check": "npm run typecheck",
     "test": "vitest run",
     "test:watch": "vitest watch",
     "migrate": "drizzle-kit generate && drizzle-kit push",

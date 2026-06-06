@@ -9,7 +9,7 @@ const FAQS = [
   },
   {
     q: "Can I schedule posts in advance?",
-    a: "Yes. Use the Scheduler page to pick a date, time and platforms. Posts auto-publish when due.",
+    a: "Yes. Use the Scheduler page to queue content for an internal demo workflow. Live platform publishing is not enabled.",
   },
   {
     q: "What does the AI Studio do?",

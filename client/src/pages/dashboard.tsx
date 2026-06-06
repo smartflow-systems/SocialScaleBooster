@@ -12,7 +12,7 @@ const quickActions = [
   { label: "Create a Post", desc: "Full post with image & copy", icon: Sparkles, href: "/create", tone: "purple" },
   { label: "Schedule Content", desc: "Queue posts at the best times", icon: Calendar, href: "/scheduler", tone: "green" },
   { label: "Connect Accounts", desc: "Link Instagram, TikTok & more", icon: Globe, href: "/accounts", tone: "pink" },
-  { label: "View Analytics", desc: "See your growth and results", icon: BarChart3, href: "/analytics", tone: "orange" },
+  { label: "View Analytics", desc: "Review demo analytics views", icon: BarChart3, href: "/analytics", tone: "orange" },
 ];
 
 const toneClass: Record<string, string> = {
@@ -27,13 +27,13 @@ const toneClass: Record<string, string> = {
 const gettingStarted = [
   { step: 1, label: "Connect a social account", desc: "Link your Instagram, TikTok, or Facebook page.", href: "/accounts", icon: Globe },
   { step: 2, label: "Generate your first post", desc: "Use AI to create a caption and hashtags in seconds.", href: "/captions", icon: Sparkles },
-  { step: 3, label: "Schedule it for posting", desc: "Set a time and let SmartFlow publish it for you.", href: "/scheduler", icon: Calendar },
-  { step: 4, label: "Track your results", desc: "See impressions, clicks, and follower growth.", href: "/analytics", icon: BarChart3 },
+  { step: 3, label: "Queue it in the scheduler", desc: "Set a time and preview the internal demo workflow.", href: "/scheduler", icon: Calendar },
+  { step: 4, label: "Review demo analytics", desc: "Explore the available analytics views and fields.", href: "/analytics", icon: BarChart3 },
 ];
 
 const features = [
   { label: "AI Studio", desc: "Generate content in bulk", href: "/ai-studio", icon: Bot },
-  { label: "Auto Engagement", desc: "Like, comment & follow automatically", href: "/auto-engage", icon: Zap },
+  { label: "Engagement Planner", desc: "Preview internal engagement workflows", href: "/auto-engage", icon: Zap },
   { label: "Competitor Tracker", desc: "See what others are posting", href: "/competitors", icon: TrendingUp },
   { label: "Client Manager", desc: "Handle multiple accounts", href: "/clients", icon: Users },
 ];
@@ -60,7 +60,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[var(--sf-black)] text-white" style={{ fontFamily: "'Inter', sans-serif" }}>
 
       {/* Top bar */}
-      <div className="border-b border-white/5 bg-[var(--sf-black)]/80 backdrop-blur px-6 py-3.5 flex items-center justify-between sticky top-0 z-20">
+      <div className="border-b border-white/5 bg-[var(--sf-black)]/80 backdrop-blur px-4 sm:px-6 py-3.5 flex items-center justify-between sticky top-0 z-20">
         <div>
           <p className="text-sm text-neutral-400">
             {greeting()}, <span className="text-white font-semibold">{user?.businessName || user?.username || "there"}</span>
@@ -79,7 +79,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <SfsContainer className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
+      <SfsContainer className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-10">
 
         {/* Welcome heading */}
         <div>
@@ -188,8 +188,8 @@ export default function Dashboard() {
         <GlassCard className="!border-[var(--sf-gold)]/20 bg-gradient-to-r from-[var(--sf-gold)]/10 to-[var(--sf-black)] p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="text-[var(--sf-gold)] text-xs font-bold uppercase tracking-widest mb-1">You're on the Free Plan</p>
-            <h3 className="text-lg font-extrabold text-white mb-1">Unlock unlimited posts, automation &amp; AI generation</h3>
-            <p className="text-sm text-neutral-400">Upgrade to Pro — from £29/mo. Cancel any time.</p>
+            <h3 className="text-lg font-extrabold text-white mb-1">Unlock unlimited content planning and AI generation</h3>
+            <p className="text-sm text-neutral-400">Upgrade to Pro — £49/mo. Cancel any time.</p>
           </div>
           <GoldButton
             onClick={() => setLocation("/subscribe")}

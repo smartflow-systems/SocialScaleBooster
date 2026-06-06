@@ -549,24 +549,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Account not found" });
       }
 
-      // In a real implementation, this would test the API connection
-      // For now, we'll simulate a successful verification
-      const isValid = true; // Would actually test the API here
-
-      if (isValid) {
-        await storage.updateSocialAccount(accountId, {
-          status: "active",
-          lastVerified: new Date(),
-          lastError: null
-        });
-        res.json({ success: true, message: "Connection verified successfully" });
-      } else {
-        await storage.updateSocialAccount(accountId, {
-          status: "error",
-          lastError: "Connection test failed"
-        });
-        res.status(400).json({ success: false, message: "Connection test failed" });
-      }
+      res.json({
+        success: true,
+        verified: false,
+        demo: true,
+        message: "Demo check completed. Live platform verification is not enabled.",
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

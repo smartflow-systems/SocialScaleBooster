@@ -31,7 +31,7 @@ const plans = [
     price: "£49",
     period: "/month",
     badge: "MOST POPULAR",
-    description: "Unlimited AI content, scheduling & automation. 14-day free trial.",
+    description: "Unlimited AI content and internal scheduling tools. 14-day free trial.",
     highlight: true,
     titleGold: true,
     features: [
@@ -39,7 +39,7 @@ const plans = [
       { text: "Full post builder & scheduler", icon: Zap },
       { text: "Advanced analytics", icon: BarChart3 },
       { text: "Premium templates", icon: Crown },
-      { text: "Multi-platform posting", icon: Check },
+      { text: "Multi-platform content planning", icon: Check },
       { text: "Priority support", icon: Check },
     ],
     cta: "Start 14-Day Free Trial",
@@ -52,7 +52,7 @@ const plans = [
     price: "£149",
     period: "/month",
     badge: "BEST VALUE",
-    description: "Full-service automation for agencies managing multiple clients.",
+    description: "Content planning tools for agencies managing multiple clients.",
     highlight: false,
     titleGold: false,
     features: [

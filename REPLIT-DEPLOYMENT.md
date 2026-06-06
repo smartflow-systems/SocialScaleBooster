@@ -1,7 +1,9 @@
 # SocialScaleBooster - Replit Deployment Guide
 
 **Updated:** 2025-12-13
-**Status:** ✅ Ready for Replit deployment
+**Status:** Deployment requires verification
+
+Canonical source: smartflow-systems/SocialScaleBooster on main.
 
 ---
 
@@ -10,7 +12,10 @@
 ### 1. Import to Replit
 1. Visit: https://replit.com/new/github/smartflow-systems/SocialScaleBooster
 2. Click "Import from GitHub"
-3. Repository will auto-configure using `.replit` file
+3. Review the imported Replit configuration before running the app
+
+Public URL and runtime health must be confirmed. `SFS_JWT_SECRET` must be
+configured before production.
 
 ### 2. Configure Secrets in Replit
 
@@ -22,15 +27,15 @@ Navigate to **Secrets tab** (🔒 icon in sidebar) and add:
 DATABASE_URL=postgresql://user:password@host.neon.tech/database?sslmode=require
 
 # Authentication
-JWT_SECRET=your-secure-random-32-char-secret
-
-# Stripe Payments
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
+SFS_JWT_SECRET=your_secure_random_jwt_secret_here
 ```
 
 #### Optional Secrets
 ```env
+# Billing verification only; not required for the controlled internal demo
+STRIPE_SECRET_KEY=your_stripe_secret_key_here
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key_here
+
 # Replit Deployment
 REPLIT_TOKEN=<auto-provided-by-replit>
 SFS_SYNC_URL=<your-webhook-url>
@@ -40,7 +45,7 @@ NODE_ENV=production
 PORT=5000
 ```
 
-**Generate JWT_SECRET:**
+**Generate SFS_JWT_SECRET:**
 ```bash
 openssl rand -base64 32
 ```
@@ -148,6 +153,9 @@ waitForPort = 5000
 - **5000** - Main application (exposed as port 80)
 - **Auto-proxied** to Replit public URL
 
+Replit public URL: pending confirmation.
+Candidate: https://socialscalebooster.replit.app - currently unverified/404
+
 ---
 
 ## Testing the Deployment
@@ -204,9 +212,10 @@ curl https://your-repl.replit.dev/api/bots \
 
 ## GitHub Actions Integration
 
-### Auto-Deploy on Push
+### Deployment Workflow Verification
 
-The repository is configured for auto-deploy via GitHub Actions:
+The repository includes a deployment workflow, but its configuration and target
+must be verified before use:
 
 **Workflow:** `.github/workflows/sfs-deploy.yml`
 
@@ -220,10 +229,10 @@ The repository is configured for auto-deploy via GitHub Actions:
 3. Build application
 4. Trigger Replit deployment (if `REPLIT_TOKEN` configured)
 
-**GitHub Secrets Required:**
-- `SFS_PAT` - ✅ Configured
-- `REPLIT_TOKEN` - ✅ Configured
-- `SFS_SYNC_URL` - Optional
+**GitHub Settings to Verify:**
+- `SFS_PAT` - workflow-only secret; configuration unverified
+- `REPLIT_TOKEN` - deployment secret; configuration unverified
+- `SFS_SYNC_URL` - optional workflow setting; configuration unverified
 
 ---
 
@@ -249,8 +258,8 @@ npm run dev 2>&1 | tail -100
 # Check database connection
 psql $DATABASE_URL
 
-# View environment
-env | grep -E "(DATABASE|JWT|STRIPE)"
+# Confirm required secret names in the Replit Secrets UI.
+# Do not print secret values.
 
 # Restart server
 Ctrl+C then npm run dev
@@ -281,8 +290,8 @@ psql $DATABASE_URL -c "SELECT 1;"
 
 ### JWT Errors
 ```bash
-# Verify JWT_SECRET is set
-echo $JWT_SECRET
+# Verify the SFS_JWT_SECRET name is configured in Replit Secrets.
+# Do not print secret values.
 
 # Should be 32+ characters
 # If empty, add to Secrets tab
@@ -317,7 +326,7 @@ npm run build
 Before going live:
 
 - [ ] Use production Stripe keys (not test keys)
-- [ ] Set strong `JWT_SECRET` (32+ random characters)
+- [ ] Set strong `SFS_JWT_SECRET` (32+ random characters)
 - [ ] Enable SSL on Neon database (`?sslmode=require`)
 - [ ] Review `.env.example` - ensure no secrets committed
 - [ ] Enable Replit authentication (if private Repl)
@@ -326,13 +335,12 @@ Before going live:
 
 ---
 
-## Production Recommendations
+## Production Readiness Checks
 
 ### Database
-- ✅ Use Neon PostgreSQL (recommended)
-- ✅ Enable connection pooling
-- ✅ Set up automated backups
-- ✅ Monitor query performance
+- Verify the approved PostgreSQL provider and connection settings
+- Verify connection pooling and backups
+- Verify query monitoring
 
 ### Monitoring
 - Set up Sentry or similar for error tracking
@@ -395,17 +403,14 @@ Before going live:
 - [ ] Verified protected routes work
 - [ ] Configured custom domain (optional)
 - [ ] Set up monitoring
-- [ ] Enabled GitHub auto-deploy
+- [ ] Verified deployment workflow target and permissions
 
 ---
 
-**Ready to deploy!** 🚀
+**Deployment requires verification.**
 
-All configuration is complete. Your SocialScaleBooster app will work on Replit with:
-- TypeScript server (`npm run dev`)
-- JWT authentication
-- PostgreSQL database
-- Stripe payments
-- GitHub Actions CI/CD
+Public URL and runtime health must be confirmed. `SFS_JWT_SECRET` must be
+configured before production. Database, billing, and workflow settings require
+separate verification before customer use.
 
 **Last Updated:** 2025-12-13 by Claude Code

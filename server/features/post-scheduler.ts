@@ -3,21 +3,23 @@ import { storage } from "../storage";
 import { log } from "../vite";
 import { getAnalyticsWS } from "../websocket";
 
-async function publishDuePosts(): Promise<void> {
+async function processDuePostsForDemo(): Promise<void> {
   try {
     const duePosts = await storage.getDueScheduledPosts();
     if (duePosts.length === 0) return;
 
-    log(`[scheduler] Found ${duePosts.length} post(s) due for publishing`);
+    log(`[scheduler] Found ${duePosts.length} queued post(s) due for demo processing`);
 
     for (const post of duePosts) {
       let published = false;
       try {
+        // Retain the existing storage status for schema compatibility only.
+        // This demo processor does not call any social-platform publishing API.
         await storage.markScheduledPostPublished(post.id);
         published = true;
-        log(`[scheduler] Published post ${post.id} (platform: ${post.platform}, user: ${post.userId})`);
+        log(`[scheduler] Demo-processed queued post ${post.id}; no platform publishing performed`);
       } catch (err) {
-        log(`[scheduler] Failed to publish post ${post.id}: ${err}`);
+        log(`[scheduler] Failed to demo-process queued post ${post.id}: ${err}`);
         try {
           await storage.markScheduledPostFailed(post.id);
           log(`[scheduler] Marked post ${post.id} as failed`);
@@ -61,9 +63,9 @@ async function publishDuePosts(): Promise<void> {
 }
 
 export async function startPostScheduler(): Promise<void> {
-  await publishDuePosts();
+  await processDuePostsForDemo();
 
-  cron.schedule("* * * * *", publishDuePosts);
+  cron.schedule("* * * * *", processDuePostsForDemo);
 
-  log("[scheduler] Post scheduler started — checking every minute");
+  log("[scheduler] Demo queue processor started — no platform publishing enabled");
 }

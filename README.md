@@ -1,40 +1,47 @@
 # SocialScaleBooster
 
-**AI-Powered Social Media Automation & E-Commerce Growth Platform**
+**AI-Powered Social Media Content Planning Demo**
 
-Part of the SmartFlow Systems ecosystem - Enterprise-grade business automation and social media management.
+Part of the SmartFlow Systems ecosystem. This repository currently supports a
+controlled internal demo of content planning and scheduling workflows.
+
+Canonical source: smartflow-systems/SocialScaleBooster on main.
 
 ## Live Demo
 
-> **[Coming soon — deploy on Replit and paste the `.replit.app` URL here]**
+> Replit public URL: pending confirmation
+>
+> Candidate: https://socialscalebooster.replit.app - currently unverified/404
+>
+> Replit deployment target must be confirmed in the Replit dashboard before deploy.
 
 ---
 
 ## Features
 
-### Social Media Bot Management
-- **Multi-Platform Support** - TikTok, Instagram, Facebook, Twitter, YouTube
-- **Bot Lifecycle Management** - Create, pause, stop, and monitor bots
-- **Template Marketplace** - Pre-built automation templates for common use cases
-- **Real-time Analytics** - Live performance tracking with WebSocket updates
+### Internal Demo Workflows
+- **Platform Labels** - Organize planned content by social platform
+- **Demo Bot Records** - Create, pause, stop, and inspect internal bot records
+- **Template Marketplace** - Browse content-planning templates
+- **Dashboard Views** - Review demo metrics and workflow state
 
 ### Multi-Account Management
-- **Unlimited Accounts Per Platform** - Connect multiple accounts for each social network
+- **Account Records** - Organize multiple account records by platform
 - **Encrypted Credential Storage** - AES-256-GCM encryption for API keys and tokens
-- **Account Linking** - Link bots to specific social accounts for automated posting
-- **Connection Verification** - Test and verify account connections
+- **Account Linking** - Associate social accounts with internal demo workflows
+- **Demo Connection Check** - Run an internal check without claiming live platform verification
 - **Platform-Specific Views** - Organized account management by platform
 
 ### Analytics & Insights
-- **Revenue Tracking** - ROI calculations and revenue attribution
-- **Engagement Metrics** - Platform-specific engagement analysis
+- **Demo Analytics Views** - Review sample and internally recorded metrics
+- **Engagement Fields** - Organize platform-specific metric records
 - **Performance Dashboard** - Visual charts and data visualization
-- **Weekly Reports** - Automated performance summaries
+- **Report Planning** - Prepare internal reporting workflows
 
-### Premium Subscription
-- **Tiered Access** - Free (3 bots) and Premium (unlimited)
-- **Stripe Integration** - Secure payment processing
-- **Subscription Management** - Cancel, upgrade, downgrade flows
+### Pricing Demo
+- **Tiered Plan UI** - Compare visible Starter, Pro, and Agency plan copy
+- **Stripe Routes Present** - Billing requires separate verification before use
+- **No Billing Guarantee** - Do not treat the internal demo as a proven live subscription flow
 
 ### Authentication & Security
 - **JWT-based Auth** - Secure token authentication
@@ -60,7 +67,7 @@ Part of the SmartFlow Systems ecosystem - Enterprise-grade business automation a
 - **TypeScript** - Type-safe development
 - **Drizzle ORM** - Type-safe SQL with PostgreSQL
 - **JWT** - JSON Web Token authentication
-- **Stripe** - Payment processing
+- **Stripe** - Billing integration present; live readiness unverified
 - **WebSocket** - Real-time analytics updates
 
 ### Database
@@ -80,7 +87,7 @@ Part of the SmartFlow Systems ecosystem - Enterprise-grade business automation a
 ### Prerequisites
 - Node.js 18+ installed
 - PostgreSQL database (Neon recommended)
-- Stripe account (for payments)
+- Stripe account only if separately verifying billing in a controlled environment
 - GitHub account (for CI/CD)
 
 ### Installation
@@ -110,8 +117,8 @@ NODE_ENV=development
 # Database (Neon PostgreSQL)
 DATABASE_URL=postgresql://user:password@host/database
 
-# Authentication
-JWT_SECRET=your-super-secret-jwt-key-change-this
+# Authentication (required in production)
+SFS_JWT_SECRET=your_secure_random_jwt_secret_here
 
 # Encryption (for social account credentials)
 # Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -272,7 +279,7 @@ Content-Type: application/json
   "name": "TikTok Growth Bot",
   "platform": "tiktok",
   "status": "active",
-  "description": "Automated content posting and engagement"
+  "description": "Internal demo content planning workflow"
 }
 ```
 
@@ -335,9 +342,9 @@ GET /api/social-accounts
     "platform": "instagram",
     "accountName": "Main Store",
     "accountHandle": "@mainstore",
-    "status": "active",
+    "status": "demo",
     "hasCredentials": true,
-    "lastVerified": "2024-01-15T10:30:00Z"
+    "lastVerified": null
   }
 ]
 ```
@@ -376,6 +383,9 @@ Content-Type: application/json
 POST /api/social-accounts/:id/verify
 ```
 
+The social-account verification endpoint is an internal demo check. It does not
+verify a live platform connection or mark an account as live-verified.
+
 #### Delete Account
 ```http
 DELETE /api/social-accounts/:id
@@ -387,6 +397,9 @@ GET /api/social-accounts/:id/bots
 ```
 
 ### Payments
+
+Payment routes are present but live subscription readiness is unverified. Do not
+use them for a customer demo without a separate approved billing test.
 
 #### Create Subscription
 ```http
@@ -436,7 +449,7 @@ Automatically runs on push to `main` or `master`:
 3. **Lint Code** - `npm run lint`
 4. **Run Tests** - `npm test`
 5. **Build Project** - `npm run build`
-6. **Deploy to Replit** (if configured)
+6. **Request Replit deployment** only after configuration and runtime verification
 
 ### Required GitHub Secrets
 
@@ -455,7 +468,7 @@ Configure in **Settings → Secrets and variables → Actions**:
 1. **Fork repository** to your GitHub account
 2. **Import to Replit** from GitHub
 3. **Set environment variables** in Replit Secrets
-4. **Configure GitHub webhook** for auto-deploy
+4. **Verify deployment workflow configuration** before enabling any webhook
 5. **Run** `npm start`
 
 ### Manual Deployment
@@ -544,9 +557,8 @@ lsof -ti:5000 | xargs kill -9
 - Ensure IP whitelist includes your location
 
 ### Stripe Integration
-- Use test keys during development (`sk_test_...`)
-- Enable Stripe webhook endpoints in dashboard
-- Test with Stripe CLI: `stripe listen --forward-to localhost:5000/api/webhooks/stripe`
+- Billing is not part of the controlled internal demo.
+- Verify routes, prices, webhooks, and provider settings separately before use.
 
 ### Build Errors
 ```bash
@@ -586,11 +598,10 @@ For questions, issues, or feature requests:
 - **GitHub Issues:** [SocialScaleBooster Issues](https://github.com/smartflow-systems/SocialScaleBooster/issues)
 - **Organization:** smartflow-systems
 - **Related Repos:**
-  - [SmartFlowSite](https://github.com/boweazy/SmartFlowSite)
-  - [SFSAPDemoCRM](https://github.com/smartflow-systems/SFSAPDemoCRM)
+  - [SmartFlowSite](https://github.com/smartflow-systems/SmartFlowSite)
+  - SFSAPDemoCRM - future/parked reference; not connected to SocialScaleBooster
   - [SFSDataQueryEngine](https://github.com/smartflow-systems/SFSDataQueryEngine)
 
 ---
 
-**SmartFlow Systems** | Building the future of business automation
-*10x E-Com Sales with AI-Powered Social Bots*
+**SmartFlow Systems** | Internal social content planning demo

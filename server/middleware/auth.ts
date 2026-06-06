@@ -1,17 +1,23 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.SFS_JWT_SECRET || 'sfs-dev-secret-change-in-production';
+const DEVELOPMENT_JWT_SECRET = 'sfs-dev-secret-change-in-production';
+const configuredJwtSecret = process.env.SFS_JWT_SECRET || process.env.JWT_SECRET;
+
+if (
+  process.env.NODE_ENV === 'production' &&
+  (!configuredJwtSecret ||
+    configuredJwtSecret === DEVELOPMENT_JWT_SECRET ||
+    configuredJwtSecret.length < 32)
+) {
+  throw new Error('SFS_JWT_SECRET must be a unique secret of at least 32 characters in production');
+}
+
+const JWT_SECRET = configuredJwtSecret || DEVELOPMENT_JWT_SECRET;
 
 export interface AuthRequest extends Request {
   userId?: number;
-  user?: {
-    id: number;
-    username: string;
-    email: string;
-    isPremium: boolean;
-    isAdmin: boolean;
-  };
+  tokenExpiresAt?: number;
 }
 
 export interface JWTPayload {
@@ -20,6 +26,8 @@ export interface JWTPayload {
   email: string;
   isPremium: boolean;
   isAdmin: boolean;
+  iat?: number;
+  exp?: number;
 }
 
 /**
@@ -35,13 +43,15 @@ export function authenticateToken(
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
   if (!token) {
-    return res.status(401).json({ message: 'Authentication token required' });
+    res.status(401).json({ message: 'Authentication token required' });
+    return;
   }
 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
     req.userId = payload.userId;
-    req.user = {
+    req.tokenExpiresAt = payload.exp ? payload.exp * 1000 : undefined;
+    (req as any).user = {
       id: payload.userId,
       username: payload.username,
       email: payload.email,
@@ -50,7 +60,7 @@ export function authenticateToken(
     };
     next();
   } catch (error) {
-    return res.status(403).json({ message: 'Invalid or expired token' });
+    res.status(401).json({ message: 'Invalid or expired token' });
   }
 }
 
@@ -69,7 +79,8 @@ export function optionalAuth(
     try {
       const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
       req.userId = payload.userId;
-      req.user = {
+      req.tokenExpiresAt = payload.exp ? payload.exp * 1000 : undefined;
+      (req as any).user = {
         id: payload.userId,
         username: payload.username,
         email: payload.email,
