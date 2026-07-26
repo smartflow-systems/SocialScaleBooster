@@ -44,30 +44,20 @@ jobs:
 
       - name: Check for exposed secrets
         run: |
-          # Check for common secret patterns (using variables to avoid self-detection)
-          GHP_PATTERN="ghp_"
-          PAT_PATTERN="github_pat_"
-          
-          if grep -r "$GHP_PATTERN" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.github 2>/dev/null; then
+          # Match plausible token *shapes* (prefix + 20+ id chars), not the bare
+          # prefix substring — the bare-substring version flagged this repo's
+          # own sfs-secrets-audit.sh, whose scanning regex legitimately contains
+          # the literal text "github_pat_" without holding a real credential.
+          # --exclude and --exclude-dir skip known scanning-tool artifacts
+          # (audit script + its timestamped report output) for the same reason.
+          if grep -rEn "ghp_[a-zA-Z0-9]{20,}|github_pat_[a-zA-Z0-9_]{20,}" . \
+            --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.github \
+            --exclude=sfs-secrets-audit.sh \
+            --exclude-dir='sfs-secret-audit-*' 2>/dev/null; then
             echo "❌ ERROR: Exposed GitHub token detected"
             exit 1
           fi
-          
-          if grep -r "${GHP_PATTERN}[a-zA-Z0-9]" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.github 2>/dev/null; then
-            echo "❌ ERROR: Exposed GitHub token detected"
-            exit 1
-          fi
-          
-          if grep -r "$PAT_PATTERN" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.github 2>/dev/null; then
-            echo "❌ ERROR: Exposed GitHub token detected"
-            exit 1
-          fi
-          
-          if grep -r "${PAT_PATTERN}[a-zA-Z0-9]" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.github 2>/dev/null; then
-            echo "❌ ERROR: Exposed GitHub token detected"
-            exit 1
-          fi
-          
+
           echo "✓ No exposed secrets found"
 
       - name: Verify Node version in package.json

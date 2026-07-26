@@ -19,7 +19,7 @@
     "pull": "git pull --no-edit",
     "push": "git push",
     "auto-commit": "git add . && git commit -m 'chore: auto-commit [Auto-Sync]' || true",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "test:ui": "vitest --ui",
